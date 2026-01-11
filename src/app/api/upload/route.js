@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 
 export async function POST(req) {
     try {
@@ -12,18 +10,10 @@ export async function POST(req) {
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        const filename = 'menu_' + Date.now() + '_' + file.name.replaceAll(' ', '_');
-        const uploadDir = path.join(process.cwd(), 'public/uploads');
+        const base64Image = buffer.toString('base64');
+        const dataUrl = `data:${file.type};base64,${base64Image}`;
 
-        try {
-            await mkdir(uploadDir, { recursive: true });
-        } catch (e) {
-            // directory likely exists
-        }
-
-        await writeFile(path.join(uploadDir, filename), buffer);
-
-        return NextResponse.json({ url: `/uploads/${filename}` }, { status: 200 });
+        return NextResponse.json({ url: dataUrl }, { status: 200 });
 
     } catch (error) {
         console.error("Upload error:", error);

@@ -3,8 +3,6 @@ import dbConnect from '@/lib/db';
 import Listing from '@/models/Listing';
 import jwt from 'jsonwebtoken';
 import slugify from 'slugify';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -119,13 +117,8 @@ export async function POST(req) {
         let imageUrl = '';
         if (imageFile && imageFile.size > 0) {
             const buffer = Buffer.from(await imageFile.arrayBuffer());
-            const filename = Date.now() + '_' + imageFile.name.replaceAll(' ', '_');
-            const uploadDir = path.join(process.cwd(), 'public/uploads');
-            try {
-                await mkdir(uploadDir, { recursive: true });
-            } catch (e) { }
-            await writeFile(path.join(uploadDir, filename), buffer);
-            imageUrl = `/uploads/${filename}`;
+            const base64Image = buffer.toString('base64');
+            imageUrl = `data:${imageFile.type};base64,${base64Image}`;
         }
 
         // Generate Slug

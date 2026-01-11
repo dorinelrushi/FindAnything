@@ -4,10 +4,6 @@ import Listing from '@/models/Listing';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
 import slugify from 'slugify';
-import { writeFile } from 'fs/promises';
-import path from 'path';
-
-
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -146,10 +142,8 @@ export async function PUT(req, { params }) {
 
         if (imageFile && imageFile.size > 0) {
             const buffer = Buffer.from(await imageFile.arrayBuffer());
-            const filename = Date.now() + '_' + imageFile.name.replaceAll(' ', '_');
-            const uploadDir = path.join(process.cwd(), 'public/uploads');
-            await writeFile(path.join(uploadDir, filename), buffer);
-            listing.image = `/uploads/${filename}`;
+            const base64Image = buffer.toString('base64');
+            listing.image = `data:${imageFile.type};base64,${base64Image}`;
         }
 
         // Update slug if title changed

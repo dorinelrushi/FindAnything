@@ -3,8 +3,6 @@ import dbConnect from '@/lib/db';
 import Review from '@/models/Review';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -52,17 +50,8 @@ export async function POST(req) {
 
             if (imageFile && imageFile.size > 0) {
                 const buffer = Buffer.from(await imageFile.arrayBuffer());
-                const filename = Date.now() + '_' + imageFile.name.replaceAll(' ', '_');
-                const uploadDir = path.join(process.cwd(), 'public/uploads');
-
-                try {
-                    await mkdir(uploadDir, { recursive: true });
-                } catch (e) {
-                    // Ignore error if directory exists
-                }
-
-                await writeFile(path.join(uploadDir, filename), buffer);
-                imageUrl = `/uploads/${filename}`;
+                const base64Image = buffer.toString('base64');
+                imageUrl = `data:${imageFile.type};base64,${base64Image}`;
             }
         } else {
             const body = await req.json();
