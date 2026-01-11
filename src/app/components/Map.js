@@ -89,7 +89,8 @@ function RoutingMachine({ start, end }) {
                     },
                     showAlternatives: true,
                     addWaypoints: false,
-                    fitSelectedRoutes: true
+                    fitSelectedRoutes: true,
+                    show: false // Hide the turn-by-turn directions table
                 }).addTo(map);
             } catch (e) {
                 console.error("Leaflet Routing Machine init error", e);
@@ -119,7 +120,7 @@ function MapResizer() {
         // Force map to recalculate its container size after initial render
         const timer = setTimeout(() => {
             map.invalidateSize();
-        }, 500);
+        }, 50);
         return () => clearTimeout(timer);
     }, [map]);
     return null;
@@ -131,12 +132,29 @@ const Map = ({ listings, startPoint, endPoint }) => {
     const defaultPosition = [40.6186, 20.7808]; // Korca
 
     return (
-        <MapContainer center={defaultPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
+        <MapContainer
+            center={defaultPosition}
+            zoom={13}
+            style={{ height: '100%', width: '100%' }}
+            preferCanvas={true}
+            zoomAnimation={true}
+            markerZoomAnimation={true}
+            tap={false} // Faster clicks on mobile
+            bounceAtZoomLimits={false}
+        >
             <MapResizer />
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                updateWhenZooming={false}
+                updateWhenIdle={true}
+                keepBuffer={4}
             />
+            <style jsx global>{`
+                .leaflet-routing-container {
+                    display: none !important;
+                }
+            `}</style>
             {listings.map((listing) => {
                 const lat = parseCoord(listing.lat);
                 const lng = parseCoord(listing.lng);
@@ -155,7 +173,7 @@ const Map = ({ listings, startPoint, endPoint }) => {
 
             {/* Only render if start coordinate valid and no end point */}
             {!isNaN(parseCoord(startPoint?.lat)) && !isNaN(parseCoord(startPoint?.lng)) && !endPoint && (
-                <Marker position={[parseCoord(startPoint.lat), parseCoord(startPoint.lng)]}>
+                <Marker position={[parseCoord(startPoint.lat) || 0, parseCoord(startPoint.lng) || 0]}>
                     <Popup>Start Point</Popup>
                 </Marker>
             )}
