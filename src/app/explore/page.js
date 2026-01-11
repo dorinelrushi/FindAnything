@@ -23,6 +23,7 @@ function ExploreContent() {
     const [userLocation, setUserLocation] = useState(null);
     const [distances, setDistances] = useState({});
     const [hydrated, setHydrated] = useState(false);
+    const [viewMode, setViewMode] = useState('list'); // 'list' or 'map' on mobile
 
     // Distance Calculator State
     const [calcPointA, setCalcPointA] = useState('My Location');
@@ -215,8 +216,24 @@ function ExploreContent() {
 
     return (
         <div className="explore-container">
+            {/* View Toggle for Mobile */}
+            <div className="view-toggle mobile-only glass">
+                <button
+                    className={viewMode === 'list' ? 'active' : ''}
+                    onClick={() => setViewMode('list')}
+                >
+                    List
+                </button>
+                <button
+                    className={viewMode === 'map' ? 'active' : ''}
+                    onClick={() => setViewMode('map')}
+                >
+                    Map
+                </button>
+            </div>
+
             {/* Left Sidebar - Filters & Tools */}
-            <div className="sidebar glass">
+            <div className={`sidebar glass ${viewMode === 'map' ? 'mobile-hidden' : ''}`}>
                 <h3>Explore</h3>
 
                 <div className="tool-section">
@@ -314,6 +331,10 @@ function ExploreContent() {
                             onChange={(e) => {
                                 const loc = listings.find(l => l._id === e.target.value);
                                 setCalcPointB(loc);
+                                // On mobile, if user selects end point, they might want to see the map
+                                if (window.innerWidth <= 768) {
+                                    setViewMode('map');
+                                }
                             }}
                         >
                             <option value="">Select Destination...</option>
@@ -332,7 +353,7 @@ function ExploreContent() {
             </div>
 
             {/* Middle - Results */}
-            <div className="results-area">
+            <div className={`results-area ${viewMode === 'map' ? 'mobile-hidden' : ''}`}>
                 <div className="search-header glass">
                     <input
                         type="text"
@@ -357,6 +378,7 @@ function ExploreContent() {
                         {listings.map(listing => {
                             // Strip HTML tags for preview
                             const stripHtml = (html) => {
+                                if (typeof document === 'undefined') return '';
                                 const tmp = document.createElement('div');
                                 tmp.innerHTML = html;
                                 return tmp.textContent || tmp.innerText || '';
@@ -415,7 +437,7 @@ function ExploreContent() {
             </div>
 
             {/* Right - Map */}
-            <div className="map-area glass">
+            <div className={`map-area glass ${viewMode === 'list' ? 'mobile-hidden' : ''}`}>
                 <Map
                     listings={listings}
                     startPoint={(calcPointA === 'My Location' ? userLocation : calcPointA)}
@@ -434,37 +456,90 @@ function ExploreContent() {
                     max-width: 100%;
                     margin: 0;
                     overflow: hidden; 
+                    position: relative;
+                }
+                
+                .view-toggle {
+                    display: none;
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 1000;
+                    padding: 5px;
+                    border-radius: 30px;
+                    gap: 5px;
+                }
+
+                .view-toggle button {
+                    padding: 10px 25px;
+                    border-radius: 25px;
+                    border: none;
+                    background: transparent;
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+
+                .view-toggle button.active {
+                    background: var(--primary);
+                    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
                 }
                 
                 @media (max-width: 1200px) {
                     .explore-container {
-                        grid-template-columns: 250px 1fr;
+                        grid-template-columns: 280px 1fr;
                     }
-                    .map-area {
-                        display: none; /* Hide map on medium screens to focus on list/filters? Or stack */
-                    }
+                    /* On desktop smaller than 1200px, we still show map if possible, but maybe narrower */
                 }
 
                 @media (max-width: 768px) {
                     .explore-container {
-                        display: flex;
-                        flex-direction: column;
-                        height: auto;
-                        overflow-y: auto;
-                        padding-bottom: 80px; /* Space for nav if sticky bottom */
-                    }
-                    .map-area {
                         display: block;
-                        height: 300px;
-                        order: -1;
-                        flex-shrink: 0;
+                        height: calc(100vh - 80px);
+                        padding: 10px;
+                        overflow: hidden;
                     }
-                    .sidebar {
-                        order: 0;
+                    
+                    .view-toggle {
+                        display: flex;
                     }
+
+                    .sidebar, .results-area, .map-area {
+                        height: 100%;
+                        width: 100%;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        padding: 15px;
+                        transition: opacity 0.3s, visibility 0.3s;
+                    }
+
                     .results-area {
-                        order: 1;
-                        overflow: visible; /* Let it grow */
+                        padding-top: 15px;
+                        padding-bottom: 80px;
+                        overflow-y: auto;
+                        position: relative;
+                    }
+
+                    .sidebar {
+                        display: none; /* Hide filters on mobile or move to a modal? Let's hide for now to focus on List/Map toggle */
+                    }
+
+                    .mobile-hidden {
+                        display: none !important;
+                    }
+
+                    .map-area {
+                        position: fixed;
+                        top: 80px;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        height: calc(100vh - 80px);
+                        border-radius: 0;
+                        z-index: 5;
                     }
                 }
 
