@@ -8,7 +8,7 @@ const ListingSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['hotel', 'restaurant', 'bar', 'bujtina', 'rentcar'],
+        enum: ['hotel', 'restaurant', 'bar', 'bujtina', 'rentcar', 'tour', 'city'],
         required: true,
     },
     title: {
@@ -37,13 +37,29 @@ const ListingSchema = new mongoose.Schema({
         required: false,
     },
     image: {
-        type: String, // URL path
+        type: String, // Main image URL path
+    },
+    gallery: {
+        type: [String], // Array of additional image URLs
+        default: [],
     },
     lat: {
         type: Number,
     },
     lng: {
         type: Number,
+    },
+    whatsappNumber: {
+        type: String, // Global whatsapp number for all types
+        required: false,
+    },
+    city: {
+        type: String, // Global city field
+        required: false,
+    },
+    country: {
+        type: String, // Global country field
+        required: false,
     },
     createdAt: {
         type: Date,
@@ -121,6 +137,37 @@ const ListingSchema = new mongoose.Schema({
             dates: { type: String } // From - To string for simplicity
         },
         extraServices: { type: [String], default: [] } // GPS, Karrige për fëmijë, etc.
+    },
+    // Tour specific fields
+    tourData: {
+        duration: { type: String }, // e.g. "3 Days", "5 Hours"
+        country: { type: String }, // Location/Country
+        maxTravelers: { type: Number },
+        itinerary: {
+            type: [{ day: Number, content: String }],
+            default: []
+        },
+        inclusions: { type: [String], default: [] }, // "Transport", "Lunch", "Guide"
+        exclusions: { type: [String], default: [] }, // "Personal expenses", "Tips"
+        calendar: { type: String }, // Available dates or link to calendar
+        price: { type: String }, // Keep as string for display, but use pricing for calculator
+        pricing: {
+            adultPrice: { type: Number, default: 0 },
+            childPrice: { type: Number, default: 0 },
+            fixedPrice: { type: Number, default: 0 },
+            isGroupWise: { type: Boolean, default: false }
+        },
+        extras: {
+            type: [{ name: String, price: Number }],
+            default: []
+        },
+        whatsappNumber: { type: String },
+    },
+    // City specific fields
+    cityData: {
+        country: { type: String },
+        population: { type: String },
+        bestTimeToVisit: { type: String }
     }
 });
 

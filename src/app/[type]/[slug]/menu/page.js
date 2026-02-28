@@ -185,6 +185,25 @@ export default function MenuPage({ params }) {
                 @media (max-width: 768px) {
                     .items-grid {
                         grid-template-columns: 1fr;
+                        gap: 15px;
+                    }
+                    .header-content h1 {
+                        font-size: 2rem;
+                    }
+                    .subtitle {
+                        font-size: 1.1rem;
+                    }
+                    .menu-header {
+                        height: 200px;
+                    }
+                    .menu-content {
+                        padding: 20px 15px;
+                    }
+                    .category-title {
+                        font-size: 1.8rem;
+                    }
+                    .category-title::after {
+                        width: 40px;
                     }
                 }
 

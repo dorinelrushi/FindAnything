@@ -9,7 +9,8 @@ const CATEGORIES = {
     bar: ['Cocktail Bar', 'Lounge Bar', 'Wine Bar', 'Beer Bar', 'Cafe Bar', 'Night Bar'],
     hotel: ['Hotel', 'Boutique Hotel', 'Guesthouse', 'Hostel', 'Resort'],
     bujtina: ['Traditional', 'Modern', 'Family-Run', 'Mountain', 'Lake View'],
-    rentcar: ['Economy', 'Luxury', 'SUV', 'Electric', 'Family']
+    rentcar: ['Economy', 'Luxury', 'SUV', 'Electric', 'Family'],
+    tour: ['Day Trip', 'Multi-day Tour', 'Adventure', 'Cultural', 'Walking Tour', 'Food Tour', 'Hiking']
 };
 
 // Predefined services (for non-hotel types)
@@ -37,6 +38,25 @@ const BAR_ATMOSPHERE = ['Relax', 'Modern', 'Traditional', 'Romantic', 'Nightlife
 const BAR_SERVICES = ['Wi-Fi falas', 'Ambient i jashtëm (verandë)', 'Live Music / DJ', 'Evente tematike', 'Rezervime', 'Pagesa me kartë'];
 const SUITABLE_FOR = ['Çifte', 'Grupe shoqërore', 'Turistë'];
 
+const CAR_CATEGORIES = ['Ekonomike', 'Kompakte', 'SUV', 'Luksoze', '4x4', 'Furgon'];
+const FUEL_TYPES = ['Naftë', 'Benzinë', 'Elektrike', 'Hybrid'];
+const TRANSMISSIONS = ['Manual', 'Automatik'];
+const CAR_INCLUSIONS = ['Siguracion bazë', 'Kilometra pa limit', 'Asistencë rrugore'];
+const REQUIRED_DOCS = ['ID / Pasaportë', 'Patentë'];
+const CAR_PAYMENT_METHODS = ['Cash', 'Kartë', 'Transfertë Bankare'];
+const CAR_EXTRA_SERVICES = ['Sedilje fëmijësh', 'GPS / Navigacion', 'Shofer shtesë', 'Siguracion Full Kasko'];
+
+// Bujtina-specific options
+const BUJTINA_TYPES = ['Bujtinë', 'Guesthouse', 'Agroturizëm'];
+const BUJTINA_STYLES = ['Tradicional', 'Rustik', 'Familjar'];
+const BUJTINA_ROOM_TYPES = ['Double', 'Triple', 'Family Room'];
+const BUJTINA_AMENITIES = ['Ngrohje', 'Banjo private', 'Wi-Fi', 'Oxhak (opsionale)'];
+const BUJTINA_FACILITIES = ['Parkim falas', 'Ambient i jashtëm', 'Zjarr/oxhak', 'Guides lokale (opsionale)'];
+const BIO_PRODUCTS = ['Djathë', 'Qumësht', 'Reçel', 'Bukë shtëpie'];
+
+// Tour specific options
+const TOUR_INCLUSIONS = ['Transport', 'Lunch', 'Dinner', 'Guide', 'Entrance Fees', 'Hotel Pickup'];
+
 export default function EditListingPage({ params }) {
     const { slug } = use(params);
     const router = useRouter();
@@ -57,6 +77,8 @@ export default function EditListingPage({ params }) {
     const [loading, setLoading] = useState(true);
     const [selectedServices, setSelectedServices] = useState([]);
     const [customService, setCustomService] = useState('');
+    const [existingGallery, setExistingGallery] = useState([]);
+    const [newGalleryFiles, setNewGalleryFiles] = useState([]);
 
     // Hotel-specific state
     const [hotelData, setHotelData] = useState({
@@ -97,6 +119,84 @@ export default function EditListingPage({ params }) {
         }
     });
 
+    // Bujtina-specific state
+    const [bujtinaData, setBujtinaData] = useState({
+        accommodationType: 'Bujtinë',
+        style: [],
+        totalRooms: '',
+        roomTypes: [],
+        roomAmenities: [],
+        facilities: [],
+        food: {
+            breakfast: 'Po (produkte shtëpie)',
+            meals: 'Ushqim tradicional korçar',
+            bioProducts: []
+        },
+        customStyle: '',
+        customRoomType: '',
+        customAmenity: '',
+        customFacility: '',
+        customBioProduct: ''
+    });
+
+    // Rent Car specific state
+    const [rentCarData, setRentCarData] = useState({
+        brandModel: '',
+        year: '',
+        category: [],
+        fuelType: '',
+        transmission: '',
+        seats: '',
+        airConditioning: true,
+        fuelConsumption: '',
+        prices: {
+            daily: '',
+            weekly: '',
+            deposit: '',
+            inclusions: []
+        },
+        conditions: {
+            minAge: '',
+            licenseExperience: '',
+            requiredDocuments: [],
+            paymentMethods: []
+        },
+        availability: {
+            status: 'E lirë',
+            dates: ''
+        },
+        extraServices: [],
+        customCategory: '',
+        customInclusion: '',
+        customDocument: '',
+        customPayment: '',
+        customExtraService: ''
+    });
+
+    // Tour specific state
+    const [tourData, setTourData] = useState({
+        duration: '',
+        country: '',
+        maxTravelers: '',
+        itinerary: [{ day: 1, content: '' }],
+        inclusions: [],
+        exclusions: [],
+        calendar: '',
+        price: '',
+        pricing: {
+            adultPrice: 0,
+            childPrice: 0,
+            fixedPrice: 0,
+            isGroupWise: false
+        },
+        extras: [],
+        customExtraName: '',
+        customExtraPrice: '',
+        customInclusion: '',
+        customExclusion: '',
+        whatsappNumber: ''
+    });
+
     useEffect(() => {
         if (!authLoading && (!user || (user.role !== 'business' && user.role !== 'admin'))) {
             router.push('/');
@@ -125,6 +225,7 @@ export default function EditListingPage({ params }) {
                     customCategory: ''
                 });
                 setSelectedServices(listing.services || []);
+                setExistingGallery(listing.gallery || []);
                 if (listing.hotelData) {
                     setHotelData(prev => ({
                         ...prev,
@@ -144,9 +245,47 @@ export default function EditListingPage({ params }) {
                             ...(listing.barData.rules || {})
                         },
                         features: {
-                            ...prev.features,
                             ...(listing.barData.features || {})
                         }
+                    }));
+                }
+                if (listing.bujtinaData) {
+                    setBujtinaData(prev => ({
+                        ...prev,
+                        ...listing.bujtinaData,
+                        food: {
+                            ...prev.food,
+                            ...(listing.bujtinaData.food || {})
+                        }
+                    }));
+                }
+                if (listing.rentCarData) {
+                    setRentCarData(prev => ({
+                        ...prev,
+                        ...listing.rentCarData,
+                        prices: {
+                            ...prev.prices,
+                            ...(listing.rentCarData.prices || {})
+                        },
+                        conditions: {
+                            ...prev.conditions,
+                            ...(listing.rentCarData.conditions || {})
+                        },
+                        availability: {
+                            ...prev.availability,
+                            ...(listing.rentCarData.availability || {})
+                        }
+                    }));
+                }
+                if (listing.tourData) {
+                    setTourData(prev => ({
+                        ...prev,
+                        ...listing.tourData,
+                        pricing: {
+                            ...prev.pricing,
+                            ...(listing.tourData.pricing || {})
+                        },
+                        extras: listing.tourData.extras || []
                     }));
                 }
             } else {
@@ -257,6 +396,151 @@ export default function EditListingPage({ params }) {
         }
     };
 
+    // Tour helpers
+    const toggleTourInclusion = (item) => {
+        setTourData(prev => ({
+            ...prev,
+            inclusions: prev.inclusions.includes(item) ? prev.inclusions.filter(i => i !== item) : [...prev.inclusions, item]
+        }));
+    };
+
+    const addCustomTourInclusion = () => {
+        const val = tourData.customInclusion.trim();
+        if (val && !tourData.inclusions.includes(val)) {
+            setTourData(prev => ({ ...prev, inclusions: [...prev.inclusions, val], customInclusion: '' }));
+        }
+    };
+
+    const addItineraryDay = () => {
+        setTourData(prev => ({
+            ...prev,
+            itinerary: [...prev.itinerary, { day: prev.itinerary.length + 1, content: '' }]
+        }));
+    };
+
+    const updateItineraryDay = (index, content) => {
+        setTourData(prev => ({
+            ...prev,
+            itinerary: prev.itinerary.map((item, i) => i === index ? { ...item, content } : item)
+        }));
+    };
+
+    const toggleBujtinaArray = (arrayName, item) => {
+        setBujtinaData(prev => ({
+            ...prev,
+            [arrayName]: prev[arrayName].includes(item)
+                ? prev[arrayName].filter(i => i !== item)
+                : [...prev[arrayName], item]
+        }));
+    };
+
+    const toggleBujtinaBio = (item) => {
+        setBujtinaData(prev => ({
+            ...prev,
+            food: {
+                ...prev.food,
+                bioProducts: prev.food.bioProducts.includes(item)
+                    ? prev.food.bioProducts.filter(i => i !== item)
+                    : [...prev.food.bioProducts, item]
+            }
+        }));
+    };
+
+    const addCustomBujtinaItem = (arrayName, customFieldName) => {
+        const customValue = bujtinaData[customFieldName]?.trim();
+        if (customValue && !bujtinaData[arrayName].includes(customValue)) {
+            setBujtinaData(prev => ({
+                ...prev,
+                [arrayName]: [...prev[arrayName], customValue],
+                [customFieldName]: ''
+            }));
+        }
+    };
+
+    const addCustomBujtinaBio = () => {
+        const customValue = bujtinaData.customBioProduct?.trim();
+        if (customValue && !bujtinaData.food.bioProducts.includes(customValue)) {
+            setBujtinaData(prev => ({
+                ...prev,
+                food: {
+                    ...prev.food,
+                    bioProducts: [...prev.food.bioProducts, customValue]
+                },
+                customBioProduct: ''
+            }));
+        }
+    };
+
+    const toggleRentCarArray = (arrayName, item) => {
+        setRentCarData(prev => ({
+            ...prev,
+            [arrayName]: prev[arrayName].includes(item)
+                ? prev[arrayName].filter(i => i !== item)
+                : [...prev[arrayName], item]
+        }));
+    };
+
+    const toggleRentCarNestedArray = (parent, arrayName, item) => {
+        setRentCarData(prev => ({
+            ...prev,
+            [parent]: {
+                ...prev[parent],
+                [arrayName]: prev[parent][arrayName].includes(item)
+                    ? prev[parent][arrayName].filter(i => i !== item)
+                    : [...prev[parent][arrayName], item]
+            }
+        }));
+    };
+
+    const addCustomRentCarItem = (arrayName, customFieldName) => {
+        const customValue = rentCarData[customFieldName]?.trim();
+        if (customValue && !rentCarData[arrayName].includes(customValue)) {
+            setRentCarData(prev => ({
+                ...prev,
+                [arrayName]: [...prev[arrayName], customValue],
+                [customFieldName]: ''
+            }));
+        }
+    };
+
+    const addCustomRentCarNestedItem = (parent, arrayName, customFieldName) => {
+        const customValue = rentCarData[customFieldName]?.trim();
+        if (customValue && !rentCarData[parent][arrayName].includes(customValue)) {
+            setRentCarData(prev => ({
+                ...prev,
+                [parent]: {
+                    ...prev[parent],
+                    [arrayName]: [...prev[parent][arrayName], customValue]
+                },
+                [customFieldName]: ''
+            }));
+        }
+    };
+
+    const removeItineraryDay = (index) => {
+        setTourData(prev => {
+            const newItinerary = prev.itinerary.filter((_, i) => i !== index);
+            // Re-index days
+            return {
+                ...prev,
+                itinerary: newItinerary.map((item, i) => ({ ...item, day: i + 1 }))
+            };
+        });
+    };
+
+    const removeExistingImage = (index) => {
+        setExistingGallery(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleNewGalleryUpload = (e) => {
+        const files = Array.from(e.target.files);
+        setNewGalleryFiles(prev => [...prev, ...files]);
+    };
+
+    const removeNewGalleryFile = (index) => {
+        setNewGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
     const handleAddressSearch = async () => {
         if (!formData.address) return;
         try {
@@ -305,6 +589,26 @@ export default function EditListingPage({ params }) {
                 category: finalCategory
             };
             data.append('barData', JSON.stringify(barDataToSave));
+        }
+
+        if (formData.type === 'bujtina') {
+            data.append('bujtinaData', JSON.stringify(bujtinaData));
+        }
+
+        if (formData.type === 'rentcar') {
+            data.append('rentCarData', JSON.stringify(rentCarData));
+        }
+
+        if (formData.type === 'tour') {
+            data.append('tourData', JSON.stringify(tourData));
+        }
+
+        // Add Gallery Data
+        data.append('remainingGallery', JSON.stringify(existingGallery));
+        if (newGalleryFiles && newGalleryFiles.length > 0) {
+            newGalleryFiles.forEach(file => {
+                data.append('newGallery', file);
+            });
         }
 
         if (imageFile) {
@@ -884,8 +1188,432 @@ export default function EditListingPage({ params }) {
                     </>
                 )}
 
-                {/* Services (for non-hotel types) */}
-                {formData.type !== 'hotel' && (
+                {/* Bujtina-Specific Fields */}
+                {formData.type === 'bujtina' && (
+                    <>
+                        <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Lloji i Akomodimit</h3>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Tipi</label>
+                                <select className="input" value={bujtinaData.accommodationType} onChange={(e) => setBujtinaData({ ...bujtinaData, accommodationType: e.target.value })}>
+                                    {BUJTINA_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Stili</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
+                                    {BUJTINA_STYLES.map(style => (
+                                        <label key={style} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                            <input type="checkbox" checked={bujtinaData.style.includes(style)} onChange={() => toggleBujtinaArray('style', style)} />
+                                            <span>{style}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
+                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Dhoma & Akomodimi</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Numri i dhomave</label>
+                                    <input type="number" className="input" value={bujtinaData.totalRooms} onChange={(e) => setBujtinaData({ ...bujtinaData, totalRooms: e.target.value })} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
+                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Ushqimi</h3>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Mëngjes tradicional</label>
+                                <input className="input" value={bujtinaData.food.breakfast} onChange={(e) => setBujtinaData({ ...bujtinaData, food: { ...bujtinaData.food, breakfast: e.target.value } })} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Produkte bio</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
+                                    {BIO_PRODUCTS.map(prod => (
+                                        <label key={prod} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                            <input type="checkbox" checked={bujtinaData.food.bioProducts.includes(prod)} onChange={() => toggleBujtinaBio(prod)} />
+                                            <span>{prod}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* Rent Car Specific Fields */}
+                {formData.type === 'rentcar' && (
+                    <>
+                        <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Detajet e Makinës</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Marka & Modeli</label>
+                                    <input className="input" value={rentCarData.brandModel} onChange={(e) => setRentCarData({ ...rentCarData, brandModel: e.target.value })} required />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Viti</label>
+                                    <input type="number" className="input" value={rentCarData.year} onChange={(e) => setRentCarData({ ...rentCarData, year: e.target.value })} />
+                                </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Karburanti</label>
+                                    <select className="input" value={rentCarData.fuelType} onChange={(e) => setRentCarData({ ...rentCarData, fuelType: e.target.value })}>
+                                        <option value="">Select...</option>
+                                        {FUEL_TYPES.map(f => <option key={f} value={f}>{f}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Transmetimi</label>
+                                    <select className="input" value={rentCarData.transmission} onChange={(e) => setRentCarData({ ...rentCarData, transmission: e.target.value })}>
+                                        <option value="">Select...</option>
+                                        {TRANSMISSIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
+                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Çmimi & Përfshirjet</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Çmimi ditor</label>
+                                    <input className="input" value={rentCarData.prices.daily} onChange={(e) => setRentCarData({ ...rentCarData, prices: { ...rentCarData.prices, daily: e.target.value } })} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Depozita</label>
+                                    <input className="input" value={rentCarData.prices.deposit} onChange={(e) => setRentCarData({ ...rentCarData, prices: { ...rentCarData.prices, deposit: e.target.value } })} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Shërbime Shtesë */}
+                        <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
+                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Shërbime Shtesë</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
+                                {CAR_EXTRA_SERVICES.map(srv => (
+                                    <label key={srv} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                        <input type="checkbox" checked={rentCarData.extraServices.includes(srv)} onChange={() => toggleRentCarArray('extraServices', srv)} />
+                                        <span>{srv}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* Tour Specific Fields */}
+                {formData.type === 'tour' && (
+                    <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+                        <h3 style={{ marginBottom: '20px', color: '#a29bfe' }}>Tour Details</h3>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Duration</label>
+                                <input placeholder="e.g. 3 Days" className="input" value={tourData.duration} onChange={e => setTourData({ ...tourData, duration: e.target.value })} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Country / Location</label>
+                                <input placeholder="e.g. Albania" className="input" value={tourData.country} onChange={e => setTourData({ ...tourData, country: e.target.value })} />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Max Travelers</label>
+                                <input type="number" placeholder="e.g. 15" className="input" value={tourData.maxTravelers} onChange={e => setTourData({ ...tourData, maxTravelers: e.target.value })} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Price</label>
+                                <input placeholder="e.g. 50 EUR / person" className="input" value={tourData.price} onChange={e => setTourData({ ...tourData, price: e.target.value })} />
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Itinerary</label>
+                            {tourData.itinerary.map((item, index) => (
+                                <div key={index} style={{ marginBottom: '10px', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', color: '#aaa' }}>Day {item.day}</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeItineraryDay(index)}
+                                            style={{ background: 'transparent', border: 'none', color: '#ff7675', cursor: 'pointer', fontSize: '0.9rem' }}
+                                        >
+                                            Delete Day
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        placeholder={`Describe activities for Day ${item.day}...`}
+                                        className="input"
+                                        rows={3}
+                                        value={item.content}
+                                        onChange={(e) => updateItineraryDay(index, e.target.value)}
+                                    />
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={addItineraryDay}
+                                className="btn"
+                                style={{ background: '#a29bfe', marginTop: '5px' }}
+                            >
+                                + Add Day
+                            </button>
+                        </div>
+
+                        <div style={{ marginTop: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '12px', color: '#fff', fontSize: '1.1rem', fontWeight: '600' }}>✅ What is Included?</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', marginBottom: '15px' }}>
+                                {TOUR_INCLUSIONS.map(inc => (
+                                    <label key={inc} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px', background: tourData.inclusions.includes(inc) ? 'rgba(46, 204, 113, 0.15)' : 'rgba(255,255,255,0.03)', borderRadius: '10px', border: tourData.inclusions.includes(inc) ? '1px solid #2ecc71' : '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s' }}>
+                                        <input type="checkbox" checked={tourData.inclusions.includes(inc)} onChange={() => toggleTourInclusion(inc)} style={{ cursor: 'pointer' }} />
+                                        <span style={{ fontSize: '0.9rem' }}>{inc}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <input placeholder="Write something included..." className="input" value={tourData.customInclusion} onChange={e => setTourData({ ...tourData, customInclusion: e.target.value })} style={{ margin: 0 }} />
+                                <button type="button" onClick={addCustomTourInclusion} className="btn" style={{ whiteSpace: 'nowrap', background: '#2ecc71', color: '#fff' }}>+ Add</button>
+                            </div>
+                            {tourData.inclusions.filter(inc => !TOUR_INCLUSIONS.includes(inc)).length > 0 && (
+                                <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                    {tourData.inclusions.filter(inc => !TOUR_INCLUSIONS.includes(inc)).map((inc, idx) => (
+                                        <span key={idx} className="badge" style={{ background: 'rgba(46, 204, 113, 0.1)', border: '1px solid #2ecc71', color: '#2ecc71', padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            ✅ {inc}
+                                            <button type="button" onClick={() => toggleTourInclusion(inc)} style={{ background: 'none', border: 'none', color: '#2ecc71', cursor: 'pointer', fontSize: '1.1rem', padding: '0' }}>×</button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Exclusions */}
+                        <div style={{ marginTop: '25px' }}>
+                            <label style={{ display: 'block', marginBottom: '12px', color: '#fff', fontSize: '1.1rem', fontWeight: '600' }}>❌ What is Excluded?</label>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <input placeholder="Write something excluded (e.g. Flights)" className="input" value={tourData.customExclusion || ''} onChange={e => setTourData({ ...tourData, customExclusion: e.target.value })} style={{ margin: 0 }} />
+                                <button type="button" onClick={() => {
+                                    if (tourData.customExclusion?.trim()) {
+                                        setTourData({ ...tourData, exclusions: [...(tourData.exclusions || []), tourData.customExclusion.trim()], customExclusion: '' });
+                                    }
+                                }} className="btn" style={{ whiteSpace: 'nowrap', background: '#e74c3c', color: '#fff' }}>+ Add</button>
+                            </div>
+                            {tourData.exclusions?.length > 0 && (
+                                <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                    {tourData.exclusions.map((exc, idx) => (
+                                        <span key={idx} className="badge" style={{ background: 'rgba(231, 76, 60, 0.1)', border: '1px solid #e74c3c', color: '#e74c3c', padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            ❌ {exc}
+                                            <button type="button" onClick={() => setTourData({ ...tourData, exclusions: tourData.exclusions.filter((_, i) => i !== idx) })} style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: '1.1rem', padding: '0' }}>×</button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Pricing Calculator Setup */}
+                        <div style={{ marginTop: '25px', background: 'rgba(255,255,255,0.02)', padding: '25px', borderRadius: '20px', border: '1px solid rgba(162, 155, 254, 0.2)' }}>
+                            <h4 style={{ marginBottom: '20px', color: '#a29bfe', fontSize: '1.2rem' }}>💰 Pricing Calculator Configuration</h4>
+                            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '20px' }}>Set your prices here. Use the same currency as your Primary Price (e.g. $, €, or LEK).</p>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc', fontSize: '0.9rem' }}>Adult Price</label>
+                                    <input type="number" placeholder="150" className="input" value={tourData.pricing?.adultPrice} onChange={e => setTourData({ ...tourData, pricing: { ...tourData.pricing, adultPrice: Number(e.target.value) } })} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc', fontSize: '0.9rem' }}>Child Price</label>
+                                    <input type="number" placeholder="75" className="input" value={tourData.pricing?.childPrice} onChange={e => setTourData({ ...tourData, pricing: { ...tourData.pricing, childPrice: Number(e.target.value) } })} />
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', cursor: 'pointer', fontWeight: '500' }}>
+                                    <input type="checkbox" checked={tourData.pricing?.isGroupWise} onChange={e => setTourData({ ...tourData, pricing: { ...tourData.pricing, isGroupWise: e.target.checked } })} style={{ width: '20px', height: '20px' }} />
+                                    <span>Enable Fixed Group Price Option</span>
+                                </label>
+                                {tourData.pricing?.isGroupWise && (
+                                    <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
+                                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc', fontSize: '0.9rem' }}>Fixed Group Price</label>
+                                        <input type="number" placeholder="1000" className="input" value={tourData.pricing?.fixedPrice} onChange={e => setTourData({ ...tourData, pricing: { ...tourData.pricing, fixedPrice: Number(e.target.value) } })} />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Custom Extras Section */}
+                            <div style={{ marginTop: '30px', paddingTop: '25px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                <h5 style={{ color: '#fff', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>✨ Manage Booking Extras</h5>
+                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '10px', marginBottom: '15px' }}>
+                                    <input
+                                        placeholder="Extra name (e.g. Lunch)"
+                                        className="input"
+                                        value={tourData.customExtraName}
+                                        onChange={e => setTourData({ ...tourData, customExtraName: e.target.value })}
+                                        style={{ margin: 0 }}
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Price"
+                                        className="input"
+                                        value={tourData.customExtraPrice}
+                                        onChange={e => setTourData({ ...tourData, customExtraPrice: e.target.value })}
+                                        style={{ margin: 0 }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (tourData.customExtraName && tourData.customExtraPrice) {
+                                                setTourData({
+                                                    ...tourData,
+                                                    extras: [...(tourData.extras || []), { name: tourData.customExtraName, price: Number(tourData.customExtraPrice) }],
+                                                    customExtraName: '',
+                                                    customExtraPrice: ''
+                                                });
+                                            }
+                                        }}
+                                        className="btn"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+
+                                {tourData.extras?.length > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {tourData.extras.map((extra, idx) => (
+                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
+                                                <span>{extra.name}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                    <span style={{ color: '#a29bfe', fontWeight: 'bold' }}>+{extra.price}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setTourData({ ...tourData, extras: tourData.extras.filter((_, i) => i !== idx) })}
+                                                        style={{ background: 'none', border: 'none', color: '#ff7675', cursor: 'pointer' }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>WhatsApp Number for Bookings (Include prefix, e.g. +355...)</label>
+                            <input placeholder="e.g. +355 69 00 00 000" className="input" value={tourData.whatsappNumber} onChange={e => setTourData({ ...tourData, whatsappNumber: e.target.value })} />
+                        </div>
+
+                        {/* Gallery Management for Tours */}
+                        <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+                            <h3 style={{ marginBottom: '15px', color: '#a29bfe' }}>Gallery Management</h3>
+
+                            {/* Existing Images */}
+                            <div style={{ marginBottom: '20px' }}>
+                                <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '10px' }}>Existing Images:</p>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' }}>
+                                    {existingGallery.map((url, idx) => (
+                                        <div key={idx} style={{ position: 'relative' }}>
+                                            <img src={url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeExistingImage(idx)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: '-8px',
+                                                    right: '-8px',
+                                                    background: '#ff7675',
+                                                    border: 'none',
+                                                    borderRadius: '50%',
+                                                    color: 'white',
+                                                    cursor: 'pointer',
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '16px',
+                                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                                                }}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {existingGallery.length === 0 && (
+                                        <p style={{ color: '#666', fontSize: '0.9rem' }}>No images in gallery.</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* New Uploads */}
+                            <div>
+                                <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '10px' }}>Add New Images:</p>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    className="input"
+                                    onChange={handleNewGalleryUpload}
+                                    style={{ marginBottom: '10px' }}
+                                />
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' }}>
+                                    {newGalleryFiles.map((file, idx) => (
+                                        <div key={idx} style={{ position: 'relative' }}>
+                                            <div style={{
+                                                width: '100%',
+                                                height: '100px',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '10px',
+                                                overflow: 'hidden',
+                                                padding: '5px',
+                                                textAlign: 'center',
+                                                border: '1px dashed rgba(255,255,255,0.2)'
+                                            }}>
+                                                <span style={{ fontSize: '20px', marginBottom: '5px' }}>📄</span>
+                                                <span style={{ wordBreak: 'break-all' }}>{file.name}</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeNewGalleryFile(idx)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: '-8px',
+                                                    right: '-8px',
+                                                    background: '#ff7675',
+                                                    border: 'none',
+                                                    borderRadius: '50%',
+                                                    color: 'white',
+                                                    cursor: 'pointer',
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '16px',
+                                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                                                }}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Services (for non-hotel, non-bujtina, non-rentcar, non-tour types) */}
+                {formData.type !== 'hotel' && formData.type !== 'bujtina' && formData.type !== 'rentcar' && formData.type !== 'tour' && (
                     <div>
                         <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Services & Amenities</label>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
@@ -946,7 +1674,7 @@ export default function EditListingPage({ params }) {
                 </div>
 
                 <div>
-                    <label style={{ color: '#ccc', display: 'block', marginBottom: '8px' }}>Change Image (Optional):</label>
+                    <label style={{ color: '#ccc', display: 'block', marginBottom: '8px' }}>Change Main Image (Optional):</label>
                     {formData.currentImage && <div style={{ marginBottom: '10px' }}><img src={formData.currentImage} alt="Current" style={{ height: '100px', borderRadius: '8px' }} /></div>}
                     <input
                         type="file"
@@ -956,16 +1684,7 @@ export default function EditListingPage({ params }) {
                     />
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Latitude: *</label>
-                        <input name="lat" placeholder="Latitude" className="input" value={formData.lat} onChange={handleChange} required />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Longitude: *</label>
-                        <input name="lng" placeholder="Longitude" className="input" value={formData.lng} onChange={handleChange} required />
-                    </div>
-                </div>
+                {/* Removed Global Lat/Lng Fields */}
 
                 <button type="submit" className="btn">Update Listing</button>
             </form>

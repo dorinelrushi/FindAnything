@@ -140,6 +140,43 @@ export async function PUT(req, { params }) {
             }
         }
 
+        const tourDataRaw = formData.get('tourData');
+        const remainingGalleryRaw = formData.get('remainingGallery'); // JSON array of existing URLs to keep
+        const newGalleryFiles = formData.getAll('newGallery'); // Multiple new files
+
+        // Update tourData if provided
+        if (tourDataRaw) {
+            try {
+                listing.tourData = JSON.parse(tourDataRaw);
+            } catch (e) {
+                console.error('Error parsing tourData:', e);
+            }
+        }
+
+        // Handle Gallery Updates
+        let updatedGallery = [];
+        if (remainingGalleryRaw) {
+            try {
+                updatedGallery = JSON.parse(remainingGalleryRaw);
+            } catch (e) {
+                console.error('Error parsing remainingGallery:', e);
+            }
+        }
+
+        if (newGalleryFiles && newGalleryFiles.length > 0) {
+            for (const file of newGalleryFiles) {
+                if (file.size > 0) {
+                    const buffer = Buffer.from(await file.arrayBuffer());
+                    const base64 = buffer.toString('base64');
+                    updatedGallery.push(`data:${file.type};base64,${base64}`);
+                }
+            }
+        }
+
+        if (remainingGalleryRaw || (newGalleryFiles && newGalleryFiles.length > 0)) {
+            listing.gallery = updatedGallery;
+        }
+
         if (imageFile && imageFile.size > 0) {
             const buffer = Buffer.from(await imageFile.arrayBuffer());
             const base64Image = buffer.toString('base64');

@@ -91,6 +91,12 @@ export default function Dashboard() {
                     <Link href="/dashboard/add?type=rentcar" className="glass card" style={{ textDecoration: 'none', color: 'white' }}>
                         <h3>Add Rent Car</h3>
                     </Link>
+                    <Link href="/dashboard/add?type=tour" className="glass card" style={{ textDecoration: 'none', color: 'white' }}>
+                        <h3>Add Tour</h3>
+                    </Link>
+                    <Link href="/dashboard/add?type=city" className="glass card" style={{ textDecoration: 'none', color: 'white' }}>
+                        <h3>Add City</h3>
+                    </Link>
                 </div>
             </div>
 

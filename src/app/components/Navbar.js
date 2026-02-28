@@ -39,7 +39,7 @@ export default function Navbar() {
         <>
             <nav className="nav">
                 <Link href="/" className="logo" onClick={() => setIsMenuOpen(false)}>
-                    <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 'bold' }}>KorcaCity</h1>
+                    <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 'bold' }}>TryToFindEverything</h1>
                 </Link>
 
                 <div className="nav-links desktop-only">
@@ -78,7 +78,7 @@ export default function Navbar() {
                 <div className="mobile-menu-overlay" onClick={() => setIsMenuOpen(false)}>
                     <div className="mobile-menu" onClick={e => e.stopPropagation()}>
                         <div className="mobile-menu-header">
-                            <span className="logo">KorcaCity</span>
+                            <span className="logo">TryToFindEverything</span>
                             <button onClick={() => setIsMenuOpen(false)} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.5rem' }}>✕</button>
                         </div>
                         <div className="mobile-menu-content">
@@ -106,106 +106,111 @@ export default function Navbar() {
 
             <style jsx>{`
                 .nav {
-                    background: #1a1a24;
-                    border-bottom: 2px solid var(--primary);
-                    backdrop-filter: none;
-                    margin-bottom: 0;
-                    padding: 15px 40px;
+                    background: rgba(15, 15, 20, 0.7);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    padding: 18px 40px;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     position: sticky;
                     top: 0;
                     z-index: 1000;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
                 }
-                .logo {
-                    color: white;
-                    font-weight: bold;
+                .logo h1 {
+                    background: linear-gradient(90deg, #fff, #a29bfe);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    letter-spacing: -0.5px;
                 }
+                .nav-links a {
+                    font-size: 0.95rem;
+                    font-weight: 500;
+                    color: rgba(255,255,255,0.7);
+                    transition: all 0.2s;
+                    position: relative;
+                }
+                .nav-links a:hover { color: white; }
+                .nav-links a::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -5px;
+                    left: 0;
+                    width: 0;
+                    height: 2px;
+                    background: var(--primary);
+                    transition: width 0.3s;
+                }
+                .nav-links a:hover::after { width: 100%; }
+
                 .badge {
                     position: absolute;
                     top: -10px;
                     right: -15px;
-                    background: #ff4757;
+                    background: var(--accent);
                     color: white;
                     border-radius: 50%;
                     width: 18px;
                     height: 18px;
-                    fontSize: 0.7rem;
+                    font-size: 0.7rem;
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+                    box-shadow: 0 0 10px rgba(253, 121, 168, 0.5);
                 }
                 .mobile-only { display: none; }
-                .desktop-only { display: flex; align-items: center; gap: 20px; }
+                .desktop-only { display: flex; align-items: center; gap: 30px; }
 
                 @media (max-width: 768px) {
                     .desktop-only { display: none; }
                     .mobile-only { display: block; }
-                    .nav {
-                        padding: 12px 20px;
-                    }
+                    .nav { padding: 15px 25px; }
                 }
 
                 .mobile-menu-overlay {
                     position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0,0,0,0.7);
-                    z-index: 1001;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.8);
+                    backdrop-filter: blur(10px);
+                    z-index: 2000;
+                    animation: fadeIn 0.3s ease;
                 }
 
                 .mobile-menu {
                     position: fixed;
-                    top: 0;
-                    right: 0;
-                    bottom: 0;
-                    width: 280px;
-                    background: #1a1a24;
-                    border-left: 1px solid var(--primary);
-                    padding: 20px;
+                    top: 0; right: 0; bottom: 0;
+                    width: 85%;
+                    max-width: 350px;
+                    background: #0f0f13;
+                    border-left: 1px solid rgba(255,255,255,0.1);
+                    padding: 30px;
                     display: flex;
                     flex-direction: column;
-                    animation: slideIn 0.3s ease-out;
-                    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+                    animation: slideIn 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
                 }
 
                 .mobile-menu-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 40px;
-                    padding-bottom: 15px;
-                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                    margin-bottom: 50px;
                 }
 
                 .mobile-menu-content {
                     display: flex;
                     flex-direction: column;
-                    gap: 25px;
+                    gap: 30px;
                 }
 
                 .mobile-menu-content a {
-                    font-size: 1.1rem;
+                    font-size: 1.5rem;
+                    font-weight: 700;
                     color: white;
-                    text-decoration: none;
-                    padding: 8px 0;
-                    font-weight: 500;
-                    transition: color 0.2s;
                 }
 
-                .mobile-menu-content a:hover {
-                    color: var(--primary);
-                }
-
-                @keyframes slideIn {
-                    from { transform: translateX(100%); }
-                    to { transform: translateX(0); }
-                }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
             `}</style>
         </>
     );

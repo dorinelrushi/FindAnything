@@ -1,13 +1,14 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'KorcaCity - Explore the City',
-  description: 'Discover the best hotels, restaurants, and more in Korca.',
+  title: 'TryToFindEverything - Explore the World',
+  description: 'Discover the best hotels, restaurants, and more around the world.',
 };
 
 export default function RootLayout({ children }) {
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
           <main>
             {children}
           </main>
+          <Footer />
         </Providers>
       </body>
     </html>

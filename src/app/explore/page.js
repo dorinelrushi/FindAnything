@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
-const Map = dynamic(() => import('@/app/components/Map'), { ssr: false });
+// Map component removed per user request
 
 function ExploreContent() {
     const searchParams = useSearchParams();
@@ -20,16 +20,9 @@ function ExploreContent() {
     const [categoryFilter, setCategoryFilter] = useState(initialCategory);
     const [serviceFilters, setServiceFilters] = useState(initialServices);
     const [loading, setLoading] = useState(true);
-    const [userLocation, setUserLocation] = useState(null);
-    const [distances, setDistances] = useState({});
     const [hydrated, setHydrated] = useState(false);
-    const [viewMode, setViewMode] = useState('list'); // 'list' or 'map' on mobile
     const [showFilters, setShowFilters] = useState(false);
-
-    // Distance Calculator State
-    const [calcPointA, setCalcPointA] = useState('My Location');
-    const [calcPointB, setCalcPointB] = useState(null); // Selected Listing object
-    const [calculatedDist, setCalculatedDist] = useState(null);
+    const [viewMode, setViewMode] = useState('list'); // Added viewMode state
 
     // Get unique categories and services from listings for dynamic filtering
     const [availableCategories, setAvailableCategories] = useState([]);
@@ -49,54 +42,6 @@ function ExploreContent() {
     useEffect(() => {
         fetchListings();
     }, [filter, search, categoryFilter, serviceFilters]);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setUserLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    });
-                },
-                (error) => {
-                    let msg = "Unknown error";
-                    if (error.code === 1) msg = "Permission denied. Please enable GPS.";
-                    else if (error.code === 2) msg = "Position unavailable.";
-                    else if (error.code === 3) msg = "Timeout.";
-                    console.warn("Geolocation: " + msg);
-                },
-                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-            );
-        }
-    }, [hydrated]);
-
-    useEffect(() => {
-        if (userLocation && listings.length > 0) {
-            const newDistances = {};
-            listings.forEach(listing => {
-                if (listing.lat && listing.lng) {
-                    const dist = calculateDistance(userLocation.lat, userLocation.lng, listing.lat, listing.lng);
-                    newDistances[listing._id] = dist.toFixed(1);
-                }
-            });
-            setDistances(newDistances);
-        }
-    }, [userLocation, listings]);
-
-    // Recalculate manual distance when selection changes
-    useEffect(() => {
-        if (calcPointA === 'My Location' && userLocation && calcPointB) {
-            const dist = calculateDistance(userLocation.lat, userLocation.lng, calcPointB.lat, calcPointB.lng);
-            setCalculatedDist(dist.toFixed(2));
-        } else if (calcPointA !== 'My Location' && calcPointA && calcPointB) {
-            // If point A is also a listing (advanced feature not yet UI implemented, stick to My Location for now or improve)
-            const dist = calculateDistance(calcPointA.lat, calcPointA.lng, calcPointB.lat, calcPointB.lng);
-            setCalculatedDist(dist.toFixed(2));
-        } else {
-            setCalculatedDist(null);
-        }
-    }, [calcPointA, calcPointB, userLocation]);
 
     const fetchListings = async () => {
         setLoading(true);
@@ -194,376 +139,586 @@ function ExploreContent() {
         updateURL({ category: categoryFilter, services: newServices });
     };
 
-    const requestLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
-                },
-                (error) => alert('Location permission denied. Please enable GPS in your settings.')
-            );
-        }
-    };
+
 
     if (!hydrated) return null; // Avoid hydration mismatch
 
     return (
-        <div className="explore-container">
-            {/* View Toggle for Mobile */}
-            <div className="view-toggle mobile-only glass">
-                <button
-                    className={viewMode === 'list' ? 'active' : ''}
-                    onClick={() => setViewMode('list')}
-                >
-                    List
-                </button>
-                <button
-                    className={viewMode === 'map' ? 'active' : ''}
-                    onClick={() => setViewMode('map')}
-                >
-                    Map
-                </button>
-            </div>
-
-            {/* Filters Sidebar (Overlay on mobile) */}
-            <div className={`sidebar ${showFilters ? 'mobile-visible' : 'mobile-hidden'}`}>
-                <div className="sidebar-header">
-                    <h2>Explore</h2>
-                    <button className="mobile-only close-btn" onClick={() => setShowFilters(false)}>✕</button>
-                </div>
-
-                <div className="tool-section">
-                    <h4>Type</h4>
-                    <div className="filter-options">
-                        {['', 'hotel', 'restaurant', 'bar', 'bujtina', 'rentcar'].map(t => (
-                            <button
-                                key={t}
-                                className={`filter-btn ${filter === t ? 'active' : ''}`}
-                                onClick={() => { handleFilterChange(t); if (window.innerWidth <= 768) setShowFilters(false); }}
-                            >
-                                {t === '' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
-                            </button>
-                        ))}
+        <div className="explore-page">
+            <div className="explore-container">
+                {/* Filters Sidebar */}
+                <div className={`sidebar glass ${showFilters ? 'mobile-visible' : 'mobile-hidden'}`}>
+                    <div className="sidebar-header">
+                        <h2>Filters</h2>
+                        <button className="mobile-only close-btn" onClick={() => setShowFilters(false)}>✕</button>
                     </div>
-                </div>
 
-                {availableCategories.length > 0 && (
-                    <div className="tool-section">
-                        <h4>Category</h4>
-                        <div className="filter-options">
-                            <button className={`filter-btn ${categoryFilter === '' ? 'active' : ''}`} onClick={() => handleCategoryChange('')}>All Categories</button>
-                            {availableCategories.map(cat => (
-                                <button key={cat} className={`filter-btn ${categoryFilter === cat ? 'active' : ''}`} onClick={() => handleCategoryChange(cat)}>{cat}</button>
-                            ))}
+                    <div className="filter-scroll">
+                        <div className="tool-section">
+                            <h4 className="section-label">Business Type</h4>
+                            <div className="filter-options">
+                                {['', 'city', 'hotel', 'restaurant', 'bar', 'bujtina', 'tour', 'rentcar'].map(t => (
+                                    <button
+                                        key={t}
+                                        className={`filter-btn ${filter === t ? 'active' : ''}`}
+                                        onClick={() => { handleFilterChange(t); if (window.innerWidth <= 1024) setShowFilters(false); }}
+                                    >
+                                        <span className="dot"></span>
+                                        {t === '' ? 'All Services' : t === 'city' ? 'Cities' : t.charAt(0).toUpperCase() + t.slice(1)}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
 
-                {availableServices.length > 0 && (
-                    <div className="tool-section">
-                        <h4>Services</h4>
-                        <div className="checkbox-group">
-                            {availableServices.map(service => (
-                                <label key={service} className="checkbox-item">
-                                    <input type="checkbox" checked={serviceFilters.includes(service)} onChange={() => toggleServiceFilter(service)} />
-                                    <span>{service}</span>
-                                </label>
-                            ))}
+                        {availableCategories.length > 0 && (
+                            <div className="tool-section">
+                                <h4 className="section-label">Categories</h4>
+                                <div className="category-scroll">
+                                    <button className={`cat-tag ${categoryFilter === '' ? 'active' : ''}`} onClick={() => handleCategoryChange('')}>All</button>
+                                    {availableCategories.map(cat => (
+                                        <button key={cat} className={`cat-tag ${categoryFilter === cat ? 'active' : ''}`} onClick={() => handleCategoryChange(cat)}>{cat}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {availableServices.length > 0 && (
+                            <div className="tool-section">
+                                <h4 className="section-label">Amenities</h4>
+                                <div className="checkbox-group">
+                                    {availableServices.map(service => (
+                                        <label key={service} className="checkbox-item">
+                                            <input type="checkbox" checked={serviceFilters.includes(service)} onChange={() => toggleServiceFilter(service)} />
+                                            <span className="checkmark"></span>
+                                            <span className="service-name">{service}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Main Results Area */}
+                <div className="results-wrapper">
+                    <div className="top-search-bar glass">
+                        <div className="search-input-group">
+                            <span className="search-icon">🔍</span>
+                            <input
+                                type="text"
+                                placeholder="Where would you like to go?"
+                                className="main-search-input"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && updateURL({ type: filter, category: categoryFilter, services: serviceFilters })}
+                            />
                         </div>
-                    </div>
-                )}
-
-                <div className="tool-section">
-                    <h4>Distance Tool</h4>
-                    <div className="input-group">
-                        <label>Start (A)</label>
-                        <select className="input" value={calcPointA === 'My Location' ? 'My Location' : calcPointA._id}
-                            onChange={(e) => {
-                                if (e.target.value === 'My Location') setCalcPointA('My Location');
-                                else setCalcPointA(listings.find(l => l._id === e.target.value));
-                            }}
-                        >
-                            <option value="My Location">My Location {userLocation ? '✅' : '(No GPS)'}</option>
-                            {listings.map(l => <option key={l._id} value={l._id}>{l.title}</option>)}
-                        </select>
-                        {!userLocation && calcPointA === 'My Location' && <button onClick={requestLocation} className="btn-small">📍 Enable GPS</button>}
+                        <button className="mobile-only filter-trigger" onClick={() => setShowFilters(true)}>
+                            <span>Filters</span>
+                            <span className="filter-count">{serviceFilters.length + (filter ? 1 : 0) + (categoryFilter ? 1 : 0)}</span>
+                        </button>
                     </div>
 
-                    <div className="input-group">
-                        <label>End (B)</label>
-                        <select className="input" value={calcPointB ? calcPointB._id : ''}
-                            onChange={(e) => {
-                                setCalcPointB(listings.find(l => l._id === e.target.value));
-                                if (window.innerWidth <= 768) {
-                                    setViewMode('map');
-                                    setShowFilters(false);
-                                    // Scroll to map
-                                    document.getElementById('mobile-map-section')?.scrollIntoView({ behavior: 'smooth' });
-                                }
-                            }}
-                        >
-                            <option value="">Select Destination...</option>
-                            {listings.map(l => <option key={l._id} value={l._id}>{l.title}</option>)}
-                        </select>
-                    </div>
-                    {calculatedDist && <div className="dist-result">Distance: {calculatedDist} km</div>}
-                </div>
-            </div>
+                    <div className="results-content">
+                        <div className="results-header">
+                            <h2 className="results-title">
+                                {loading ? 'Searching...' : `${listings.length} places found`}
+                            </h2>
+                            <div className="sort-placeholder">
+                                <span>Sorted by: <b>Relevance</b></span>
+                            </div>
+                        </div>
 
-            {/* Middle Section: Search + Results */}
-            <div className={`results-area ${viewMode === 'map' ? 'mobile-map-active' : ''}`}>
-                <div className="search-header glass">
-                    <input type="text" placeholder="Search places..." className="input search-input" value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && updateURL({ type: filter, category: categoryFilter, services: serviceFilters })}
-                    />
-                    <button className="mobile-only filter-toggle-btn" onClick={() => setShowFilters(true)}>
-                        <span>⚙️</span>
-                    </button>
-                </div>
-
-                {/* Mobile Map Section (Not full size, beautiful section) */}
-                <div id="mobile-map-section" className={`mobile-map-container mobile-only ${viewMode === 'list' ? 'hidden' : ''}`}>
-                    <div className="map-card glass">
-                        <Map listings={listings} startPoint={(calcPointA === 'My Location' ? userLocation : calcPointA)} endPoint={calcPointB} />
-                    </div>
-                </div>
-
-                {loading ? <div className="loader">Searching...</div> : (
-                    <div className={`listings-list ${viewMode === 'map' ? 'mobile-hidden' : ''}`}>
-                        {listings.map(listing => {
-                            const stripHtml = (html) => {
-                                if (typeof document === 'undefined') return '';
-                                const tmp = document.createElement('div');
-                                tmp.innerHTML = html;
-                                return tmp.textContent || tmp.innerText || '';
-                            };
-                            return (
-                                <div key={listing._id} className="listing-card glass" onClick={() => { setCalcPointB(listing); if (window.innerWidth <= 1024) { setViewMode('map'); document.getElementById('mobile-map-section')?.scrollIntoView({ behavior: 'smooth' }); } }}>
-                                    <div className="listing-image" style={{ backgroundImage: `url(${listing.image || 'https://via.placeholder.com/200'})` }}></div>
-                                    <div className="listing-info">
-                                        <div className="listing-header">
-                                            <div className="listing-title-row">
-                                                <h3 className="listing-title">{listing.title}</h3>
-                                                <div className="listing-meta">
-                                                    <span className="badge">{listing.type}</span>
-                                                    {listing.category && <span className="badge category-badge">{listing.category}</span>}
+                        {loading ? (
+                            <div className="loading-state">
+                                <div className="pulse-loader"></div>
+                                <p>Discovering the world...</p>
+                            </div>
+                        ) : (
+                            <div className="listings-grid">
+                                {listings.map(listing => {
+                                    const stripHtml = (html) => {
+                                        if (typeof document === 'undefined') return '';
+                                        const tmp = document.createElement('div');
+                                        tmp.innerHTML = html;
+                                        return tmp.textContent || tmp.innerText || '';
+                                    };
+                                    return (
+                                        <Link href={`/${listing.type}/${listing.slug || listing._id}`} key={listing._id} className="premium-card glass">
+                                            <div className="card-image-box">
+                                                <div className="card-img" style={{ backgroundImage: `url(${listing.image || 'https://via.placeholder.com/400x300?text=TryToFindEverything'})` }}></div>
+                                                <div className="card-overlay">
+                                                    <span className="type-pill">{listing.type}</span>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <p className="description">{stripHtml(listing.description).substring(0, 70)}...</p>
+                                            <div className="card-body">
+                                                <div className="card-title-row">
+                                                    <h3 className="card-name">{listing.title}</h3>
+                                                    {listing.category && <span className="cat-pill">{listing.category}</span>}
+                                                </div>
+                                                <p className="card-desc">{stripHtml(listing.description).substring(0, 90)}...</p>
 
-                                        <div className="listing-footer">
-                                            <div className="tags">
-                                                {(listing.services || []).slice(0, 3).map((tag, i) => (
-                                                    <span key={i} className="tag">{tag}</span>
-                                                ))}
+                                                <div className="card-tags">
+                                                    {(listing.services || []).slice(0, 2).map((tag, i) => (
+                                                        <span key={i} className="service-tag">{tag}</span>
+                                                    ))}
+                                                    {(listing.services || []).length > 2 && <span className="service-tag">+{listing.services.length - 2}</span>}
+                                                </div>
+
+                                                <div className="card-action">
+                                                    <span className="price-hint">Discover more</span>
+                                                    <div className="arrow-btn">→</div>
+                                                </div>
                                             </div>
-                                            <div className="action-row">
-                                                {distances[listing._id] && <span className="distance-badge">🚶 {distances[listing._id]} km</span>}
-                                                <Link href={`/${listing.type}/${listing.slug || listing._id}`} className="view-link-btn" onClick={e => e.stopPropagation()}>View Details</Link>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        {listings.length === 0 && <p className="no-res">No results found for your search.</p>}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {!loading && listings.length === 0 && (
+                            <div className="empty-results">
+                                <div className="empty-icon">📍</div>
+                                <h3>No matching places found</h3>
+                                <p>Try adjusting your filters or search term to see more results.</p>
+                                <button className="btn" onClick={() => { setFilter(''); setSearch(''); setCategoryFilter(''); setServiceFilters([]); updateURL({ type: '', category: '', services: [] }); }}>Clear all filters</button>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
-
-            {/* Desktop Map Area (Right Side) */}
-            <div className="desktop-map-area desktop-only">
-                <div className="map-glass-container glass">
-                    <Map listings={listings} startPoint={(calcPointA === 'My Location' ? userLocation : calcPointA)} endPoint={calcPointB} />
                 </div>
             </div>
 
             <style jsx>{`
+                .explore-page {
+                    background: #0b0b0f;
+                    min-height: 100vh;
+                    color: white;
+                }
+                
                 .explore-container {
                     display: grid;
-                    grid-template-columns: 260px 420px 1fr;
+                    grid-template-columns: 320px 1fr;
                     height: calc(100vh - 80px);
                     width: 100%;
                     overflow: hidden;
-                    background: #0f0f13;
                     position: relative;
                 }
-                
-                .view-toggle {
-                    display: none;
-                    position: fixed;
-                    bottom: 30px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    z-index: 2000;
-                    padding: 8px;
-                    border-radius: 50px;
-                    gap: 8px;
-                    background: rgba(26, 26, 36, 0.9);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-                }
 
-                .view-toggle button {
-                    padding: 10px 25px;
-                    border-radius: 40px;
-                    border: none;
-                    background: transparent;
-                    color: white;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-
-                .view-toggle button.active {
-                    background: var(--primary);
-                    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
-                }
-
-                /* Sidebar */
+                /* Sidebar Redesign */
                 .sidebar {
                     height: 100%;
-                    overflow-y: auto;
-                    padding: 30px 20px;
+                    background: rgba(15, 15, 20, 0.4);
+                    backdrop-filter: blur(20px);
+                    border-right: 1px solid rgba(255, 255, 255, 0.05);
                     display: flex;
                     flex-direction: column;
-                    gap: 35px;
-                    background: #0f0f13;
-                    border-right: 1px solid rgba(255,255,255,0.05);
+                    padding: 0;
+                    margin: 0;
+                    z-index: 1001; /* Higher than navbar 1000 */
                 }
-                .sidebar::-webkit-scrollbar { width: 4px; }
-                .sidebar::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
 
-                .sidebar h2 { font-size: 1.6rem; color: white; margin-bottom: 5px; font-weight: 800; }
-                .tool-section h4 { margin-bottom: 18px; color: #888; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+                .sidebar-header {
+                    padding: 40px 30px 20px 30px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
 
-                .filter-options { display: flex; flex-direction: column; gap: 8px; }
+                .sidebar-header h2 {
+                    font-size: 1.6rem;
+                    font-weight: 900;
+                    letter-spacing: -1px;
+                    margin: 0;
+                    background: linear-gradient(135deg, #fff 0%, #a29bfe 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .filter-scroll {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 10px 30px 40px 30px;
+                }
+                .filter-scroll::-webkit-scrollbar { width: 3px; }
+                .filter-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+
+                .tool-section { margin-bottom: 45px; }
+                .section-label {
+                    color: rgba(255,255,255,0.3);
+                    font-size: 0.7rem;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    margin-bottom: 25px;
+                    display: block;
+                }
+
+                .filter-options { display: flex; flex-direction: column; gap: 6px; }
                 .filter-btn {
-                    padding: 12px 18px;
-                    border-radius: 12px;
-                    border: 1px solid rgba(255,255,255,0.05);
-                    background: rgba(255,255,255,0.02);
-                    color: #999;
+                    padding: 14px 18px;
+                    border-radius: 14px;
+                    border: 1px solid transparent;
+                    background: transparent;
+                    color: rgba(255,255,255,0.5);
                     cursor: pointer;
                     text-align: left;
-                    transition: all 0.3s;
-                    font-size: 0.9rem;
-                }
-                .filter-btn:hover { background: rgba(255,255,255,0.05); color: white; transform: translateX(5px); }
-                .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-                .checkbox-group { display: flex; flex-direction: column; gap: 15px; }
-                .checkbox-item { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 0.95rem; color: #999; transition: color 0.2s; }
-                .checkbox-item:hover { color: white; }
-                .checkbox-item input { width: 18px; height: 18px; accent-color: var(--primary); }
-
-                /* Results Area */
-                .results-area {
-                    height: 100%;
-                    overflow-y: auto;
-                    padding: 30px;
-                    background: #12121a;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 25px;
-                }
-                .results-area::-webkit-scrollbar { width: 4px; }
-
-                .search-header {
-                    padding: 4px 15px;
+                    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+                    font-size: 0.95rem;
                     display: flex;
                     align-items: center;
                     gap: 15px;
+                }
+
+                .filter-btn .dot {
+                    width: 6px; height: 6px;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.1);
+                    transition: all 0.3s;
+                }
+
+                .filter-btn:hover {
                     background: rgba(255,255,255,0.03);
-                    border: 1px solid rgba(255,255,255,0.05);
+                    color: white;
+                    transform: translateX(5px);
                 }
-                .search-input { background: transparent; border: none; color: white; width: 100%; padding: 12px 0; font-size: 1.05rem; }
-                .search-input:focus { outline: none; }
-                .filter-toggle-btn { background: var(--primary); border: none; border-radius: 10px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; cursor: pointer; }
 
-                .listings-list { display: flex; flex-direction: column; gap: 20px; }
-                .listing-card {
-                    padding: 18px;
+                .filter-btn.active {
+                    background: rgba(108, 92, 231, 0.12);
+                    color: #a29bfe;
+                    border-color: rgba(108, 92, 231, 0.2);
+                    font-weight: 700;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                }
+
+                .filter-btn.active .dot {
+                    background: #a29bfe;
+                    box-shadow: 0 0 12px #a29bfe;
+                    transform: scale(1.4);
+                }
+
+                .category-scroll { display: flex; flex-wrap: wrap; gap: 10px; }
+                .cat-tag {
+                    padding: 8px 16px;
+                    border-radius: 12px;
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255,255,255,0.06);
+                    color: rgba(255,255,255,0.6);
+                    font-size: 0.85rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                .cat-tag:hover { 
+                    border-color: rgba(255,255,255,0.2); 
+                    color: white;
+                    transform: translateY(-2px);
+                }
+                .cat-tag.active { 
+                    background: white; 
+                    color: black; 
+                    border-color: white; 
+                    font-weight: 700;
+                    box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+                }
+
+                .checkbox-group { display: flex; flex-direction: column; gap: 14px; }
+                .checkbox-item {
                     display: flex;
-                    gap: 20px;
+                    align-items: center;
+                    gap: 15px;
+                    cursor: pointer;
+                    position: relative;
+                }
+                .checkbox-item input { position: absolute; opacity: 0; }
+                .checkmark {
+                    height: 22px; width: 22px;
+                    background: rgba(255,255,255,0.04);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 8px;
+                    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .checkbox-item:hover .checkmark { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.07); }
+                .checkbox-item input:checked ~ .checkmark { 
+                    background: var(--primary); 
+                    border-color: var(--primary);
+                    box-shadow: 0 0 15px rgba(108, 92, 231, 0.4);
+                    transform: scale(1.1);
+                }
+                .checkmark:after {
+                    content: "";
+                    display: none;
+                    width: 5px; height: 10px;
+                    border: solid white;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                }
+                .checkbox-item input:checked ~ .checkmark:after { display: block; }
+                .service-name { color: rgba(255,255,255,0.5); font-size: 0.95rem; transition: color 0.3s; }
+                .checkbox-item:hover .service-name { color: white; }
+
+                /* Results Area */
+                .results-wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    background: #0b0b0f;
+                    background-image: radial-gradient(circle at 50% -20%, rgba(108, 92, 231, 0.08) 0%, transparent 70%);
+                }
+
+                .top-search-bar {
+                    margin: 30px;
+                    padding: 10px 25px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    border-radius: 20px;
+                    background: rgba(255,255,255,0.02);
                     border: 1px solid rgba(255,255,255,0.05);
-                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                }
-                .listing-card:hover { transform: translateY(-5px) scale(1.01); border-color: var(--primary); background: rgba(255,255,255,0.03); box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
-                .listing-image { width: 130px; height: 130px; border-radius: 16px; background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
-                
-                .listing-info { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-                .listing-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
-                .listing-title { font-size: 1.25rem; font-weight: 800; color: white; margin: 0; line-height: 1.2; }
-                .listing-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
-                .badge { font-size: 0.65rem; padding: 2px 10px; border-radius: 50px; color: white; background: var(--primary); font-weight: 600; text-transform: uppercase; }
-                .badge.category-badge { background: #ff4757; }
-                
-                .action-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; }
-                .view-link-btn { background: var(--primary); color: white; padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; text-decoration: none; transition: transform 0.2s; }
-                .view-link-btn:hover { transform: scale(1.05); background: white; color: var(--primary); }
-                
-                .description { font-size: 0.85rem; color: #888; margin: 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-                
-                .listing-footer { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
-                .tags { display: flex; gap: 6px; flex-wrap: wrap; }
-                .tag { font-size: 0.7rem; color: #aaa; background: rgba(255,255,255,0.05); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
-                .distance-badge { font-size: 0.85rem; color: #00d2d3; font-weight: 800; display: flex; align-items: center; gap: 5px; }
-
-                /* Map Area */
-                .desktop-map-area { padding: 30px; height: 100%; width: 100%; }
-                .map-glass-container { height: 100%; width: 100%; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
-
-                .desktop-only { display: block; }
-                .mobile-only { display: none; }
-
-                @media (max-width: 1200px) {
-                    .explore-container { grid-template-columns: 240px 1fr; }
-                    .listing-image { width: 110px; height: 110px; }
-                    .desktop-map-area { display: none; }
+                    backdrop-filter: blur(10px);
                 }
 
+                .search-input-group {
+                    display: flex;
+                    align-items: center;
+                    flex: 1;
+                    gap: 15px;
+                }
+
+                .search-icon { font-size: 1.3rem; opacity: 0.4; }
+                .main-search-input {
+                    background: transparent;
+                    border: none;
+                    color: white;
+                    width: 100%;
+                    padding: 12px 0;
+                    font-size: 1.15rem;
+                    font-weight: 500;
+                    letter-spacing: -0.3px;
+                }
+                .main-search-input:focus { outline: none; }
+                .main-search-input::placeholder { color: rgba(255,255,255,0.2); }
+
+                .filter-trigger {
+                    display: none;
+                    background: var(--primary);
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 14px;
+                    font-weight: 700;
+                    align-items: center;
+                    gap: 12px;
+                    cursor: pointer;
+                    box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+                }
+
+                .results-content {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 0 30px 50px 30px;
+                }
+                .results-content::-webkit-scrollbar { width: 0; }
+
+                .results-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 30px;
+                    padding-bottom: 15px;
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                }
+
+                .results-title { font-size: 1.1rem; color: rgba(255,255,255,0.4); font-weight: 500; }
+                .sort-placeholder { font-size: 0.95rem; color: rgba(255,255,255,0.3); }
+                .sort-placeholder b { color: #a29bfe; }
+
+                /* Premium Cards */
+                .listings-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+                    gap: 30px;
+                }
+
+                .premium-card {
+                    display: flex;
+                    flex-direction: column;
+                    border-radius: 24px;
+                    overflow: hidden;
+                    background: rgba(255, 255, 255, 0.02);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+                    text-decoration: none;
+                    color: white;
+                    height: 100%;
+                }
+
+                .premium-card:hover {
+                    transform: translateY(-12px);
+                    border-color: rgba(108, 92, 231, 0.4);
+                    background: rgba(255,255,255,0.04);
+                    box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+                }
+
+                .card-image-box {
+                    position: relative;
+                    height: 240px;
+                    width: 100%;
+                    overflow: hidden;
+                }
+
+                .card-img {
+                    width: 100%; height: 100%;
+                    background-size: cover; background-position: center;
+                    transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+                }
+
+                .premium-card:hover .card-img { transform: scale(1.15); }
+
+                .card-overlay {
+                    position: absolute;
+                    top: 20px; left: 20px;
+                    display: flex; gap: 10px;
+                }
+
+                .type-pill {
+                    background: rgba(15, 15, 20, 0.7);
+                    backdrop-filter: blur(10px);
+                    padding: 8px 18px;
+                    border-radius: 40px;
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 1.2px;
+                    border: 1px solid rgba(255,255,255,0.1);
+                }
+
+                .card-body {
+                    padding: 25px;
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                }
+
+                .card-title-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 15px;
+                    gap: 15px;
+                }
+
+                .card-name {
+                    font-size: 1.4rem;
+                    font-weight: 800;
+                    margin: 0;
+                    line-height: 1.1;
+                    letter-spacing: -0.5px;
+                    flex: 1;
+                }
+
+                .cat-pill {
+                    font-size: 0.7rem;
+                    background: rgba(108, 92, 231, 0.15);
+                    color: #a29bfe;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    font-weight: 800;
+                    white-space: nowrap;
+                    border: 1px solid rgba(162, 155, 254, 0.1);
+                }
+
+                .card-desc {
+                    color: rgba(255,255,255,0.45);
+                    font-size: 0.95rem;
+                    line-height: 1.6;
+                    margin-bottom: 25px;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+
+                .card-tags {
+                    display: flex; gap: 8px;
+                    margin-top: auto;
+                    margin-bottom: 25px;
+                }
+
+                .service-tag {
+                    font-size: 0.75rem;
+                    color: rgba(255,255,255,0.4);
+                    background: rgba(255,255,255,0.04);
+                    padding: 5px 12px;
+                    border-radius: 10px;
+                    border: 1px solid rgba(255,255,255,0.04);
+                }
+
+                .card-action {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding-top: 20px;
+                    border-top: 1px solid rgba(255,255,255,0.04);
+                }
+
+                .price-hint { font-size: 0.9rem; font-weight: 700; color: #a29bfe; }
+                .arrow-btn {
+                    width: 40px; height: 40px;
+                    background: rgba(255,255,255,0.03);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+                    border: 1px solid rgba(255,255,255,0.05);
+                }
+                .premium-card:hover .arrow-btn { 
+                    background: var(--primary); 
+                    color: white; 
+                    transform: translateX(8px);
+                    box-shadow: 0 0 20px rgba(108, 92, 231, 0.5);
+                }
+
+                /* Responsiveness */
                 @media (max-width: 1024px) {
-                    .explore-container { display: flex; flex-direction: column; height: auto; overflow: visible; background: #0f0f13; }
-                    .desktop-only { display: none; }
-                    .mobile-only { display: block; }
-                    
-                    .results-area { padding: 20px; height: auto; background: transparent; width: 100%; }
-                    .search-header { position: sticky; top: 15px; z-index: 100; backdrop-filter: blur(20px); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-                    
-                    /* Mobile Map - Beautiful Section */
-                    .mobile-map-container { padding: 10px 0 25px 0; width: 100%; height: 420px; transition: all 0.5s ease; }
-                    .mobile-map-container.hidden { height: 0; padding: 0; opacity: 0; pointer-events: none; overflow: hidden; }
-                    .map-card { height: 100%; width: 100%; border-radius: 25px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 15px 45px rgba(0,0,0,0.4); }
-
-                    .sidebar.mobile-hidden { display: none; }
-                    .sidebar.mobile-visible {
-                        display: flex;
+                    .explore-container { grid-template-columns: 1fr; }
+                    .sidebar {
                         position: fixed;
                         top: 0; left: 0; width: 100%; height: 100%;
-                        z-index: 3000;
-                        background: #0f0f13;
-                        animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                        background: #0b0b0f;
+                        transform: translateY(100%);
+                        transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
                     }
-                    .close-btn { background: transparent; border: none; color: white; font-size: 2rem; }
-                    
-                    .listing-card { flex-direction: column; gap: 15px; border-radius: 25px; background: rgba(255,255,255,0.02); overflow: hidden; }
-                    .listing-image { width: 100%; height: 220px; border-radius: 20px 20px 0 0; }
-                    .listing-title { font-size: 1.5rem; }
-                    .listing-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
-                    
-                    .mobile-hidden { display: none !important; }
+                    .sidebar.mobile-visible { transform: translateY(0); }
+                    .mobile-only { display: block; }
+                    .close-btn { 
+                        background: rgba(255,255,255,0.05); 
+                        border: none; color: white; 
+                        width: 50px; height: 50px; border-radius: 50%;
+                        font-size: 1.5rem; cursor: pointer;
+                    }
+                    .filter-trigger { display: flex; }
+                    .results-content { padding: 0 20px 40px 20px; }
+                    .top-search-bar { margin: 20px; }
+                    .listings-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
                 }
 
-                @keyframes slideUp {
-                    from { transform: translateY(100%); }
-                    to { transform: translateY(0); }
+                @media (max-width: 640px) {
+                    .listings-grid { grid-template-columns: 1fr; gap: 15px; }
+                    .premium-card { border-radius: 16px; margin: 0 10px; }
+                    .card-body { padding: 15px; }
+                    .card-name { font-size: 1.2rem; }
+                    .card-desc { font-size: 0.9rem; margin-bottom: 15px; }
+                    .top-search-bar { border-radius: 12px; margin: 10px; padding: 8px 15px; }
+                    .main-search-input { font-size: 1rem; }
+                    .sidebar-header { padding: 20px; }
+                    .filter-scroll { padding: 0 20px 30px 20px; }
+                    .cat-tag { padding: 6px 12px; font-size: 0.8rem; }
+                    .results-content { padding: 0 10px 30px 10px; }
                 }
 
-                .loader, .no-res { text-align: center; color: #555; padding: 60px; font-size: 1.1rem; }
             `}</style>
         </div>
     );

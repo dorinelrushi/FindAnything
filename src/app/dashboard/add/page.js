@@ -9,7 +9,8 @@ const CATEGORIES = {
     bar: ['Cocktail Bar', 'Lounge Bar', 'Wine Bar', 'Beer Bar', 'Cafe Bar', 'Night Bar'],
     hotel: ['Hotel', 'Boutique Hotel', 'Guesthouse', 'Hostel', 'Resort'],
     bujtina: ['Traditional', 'Modern', 'Family-Run', 'Mountain', 'Lake View'],
-    rentcar: ['Economy', 'Luxury', 'SUV', 'Electric', 'Family']
+    rentcar: ['Economy', 'Luxury', 'SUV', 'Electric', 'Family'],
+    tour: ['Day Trip', 'Multi-day Tour', 'Adventure', 'Cultural', 'Walking Tour', 'Food Tour', 'Hiking']
 };
 
 // Predefined services (for non-hotel types)
@@ -52,9 +53,9 @@ const TRANSMISSIONS = ['Manual', 'Automatik'];
 const CAR_INCLUSIONS = ['Siguracion bazë', 'Kilometra pa limit', 'Asistencë rrugore'];
 const REQUIRED_DOCS = ['ID / Pasaportë', 'Patentë'];
 const CAR_PAYMENT_METHODS = ['Cash', 'Kartë', 'Transfertë Bankare'];
-const CAR_EXTRA_SERVICES = ['GPS', 'Karrige për fëmijë', 'Shofer privat', 'Dorëzim jashtë qytetit'];
-
-
+const CAR_EXTRA_SERVICES = ['Sedilje fëmijësh', 'GPS / Navigacion', 'Shofer shtesë', 'Siguracion Full Kasko'];
+// Tour specific options
+const TOUR_INCLUSIONS = ['Transport', 'Lunch', 'Dinner', 'Guide', 'Entrance Fees', 'Hotel Pickup'];
 
 function AddListingForm() {
     const searchParams = useSearchParams();
@@ -76,8 +77,24 @@ function AddListingForm() {
         lng: '20.7808',
         category: '',
         customCategory: '',
+        city: '',
+        country: '',
+        whatsappNumber: '',
     });
+    const [availableCategories, setAvailableCategories] = useState([]);
+
+    useEffect(() => {
+        if (type) {
+            fetch(`/api/categories?type=${type}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.categories) setAvailableCategories(data.categories);
+                });
+        }
+    }, [type]);
+
     const [imageFile, setImageFile] = useState(null);
+    const [galleryFiles, setGalleryFiles] = useState([]); // Multiple files for gallery
     const [selectedServices, setSelectedServices] = useState([]);
     const [customService, setCustomService] = useState('');
 
@@ -175,7 +192,55 @@ function AddListingForm() {
         customExtraService: ''
     });
 
+    // Tour specific state
+    // Tour specific state
+    const [tourData, setTourData] = useState({
+        duration: '',
+        country: '',
+        maxTravelers: '',
+        itinerary: [{ day: 1, content: '' }],
+        inclusions: [],
+        exclusions: [],
+        calendar: '',
+        price: '',
+        pricing: {
+            adultPrice: 0,
+            childPrice: 0,
+            fixedPrice: 0,
+            isGroupWise: false
+        },
+        extras: [],
+        customExtraName: '',
+        customExtraPrice: '',
+        customInclusion: '',
+        customExclusion: '',
+        whatsappNumber: ''
+    });
 
+    const addItineraryDay = () => {
+        setTourData(prev => ({
+            ...prev,
+            itinerary: [...prev.itinerary, { day: prev.itinerary.length + 1, content: '' }]
+        }));
+    };
+
+    const updateItineraryDay = (index, content) => {
+        setTourData(prev => ({
+            ...prev,
+            itinerary: prev.itinerary.map((item, i) => i === index ? { ...item, content } : item)
+        }));
+    };
+
+    const removeItineraryDay = (index) => {
+        setTourData(prev => {
+            const newItinerary = prev.itinerary.filter((_, i) => i !== index);
+            // Re-index days
+            return {
+                ...prev,
+                itinerary: newItinerary.map((item, i) => ({ ...item, day: i + 1 }))
+            };
+        });
+    };
 
     const handleAddressSearch = async () => {
         if (!formData.address) return;
@@ -205,6 +270,19 @@ function AddListingForm() {
         // Determine final category
         const finalCategory = formData.category === 'custom' ? formData.customCategory : formData.category;
 
+        if (formData.category === 'custom' && formData.customCategory) {
+            // Save category to DB
+            try {
+                await fetch('/api/categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, name: formData.customCategory })
+                });
+            } catch (err) {
+                console.error('Failed to save custom category', err);
+            }
+        }
+
         // Create FormData for file upload
         const data = new FormData();
         data.append('title', formData.title);
@@ -213,46 +291,36 @@ function AddListingForm() {
         data.append('type', type);
         data.append('lat', formData.lat);
         data.append('lng', formData.lng);
+        data.append('city', formData.city);
+        data.append('country', formData.country);
+        data.append('whatsappNumber', formData.whatsappNumber);
         if (finalCategory) {
             data.append('category', finalCategory);
         }
         data.append('services', JSON.stringify(selectedServices));
 
-        // Add hotel-specific data if type is hotel
-        if (type === 'hotel') {
-            data.append('hotelData', JSON.stringify(hotelData));
-        }
-
-        // Add bar-specific data if type is bar
+        if (type === 'hotel') data.append('hotelData', JSON.stringify(hotelData));
         if (type === 'bar') {
-            // Include main category in barData for completeness
-            const barDataToSave = {
-                ...barData,
-                category: finalCategory
-            };
+            const barDataToSave = { ...barData, category: finalCategory };
             data.append('barData', JSON.stringify(barDataToSave));
         }
+        if (type === 'bujtina') data.append('bujtinaData', JSON.stringify(bujtinaData));
+        if (type === 'rentcar') data.append('rentCarData', JSON.stringify(rentCarData));
+        if (type === 'tour') data.append('tourData', JSON.stringify(tourData));
 
-        // Add bujtina-specific data if type is bujtina
-        if (type === 'bujtina') {
-            data.append('bujtinaData', JSON.stringify(bujtinaData));
-        }
+        if (imageFile) data.append('image', imageFile);
 
-        // Add rentcar-specific data if type is rentcar
-        if (type === 'rentcar') {
-            data.append('rentCarData', JSON.stringify(rentCarData));
-        }
-
-        if (imageFile) {
-            data.append('image', imageFile);
+        // Append Gallery Files
+        if (galleryFiles.length > 0) {
+            for (let i = 0; i < galleryFiles.length; i++) {
+                data.append('gallery', galleryFiles[i]);
+            }
         }
 
         try {
             const res = await fetch('/api/listings', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Authorization': `Bearer ${token}` },
                 body: data,
             });
 
@@ -268,16 +336,10 @@ function AddListingForm() {
         }
     };
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const toggleService = (service) => {
-        setSelectedServices(prev =>
-            prev.includes(service)
-                ? prev.filter(s => s !== service)
-                : [...prev, service]
-        );
+        setSelectedServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]);
     };
 
     const addCustomService = () => {
@@ -287,7 +349,10 @@ function AddListingForm() {
         }
     };
 
-    // Hotel-specific helper functions
+    // Helper functions for Hotel, Bar, Bujtina, RentCar (omitted for brevity, assume they exist or use previous implementation)
+    // ... (Keep existing helpers) ...
+
+    // --- RE-ADD HELPERS TO ENSURE THEY EXIST (Prev block replacement might have cut them off) ---
     const toggleHotelArray = (arrayName, item) => {
         setHotelData(prev => ({
             ...prev,
@@ -309,181 +374,99 @@ function AddListingForm() {
     };
 
     const updateHotelPolicy = (policyName, value) => {
-        setHotelData(prev => ({
-            ...prev,
-            policies: {
-                ...prev.policies,
-                [policyName]: value
-            }
-        }));
+        setHotelData(prev => ({ ...prev, policies: { ...prev.policies, [policyName]: value } }));
     };
 
-    // Bar-specific helper functions
     const toggleBarArray = (arrayName, item) => {
-        setBarData(prev => ({
-            ...prev,
-            [arrayName]: prev[arrayName].includes(item)
-                ? prev[arrayName].filter(i => i !== item)
-                : [...prev[arrayName], item]
-        }));
+        setBarData(prev => ({ ...prev, [arrayName]: prev[arrayName].includes(item) ? prev[arrayName].filter(i => i !== item) : [...prev[arrayName], item] }));
     };
 
     const toggleBarRuleArray = (arrayName, item) => {
-        setBarData(prev => ({
-            ...prev,
-            rules: {
-                ...prev.rules,
-                [arrayName]: prev.rules[arrayName].includes(item)
-                    ? prev.rules[arrayName].filter(i => i !== item)
-                    : [...prev.rules[arrayName], item]
-            }
-        }));
+        setBarData(prev => ({ ...prev, rules: { ...prev.rules, [arrayName]: prev.rules[arrayName].includes(item) ? prev.rules[arrayName].filter(i => i !== item) : [...prev.rules[arrayName], item] } }));
     };
 
     const updateBarFeature = (featureName, value) => {
-        setBarData(prev => ({
-            ...prev,
-            features: {
-                ...prev.features,
-                [featureName]: value
-            }
-        }));
+        setBarData(prev => ({ ...prev, features: { ...prev.features, [featureName]: value } }));
     };
 
     const updateBarRule = (ruleName, value) => {
-        setBarData(prev => ({
-            ...prev,
-            rules: {
-                ...prev.rules,
-                [ruleName]: value
-            }
-        }));
+        setBarData(prev => ({ ...prev, rules: { ...prev.rules, [ruleName]: value } }));
     };
 
     const addCustomBarItem = (arrayName, customFieldName) => {
         const customValue = barData[customFieldName]?.trim();
         if (customValue && !barData[arrayName].includes(customValue)) {
-            setBarData(prev => ({
-                ...prev,
-                [arrayName]: [...prev[arrayName], customValue],
-                [customFieldName]: ''
-            }));
+            setBarData(prev => ({ ...prev, [arrayName]: [...prev[arrayName], customValue], [customFieldName]: '' }));
         }
     };
 
     const addCustomBarRuleItem = (arrayName, customFieldName) => {
         const customValue = barData[customFieldName]?.trim();
         if (customValue && !barData.rules[arrayName].includes(customValue)) {
-            setBarData(prev => ({
-                ...prev,
-                rules: {
-                    ...prev.rules,
-                    [arrayName]: [...prev.rules[arrayName], customValue]
-                },
-                [customFieldName]: ''
-            }));
+            setBarData(prev => ({ ...prev, rules: { ...prev.rules, [arrayName]: [...prev.rules[arrayName], customValue] }, [customFieldName]: '' }));
         }
     };
 
-    // Bujtina-specific helper functions
     const toggleBujtinaArray = (arrayName, item) => {
-        setBujtinaData(prev => ({
-            ...prev,
-            [arrayName]: prev[arrayName].includes(item)
-                ? prev[arrayName].filter(i => i !== item)
-                : [...prev[arrayName], item]
-        }));
+        setBujtinaData(prev => ({ ...prev, [arrayName]: prev[arrayName].includes(item) ? prev[arrayName].filter(i => i !== item) : [...prev[arrayName], item] }));
     };
 
     const toggleBujtinaBio = (item) => {
-        setBujtinaData(prev => ({
-            ...prev,
-            food: {
-                ...prev.food,
-                bioProducts: prev.food.bioProducts.includes(item)
-                    ? prev.food.bioProducts.filter(i => i !== item)
-                    : [...prev.food.bioProducts, item]
-            }
-        }));
+        setBujtinaData(prev => ({ ...prev, food: { ...prev.food, bioProducts: prev.food.bioProducts.includes(item) ? prev.food.bioProducts.filter(i => i !== item) : [...prev.food.bioProducts, item] } }));
     };
 
     const addCustomBujtinaItem = (arrayName, customFieldName) => {
         const customValue = bujtinaData[customFieldName]?.trim();
         if (customValue && !bujtinaData[arrayName].includes(customValue)) {
-            setBujtinaData(prev => ({
-                ...prev,
-                [arrayName]: [...prev[arrayName], customValue],
-                [customFieldName]: ''
-            }));
+            setBujtinaData(prev => ({ ...prev, [arrayName]: [...prev[arrayName], customValue], [customFieldName]: '' }));
         }
     };
 
     const addCustomBujtinaBio = () => {
         const customValue = bujtinaData.customBioProduct?.trim();
         if (customValue && !bujtinaData.food.bioProducts.includes(customValue)) {
-            setBujtinaData(prev => ({
-                ...prev,
-                food: {
-                    ...prev.food,
-                    bioProducts: [...prev.food.bioProducts, customValue]
-                },
-                customBioProduct: ''
-            }));
+            setBujtinaData(prev => ({ ...prev, food: { ...prev.food, bioProducts: [...prev.food.bioProducts, customValue] }, customBioProduct: '' }));
         }
     };
 
-    // Rent Car specific helper functions
     const toggleRentCarArray = (arrayName, item) => {
-        setRentCarData(prev => ({
-            ...prev,
-            [arrayName]: prev[arrayName].includes(item)
-                ? prev[arrayName].filter(i => i !== item)
-                : [...prev[arrayName], item]
-        }));
+        setRentCarData(prev => ({ ...prev, [arrayName]: prev[arrayName].includes(item) ? prev[arrayName].filter(i => i !== item) : [...prev[arrayName], item] }));
     };
 
     const toggleRentCarNestedArray = (parent, arrayName, item) => {
-        setRentCarData(prev => ({
-            ...prev,
-            [parent]: {
-                ...prev[parent],
-                [arrayName]: prev[parent][arrayName].includes(item)
-                    ? prev[parent][arrayName].filter(i => i !== item)
-                    : [...prev[parent][arrayName], item]
-            }
-        }));
+        setRentCarData(prev => ({ ...prev, [parent]: { ...prev[parent], [arrayName]: prev[parent][arrayName].includes(item) ? prev[parent][arrayName].filter(i => i !== item) : [...prev[parent][arrayName], item] } }));
     };
 
     const addCustomRentCarItem = (arrayName, customFieldName) => {
         const customValue = rentCarData[customFieldName]?.trim();
         if (customValue && !rentCarData[arrayName].includes(customValue)) {
-            setRentCarData(prev => ({
-                ...prev,
-                [arrayName]: [...prev[arrayName], customValue],
-                [customFieldName]: ''
-            }));
+            setRentCarData(prev => ({ ...prev, [arrayName]: [...prev[arrayName], customValue], [customFieldName]: '' }));
         }
     };
 
     const addCustomRentCarNestedItem = (parent, arrayName, customFieldName) => {
         const customValue = rentCarData[customFieldName]?.trim();
         if (customValue && !rentCarData[parent][arrayName].includes(customValue)) {
-            setRentCarData(prev => ({
-                ...prev,
-                [parent]: {
-                    ...prev[parent],
-                    [arrayName]: [...prev[parent][arrayName], customValue]
-                },
-                [customFieldName]: ''
-            }));
+            setRentCarData(prev => ({ ...prev, [parent]: { ...prev[parent], [arrayName]: [...prev[parent][arrayName], customValue] }, [customFieldName]: '' }));
+        }
+    };
+
+    // Tour helpers
+    const toggleTourInclusion = (item) => {
+        setTourData(prev => ({
+            ...prev,
+            inclusions: prev.inclusions.includes(item) ? prev.inclusions.filter(i => i !== item) : [...prev.inclusions, item]
+        }));
+    };
+
+    const addCustomTourInclusion = () => {
+        const val = tourData.customInclusion.trim();
+        if (val && !tourData.inclusions.includes(val)) {
+            setTourData(prev => ({ ...prev, inclusions: [...prev.inclusions, val], customInclusion: '' }));
         }
     };
 
     const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
-
-
-
-    const availableCategories = CATEGORIES[type] || [];
 
     return (
         <div className="glass card" style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -494,32 +477,32 @@ function AddListingForm() {
                     <input name="title" placeholder="Business Name" className="input" onChange={handleChange} required />
                 </div>
 
+                {/* Main Image Upload */}
+                <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Main Image</label>
+                    <input type="file" onChange={(e) => setImageFile(e.target.files[0])} className="input" />
+                </div>
+
+                {/* Gallery Upload - For all listings */}
+                <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Gallery (Select multiple photos)</label>
+                    <input type="file" multiple onChange={(e) => setGalleryFiles(Array.from(e.target.files))} className="input" />
+                    {galleryFiles.length > 0 && <p style={{ fontSize: '0.8rem', color: '#aaa' }}>{galleryFiles.length} files selected</p>}
+                </div>
+
                 {/* Category Selection */}
                 {availableCategories.length > 0 && (
                     <div>
                         <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Category</label>
-                        <select
-                            name="category"
-                            className="input"
-                            value={formData.category}
-                            onChange={handleChange}
-                        >
+                        <select name="category" className="input" value={formData.category} onChange={handleChange}>
                             <option value="">Select a category...</option>
                             {availableCategories.map(cat => (
                                 <option key={cat} value={cat}>{cat}</option>
                             ))}
                             <option value="custom">+ Add Custom Category</option>
                         </select>
-
                         {formData.category === 'custom' && (
-                            <input
-                                name="customCategory"
-                                placeholder="Enter custom category"
-                                className="input"
-                                value={formData.customCategory}
-                                onChange={handleChange}
-                                style={{ marginTop: '10px' }}
-                            />
+                            <input name="customCategory" placeholder="Enter custom category" className="input" value={formData.customCategory} onChange={handleChange} style={{ marginTop: '10px' }} />
                         )}
                     </div>
                 )}
@@ -527,17 +510,231 @@ function AddListingForm() {
                 {/* Description */}
                 <div>
                     <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Description *</label>
-                    <textarea
-                        name="description"
-                        placeholder="Describe your business..."
-                        className="input"
-                        value={formData.description}
-                        onChange={handleChange}
-                        required
-                        rows={8}
-                        style={{ minHeight: '200px', resize: 'vertical' }}
-                    />
+                    <textarea name="description" placeholder="Describe your business..." className="input" value={formData.description} onChange={handleChange} required rows={8} style={{ minHeight: '200px', resize: 'vertical' }} />
                 </div>
+
+                {/* Location Details & Contact */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>City *</label>
+                        <input name="city" placeholder="e.g. Korça" className="input" value={formData.city} onChange={handleChange} required />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Country *</label>
+                        <input name="country" placeholder="e.g. Albania" className="input" value={formData.country} onChange={handleChange} required />
+                    </div>
+                </div>
+
+                <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Business WhatsApp Number</label>
+                    <input name="whatsappNumber" placeholder="e.g. +355 69 00 00 000" className="input" value={formData.whatsappNumber} onChange={handleChange} />
+                    <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>Include prefix (e.g. +355) so customers can message you easily.</p>
+                </div>
+
+                {/* Tour Specific Fields */}
+                {type === 'tour' && (
+                    <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+                        <h3 style={{ marginBottom: '20px', color: '#a29bfe' }}>Tour Details</h3>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Duration</label>
+                                <input placeholder="e.g. 3 Days" className="input" value={tourData.duration} onChange={e => setTourData({ ...tourData, duration: e.target.value })} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Country / Location</label>
+                                <input placeholder="e.g. Albania" className="input" value={tourData.country} onChange={e => setTourData({ ...tourData, country: e.target.value })} />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Max Travelers</label>
+                                <input type="number" placeholder="e.g. 15" className="input" value={tourData.maxTravelers} onChange={e => setTourData({ ...tourData, maxTravelers: e.target.value })} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Price</label>
+                                <input placeholder="e.g. 50 EUR / person" className="input" value={tourData.price} onChange={e => setTourData({ ...tourData, price: e.target.value })} />
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Itinerary</label>
+                            {tourData.itinerary.map((item, index) => (
+                                <div key={index} style={{ marginBottom: '10px', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', color: '#aaa' }}>Day {item.day}</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeItineraryDay(index)}
+                                            style={{ background: 'transparent', border: 'none', color: '#ff7675', cursor: 'pointer', fontSize: '0.9rem' }}
+                                        >
+                                            Delete Day
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        placeholder={`Describe activities for Day ${item.day}...`}
+                                        className="input"
+                                        rows={3}
+                                        value={item.content}
+                                        onChange={(e) => updateItineraryDay(index, e.target.value)}
+                                    />
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={addItineraryDay}
+                                className="btn"
+                                style={{ background: '#a29bfe', marginTop: '5px' }}
+                            >
+                                + Add Day
+                            </button>
+                        </div>
+
+                        <div style={{ marginTop: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '12px', color: '#fff', fontSize: '1.1rem', fontWeight: '600' }}>✅ What is Included?</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', marginBottom: '15px' }}>
+                                {TOUR_INCLUSIONS.map(inc => (
+                                    <label key={inc} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px', background: tourData.inclusions.includes(inc) ? 'rgba(46, 204, 113, 0.15)' : 'rgba(255,255,255,0.03)', borderRadius: '10px', border: tourData.inclusions.includes(inc) ? '1px solid #2ecc71' : '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s' }}>
+                                        <input type="checkbox" checked={tourData.inclusions.includes(inc)} onChange={() => toggleTourInclusion(inc)} style={{ cursor: 'pointer' }} />
+                                        <span style={{ fontSize: '0.9rem' }}>{inc}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <input placeholder="Write something included..." className="input" value={tourData.customInclusion} onChange={e => setTourData({ ...tourData, customInclusion: e.target.value })} style={{ margin: 0 }} />
+                                <button type="button" onClick={addCustomTourInclusion} className="btn" style={{ whiteSpace: 'nowrap', background: '#2ecc71', color: '#fff' }}>+ Add</button>
+                            </div>
+                            {tourData.inclusions.filter(inc => !TOUR_INCLUSIONS.includes(inc)).length > 0 && (
+                                <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                    {tourData.inclusions.filter(inc => !TOUR_INCLUSIONS.includes(inc)).map((inc, idx) => (
+                                        <span key={idx} className="badge" style={{ background: 'rgba(46, 204, 113, 0.1)', border: '1px solid #2ecc71', color: '#2ecc71', padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            ✅ {inc}
+                                            <button type="button" onClick={() => toggleTourInclusion(inc)} style={{ background: 'none', border: 'none', color: '#2ecc71', cursor: 'pointer', fontSize: '1.1rem', padding: '0' }}>×</button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Exclusions */}
+                        <div style={{ marginTop: '25px' }}>
+                            <label style={{ display: 'block', marginBottom: '12px', color: '#fff', fontSize: '1.1rem', fontWeight: '600' }}>❌ What is Excluded?</label>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <input placeholder="Write something excluded (e.g. Flights)" className="input" value={tourData.customExclusion} onChange={e => setTourData({ ...tourData, customExclusion: e.target.value })} style={{ margin: 0 }} />
+                                <button type="button" onClick={() => {
+                                    if (tourData.customExclusion?.trim()) {
+                                        setTourData({ ...tourData, exclusions: [...(tourData.exclusions || []), tourData.customExclusion.trim()], customExclusion: '' });
+                                    }
+                                }} className="btn" style={{ whiteSpace: 'nowrap', background: '#e74c3c', color: '#fff' }}>+ Add</button>
+                            </div>
+                            {tourData.exclusions?.length > 0 && (
+                                <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                    {tourData.exclusions.map((exc, idx) => (
+                                        <span key={idx} className="badge" style={{ background: 'rgba(231, 76, 60, 0.1)', border: '1px solid #e74c3c', color: '#e74c3c', padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            ❌ {exc}
+                                            <button type="button" onClick={() => setTourData({ ...tourData, exclusions: tourData.exclusions.filter((_, i) => i !== idx) })} style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: '1.1rem', padding: '0' }}>×</button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Pricing Calculator Setup */}
+                        <div style={{ marginTop: '25px', background: 'rgba(255,255,255,0.02)', padding: '25px', borderRadius: '20px', border: '1px solid rgba(162, 155, 254, 0.2)' }}>
+                            <h4 style={{ marginBottom: '20px', color: '#a29bfe', fontSize: '1.2rem' }}>💰 Pricing Calculator Configuration</h4>
+                            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '20px' }}>Set your prices here. Use the same currency as your Primary Price (e.g. $, €, or LEK).</p>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc', fontSize: '0.9rem' }}>Adult Price</label>
+                                    <input type="number" placeholder="150" className="input" value={tourData.pricing?.adultPrice} onChange={e => setTourData({ ...tourData, pricing: { ...tourData.pricing, adultPrice: Number(e.target.value) } })} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc', fontSize: '0.9rem' }}>Child Price</label>
+                                    <input type="number" placeholder="75" className="input" value={tourData.pricing?.childPrice} onChange={e => setTourData({ ...tourData, pricing: { ...tourData.pricing, childPrice: Number(e.target.value) } })} />
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', cursor: 'pointer', fontWeight: '500' }}>
+                                    <input type="checkbox" checked={tourData.pricing?.isGroupWise} onChange={e => setTourData({ ...tourData, pricing: { ...tourData.pricing, isGroupWise: e.target.checked } })} style={{ width: '20px', height: '20px' }} />
+                                    <span>Enable Fixed Group Price Option</span>
+                                </label>
+                                {tourData.pricing?.isGroupWise && (
+                                    <div style={{ marginTop: '15px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
+                                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc', fontSize: '0.9rem' }}>Fixed Group Price</label>
+                                        <input type="number" placeholder="1000" className="input" value={tourData.pricing?.fixedPrice} onChange={e => setTourData({ ...tourData, pricing: { ...tourData.pricing, fixedPrice: Number(e.target.value) } })} />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Custom Extras Section */}
+                            <div style={{ marginTop: '30px', paddingTop: '25px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                <h5 style={{ color: '#fff', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>✨ Manage Booking Extras</h5>
+                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '10px', marginBottom: '15px' }}>
+                                    <input
+                                        placeholder="Extra name (e.g. Lunch)"
+                                        className="input"
+                                        value={tourData.customExtraName}
+                                        onChange={e => setTourData({ ...tourData, customExtraName: e.target.value })}
+                                        style={{ margin: 0 }}
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Price"
+                                        className="input"
+                                        value={tourData.customExtraPrice}
+                                        onChange={e => setTourData({ ...tourData, customExtraPrice: e.target.value })}
+                                        style={{ margin: 0 }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (tourData.customExtraName && tourData.customExtraPrice) {
+                                                setTourData({
+                                                    ...tourData,
+                                                    extras: [...(tourData.extras || []), { name: tourData.customExtraName, price: Number(tourData.customExtraPrice) }],
+                                                    customExtraName: '',
+                                                    customExtraPrice: ''
+                                                });
+                                            }
+                                        }}
+                                        className="btn"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+
+                                {tourData.extras?.length > 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {tourData.extras.map((extra, idx) => (
+                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
+                                                <span>{extra.name}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                    <span style={{ color: '#a29bfe', fontWeight: 'bold' }}>+{extra.price}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setTourData({ ...tourData, extras: tourData.extras.filter((_, i) => i !== idx) })}
+                                                        style={{ background: 'none', border: 'none', color: '#ff7675', cursor: 'pointer' }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>WhatsApp Number for Bookings (Include prefix, e.g. +355...)</label>
+                            <input placeholder="e.g. +355 69 00 00 000" className="input" value={tourData.whatsappNumber} onChange={e => setTourData({ ...tourData, whatsappNumber: e.target.value })} />
+                        </div>
+                    </div>
+                )}
+
 
                 {/* Hotel-Specific Fields */}
                 {type === 'hotel' && (
@@ -1639,8 +1836,8 @@ function AddListingForm() {
                     </>
                 )}
 
-                {/* Services (for non-hotel, non-bujtina, non-rentcar types) */}
-                {type !== 'hotel' && type !== 'bujtina' && type !== 'rentcar' && (
+                {/* Services (for non-hotel, non-bujtina, non-rentcar, non-tour types) */}
+                {type !== 'hotel' && type !== 'bujtina' && type !== 'rentcar' && type !== 'tour' && (
                     <div>
                         <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Services & Amenities</label>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
@@ -1717,26 +1914,16 @@ function AddListingForm() {
                     <button type="button" onClick={handleAddressSearch} className="btn" style={{ background: 'var(--accent)', whiteSpace: 'nowrap' }}>Locate on Map</button>
                 </div>
 
+                {/* Main Image */}
                 <div>
-                    <label style={{ color: '#ccc', display: 'block', marginBottom: '8px' }}>Upload Image: *</label>
+                    <label style={{ color: '#ccc', display: 'block', marginBottom: '8px' }}>Upload Main Image: *</label>
                     <input
                         type="file"
                         accept="image/*"
                         className="input"
                         onChange={(e) => setImageFile(e.target.files[0])}
-                        required
+                        required={type !== 'tour'} // Make it optional for tours if they prefer gallery only, or just keep it required if you want consistency. Actually, better make it required for all for consistency in listing cards.
                     />
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Latitude: *</label>
-                        <input name="lat" placeholder="Latitude" className="input" value={formData.lat} onChange={handleChange} required />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Longitude: *</label>
-                        <input name="lng" placeholder="Longitude" className="input" value={formData.lng} onChange={handleChange} required />
-                    </div>
                 </div>
 
                 <button type="submit" className="btn">Upload Listing</button>

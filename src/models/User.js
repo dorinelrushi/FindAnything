@@ -39,6 +39,8 @@ const UserSchema = new mongoose.Schema({
         bar: { type: Number, default: 0 },
         bujtina: { type: Number, default: 0 },
         rentcar: { type: Number, default: 0 },
+        tour: { type: Number, default: 0 },
+        city: { type: Number, default: 0 },
     },
 });
 

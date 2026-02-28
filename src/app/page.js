@@ -5,7 +5,6 @@ import Link from 'next/link';
 
 import FeaturedAds from '@/app/components/FeaturedAds';
 import Stories from '@/app/components/Stories';
-const Map = dynamic(() => import('@/app/components/Map'), { ssr: false });
 
 export default function Home() {
   const [listings, setListings] = useState([]);
@@ -38,10 +37,10 @@ export default function Home() {
       <Stories />
 
       <section style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '3rem', marginBottom: '20px', background: 'linear-gradient(to right, #6c5ce7, #fd79a8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Explore Korça City
+        <h1 className="hero-title" style={{ fontSize: '3rem', marginBottom: '20px', background: 'linear-gradient(to right, #6c5ce7, #fd79a8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Explore the World
         </h1>
-        <p style={{ fontSize: '1.2rem', color: '#ccc' }}>Find the best hotels, restaurants, and experiences.</p>
+        <p className="hero-subtitle" style={{ fontSize: '1.2rem', color: '#ccc' }}>Find the best places to stay, eat, and experiences around the world.</p>
 
         <div className="search-bar glass" style={{ padding: '10px', marginTop: '30px', alignItems: 'center' }}>
           <input
@@ -60,12 +59,14 @@ export default function Home() {
           <Link href={`/explore?search=${search}`} className="btn" style={{ textDecoration: 'none' }}>Search</Link>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
+        <div className="home-categories-grid" style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
           <Link href="/explore" className="btn" style={{ background: 'var(--secondary)', textDecoration: 'none' }}>All</Link>
+          <Link href="/explore?type=city" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Cities</Link>
           <Link href="/explore?type=hotel" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Hotels</Link>
           <Link href="/explore?type=restaurant" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Restaurants</Link>
           <Link href="/explore?type=bar" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Bars</Link>
           <Link href="/explore?type=bujtina" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Bujtinas</Link>
+          <Link href="/explore?type=tour" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Tours</Link>
           <Link href="/explore?type=rentcar" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Rent Car</Link>
         </div>
       </section>
@@ -73,10 +74,6 @@ export default function Home() {
       <FeaturedAds />
 
       <section>
-        <div className="glass map-wrapper" style={{ padding: '10px', marginBottom: '40px' }}>
-          <Map listings={listings} />
-        </div>
-
         <div className="grid">
           {listings.map(listing => {
             // Strip HTML tags for clean preview

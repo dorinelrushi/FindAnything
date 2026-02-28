@@ -113,12 +113,29 @@ export async function POST(req) {
         const barDataRaw = formData.get('barData'); // JSON string of barData object
         const bujtinaDataRaw = formData.get('bujtinaData'); // JSON string of bujtinaData object
         const rentCarDataRaw = formData.get('rentCarData'); // JSON string of rentCarData object
+        const tourDataRaw = formData.get('tourData'); // JSON string of tourData object
+        const galleryFiles = formData.getAll('gallery');
+        const city = formData.get('city');
+        const country = formData.get('country');
+        const whatsappNumber = formData.get('whatsappNumber');
 
         let imageUrl = '';
         if (imageFile && imageFile.size > 0) {
             const buffer = Buffer.from(await imageFile.arrayBuffer());
             const base64Image = buffer.toString('base64');
             imageUrl = `data:${imageFile.type};base64,${base64Image}`;
+        }
+
+        // Handle Gallery
+        let gallery = [];
+        if (galleryFiles && galleryFiles.length > 0) {
+            for (const file of galleryFiles) {
+                if (file.size > 0) {
+                    const buffer = Buffer.from(await file.arrayBuffer());
+                    const base64 = buffer.toString('base64');
+                    gallery.push(`data:${file.type};base64,${base64}`);
+                }
+            }
         }
 
         // Generate Slug
@@ -179,6 +196,16 @@ export async function POST(req) {
             }
         }
 
+        // Parse tourData if provided
+        let tourData = undefined;
+        if (tourDataRaw) {
+            try {
+                tourData = JSON.parse(tourDataRaw);
+            } catch (e) {
+                console.error('Error parsing tourData:', e);
+            }
+        }
+
         const listing = await Listing.create({
             owner: user.userId,
             title,
@@ -187,14 +214,19 @@ export async function POST(req) {
             address,
             lat,
             lng,
+            city,
+            country,
+            whatsappNumber,
             image: imageUrl,
+            gallery,
             slug,
             category: category || undefined,
             services,
             hotelData,
             barData,
             bujtinaData,
-            rentCarData
+            rentCarData,
+            tourData
         });
 
         return NextResponse.json({ success: true, listing }, { status: 201 });
