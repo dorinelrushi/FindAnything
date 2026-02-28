@@ -517,3 +517,39 @@ textarea {
 .non-tour-details {
   padding: 0 40px 40px 40px;
 }
+
+/* Lightbox Mobile Adjustments */
+@media (max-width: 768px) {
+  .lightbox-close-btn {
+    width: 35px !important;
+    height: 35px !important;
+    font-size: 1rem !important;
+    top: 15px !important;
+    right: 15px !important;
+  }
+
+  .lightbox-nav-left {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.5rem !important;
+    left: 10px !important;
+  }
+
+  .lightbox-nav-right {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.5rem !important;
+    right: 10px !important;
+  }
+
+  .lightbox-counter {
+    padding: 8px 15px !important;
+    font-size: 0.85rem !important;
+    bottom: 20px !important;
+  }
+
+  .lightbox-image {
+    max-width: 100% !important;
+    border-radius: 0 !important;
+  }
+}

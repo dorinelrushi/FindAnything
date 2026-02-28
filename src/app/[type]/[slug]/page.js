@@ -42,6 +42,42 @@ export default function ListingPage({ params }) {
         isPrivateApplied: false
     });
 
+    // Touch handlers for mobile gallery swipe
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEndEvent = () => {
+        if (!touchStart || touchEnd === null) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe || isRightSwipe) {
+            const currentIndex = listing?.gallery?.indexOf(selectedImage);
+            if (currentIndex > -1) {
+                if (isLeftSwipe) {
+                    // Swipe left -> Next image
+                    const nextIndex = (currentIndex === listing.gallery.length - 1) ? 0 : currentIndex + 1;
+                    setSelectedImage(listing.gallery[nextIndex]);
+                } else {
+                    // Swipe right -> Previous image
+                    const prevIndex = (currentIndex <= 0) ? listing.gallery.length - 1 : currentIndex - 1;
+                    setSelectedImage(listing.gallery[prevIndex]);
+                }
+            }
+        }
+    };
+
     useEffect(() => {
         if (listing?.tourData) {
             // Detect currency
@@ -119,6 +155,25 @@ export default function ListingPage({ params }) {
     useEffect(() => {
         fetchListing();
     }, [slug]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (!selectedImage || !listing?.gallery) return;
+            const currentIndex = listing.gallery.indexOf(selectedImage);
+            if (e.key === 'Escape') setSelectedImage(null);
+            if (e.key === 'ArrowLeft') {
+                const prevIndex = (currentIndex === 0) ? listing.gallery.length - 1 : currentIndex - 1;
+                setSelectedImage(listing.gallery[prevIndex]);
+            }
+            if (e.key === 'ArrowRight') {
+                const nextIndex = (currentIndex === listing.gallery.length - 1) ? 0 : currentIndex + 1;
+                setSelectedImage(listing.gallery[nextIndex]);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedImage, listing]);
 
     const fetchListing = async () => {
         setLoading(true);
@@ -431,30 +486,56 @@ export default function ListingPage({ params }) {
                                     {activeTab === 'gallery' && (
                                         <div className="tab-pane">
                                             <h2 style={{ marginBottom: '35px', fontSize: '2.2rem', fontWeight: '800' }}>Gallery</h2>
-                                            <div className="gallery-slider" style={{
-                                                display: 'flex', gap: '20px', overflowX: 'auto', paddingBottom: '20px',
-                                                scrollSnapType: 'x mandatory', scrollbarWidth: 'thin', scrollbarColor: '#a29bfe transparent'
-                                            }}>
-                                                {listing.gallery?.map((img, idx) => (
+                                            {listing.gallery && listing.gallery.length > 0 ? (
+                                                <div className="gallery-layout">
+                                                    {/* Featured Large Image */}
                                                     <div
-                                                        key={idx}
-                                                        onClick={() => setSelectedImage(img)}
+                                                        onClick={() => setSelectedImage(listing.gallery[0])}
                                                         style={{
-                                                            flex: '0 0 auto',
-                                                            width: '320px',
-                                                            height: '260px',
-                                                            backgroundImage: `url(${img})`,
+                                                            width: '100%',
+                                                            height: '400px',
+                                                            backgroundImage: `url(${listing.gallery[0]})`,
                                                             backgroundSize: 'cover',
                                                             backgroundPosition: 'center',
                                                             borderRadius: '20px',
                                                             cursor: 'pointer',
-                                                            scrollSnapAlign: 'start',
-                                                            transition: 'all 0.4s'
+                                                            marginBottom: '15px',
+                                                            transition: 'transform 0.3s ease',
+                                                            boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
                                                         }}
                                                         className="hover-scale"
                                                     />
-                                                ))}
-                                            </div>
+
+                                                    {/* Thumbnails Grid */}
+                                                    {listing.gallery.length > 1 && (
+                                                        <div style={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                                                            gap: '15px'
+                                                        }}>
+                                                            {listing.gallery.slice(1).map((img, idx) => (
+                                                                <div
+                                                                    key={idx + 1}
+                                                                    onClick={() => setSelectedImage(img)}
+                                                                    style={{
+                                                                        width: '100%',
+                                                                        aspectRatio: '1',
+                                                                        backgroundImage: `url(${img})`,
+                                                                        backgroundSize: 'cover',
+                                                                        backgroundPosition: 'center',
+                                                                        borderRadius: '16px',
+                                                                        cursor: 'pointer',
+                                                                        transition: 'transform 0.3s ease'
+                                                                    }}
+                                                                    className="hover-scale"
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <p style={{ color: 'rgba(255,255,255,0.5)' }}>No photos available yet.</p>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -564,29 +645,51 @@ export default function ListingPage({ params }) {
                                 {listing.gallery && listing.gallery.length > 0 && (
                                     <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
                                         <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#fff' }}>Gallery</h3>
-                                        <div className="gallery-slider" style={{
-                                            display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '15px',
-                                            scrollSnapType: 'x mandatory', scrollbarWidth: 'thin', scrollbarColor: '#a29bfe transparent'
-                                        }}>
-                                            {listing.gallery.map((img, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    onClick={() => setSelectedImage(img)}
-                                                    style={{
-                                                        flex: '0 0 auto',
-                                                        width: '280px',
-                                                        height: '220px',
-                                                        backgroundImage: `url(${img})`,
-                                                        backgroundSize: 'cover',
-                                                        backgroundPosition: 'center',
-                                                        borderRadius: '16px',
-                                                        cursor: 'pointer',
-                                                        scrollSnapAlign: 'start',
-                                                        transition: 'all 0.3s'
-                                                    }}
-                                                    className="hover-scale"
-                                                />
-                                            ))}
+                                        <div className="gallery-layout">
+                                            {/* Featured Large Image */}
+                                            <div
+                                                onClick={() => setSelectedImage(listing.gallery[0])}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '350px',
+                                                    backgroundImage: `url(${listing.gallery[0]})`,
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                    borderRadius: '20px',
+                                                    cursor: 'pointer',
+                                                    marginBottom: '15px',
+                                                    transition: 'transform 0.3s ease',
+                                                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                                                }}
+                                                className="hover-scale"
+                                            />
+
+                                            {/* Thumbnails Grid */}
+                                            {listing.gallery.length > 1 && (
+                                                <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                                                    gap: '15px'
+                                                }}>
+                                                    {listing.gallery.slice(1).map((img, idx) => (
+                                                        <div
+                                                            key={idx + 1}
+                                                            onClick={() => setSelectedImage(img)}
+                                                            style={{
+                                                                width: '100%',
+                                                                aspectRatio: '1',
+                                                                backgroundImage: `url(${img})`,
+                                                                backgroundSize: 'cover',
+                                                                backgroundPosition: 'center',
+                                                                borderRadius: '16px',
+                                                                cursor: 'pointer',
+                                                                transition: 'transform 0.3s ease'
+                                                            }}
+                                                            className="hover-scale"
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -933,10 +1036,60 @@ ${selectedExtras.length > 0 ? `Extras: ${selectedExtras.join(', ')}\n` : ''}${pr
             {/* Lightbox */}
             {selectedImage && (
                 <div
-                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.98)', zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', touchAction: 'none' }}
                     onClick={() => setSelectedImage(null)}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEndEvent}
                 >
-                    <img src={selectedImage} style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '15px' }} onClick={e => e.stopPropagation()} />
+                    <button
+                        className="lightbox-close-btn"
+                        style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', width: '45px', height: '45px', borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}
+                        onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                    >
+                        ✕
+                    </button>
+
+                    <img src={selectedImage} className="lightbox-image" style={{ maxWidth: '95%', maxHeight: '85vh', borderRadius: '15px', objectFit: 'contain', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', transition: 'transform 0.3s ease' }} onClick={e => e.stopPropagation()} draggable="false" />
+
+                    {listing.gallery && listing.gallery.length > 1 && (
+                        <>
+                            <button
+                                className="lightbox-nav-left"
+                                style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', width: '55px', height: '55px', borderRadius: '50%', fontSize: '2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const currentIndex = listing.gallery.indexOf(selectedImage);
+                                    const prevIndex = (currentIndex <= 0) ? listing.gallery.length - 1 : currentIndex - 1;
+                                    setSelectedImage(listing.gallery[prevIndex]);
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                            >
+                                ‹
+                            </button>
+                            <button
+                                className="lightbox-nav-right"
+                                style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', width: '55px', height: '55px', borderRadius: '50%', fontSize: '2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const currentIndex = listing.gallery.indexOf(selectedImage);
+                                    const nextIndex = (currentIndex === listing.gallery.length - 1) ? 0 : currentIndex + 1;
+                                    setSelectedImage(listing.gallery[nextIndex]);
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                            >
+                                ›
+                            </button>
+
+                            <div className="lightbox-counter" style={{ position: 'absolute', bottom: '30px', background: 'rgba(0,0,0,0.6)', padding: '10px 20px', borderRadius: '20px', color: '#fff', fontSize: '1rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', letterSpacing: '1px', fontWeight: '600' }} onClick={e => e.stopPropagation()}>
+                                {listing.gallery.indexOf(selectedImage) + 1} / {listing.gallery.length}
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
         </div>
