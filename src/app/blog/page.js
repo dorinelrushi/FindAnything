@@ -60,10 +60,7 @@ function BlogCard({ blog }) {
             >
                 {blog.coverImage && (
                     <div style={{ height: '200px', overflow: 'hidden' }}>
-                        <img src={blog.coverImage} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.8s ease' }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                        />
+                        <img src={blog.coverImage} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', transition: 'transform 0.8s ease', display: 'block' }} />
                     </div>
                 )}
                 <div style={{ padding: '25px', display: 'flex', flexDirection: 'column', flex: 1 }}>

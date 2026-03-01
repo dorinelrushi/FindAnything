@@ -134,7 +134,7 @@ export default function Home() {
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}>
                   {blog.coverImage && (
                     <div style={{ height: '180px', overflow: 'hidden' }}>
-                      <img src={blog.coverImage} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={blog.coverImage} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', display: 'block' }} />
                     </div>
                   )}
                   <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
