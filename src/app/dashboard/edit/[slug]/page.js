@@ -15,9 +15,9 @@ const CATEGORIES = {
 
 // Predefined services (for non-hotel types)
 const SERVICES = [
-    'Wi-Fi falas',
-    'Parkim',
-    'Rezervime',
+    'Free Wi-Fi',
+    'Parking',
+    'Reservations',
     'Delivery',
     'Live Music',
     'Outdoor Seating',
@@ -29,30 +29,30 @@ const SERVICES = [
 
 // Hotel-specific options
 const ROOM_TYPES = ['Single', 'Double', 'Twin', 'Triple', 'Family Room', 'Suite'];
-const ROOM_AMENITIES = ['Wi-Fi falas', 'TV', 'Ajër i kondicionuar', 'Mini-bar', 'Banjo private', 'Ballkon'];
-const GENERAL_SERVICES = ['Reception 24/7', 'Wi-Fi falas', 'Parkim falas', 'Mëngjes i përfshirë', 'Shërbim dhome', 'Bar / Restorant'];
-const ADDITIONAL_SERVICES = ['Transfer aeroporti', 'Laundry', 'Organizim eventesh'];
+const ROOM_AMENITIES = ['Free Wi-Fi', 'TV', 'Air Conditioning', 'Mini-bar', 'Private Bathroom', 'Balcony'];
+const GENERAL_SERVICES = ['24/7 Reception', 'Free Wi-Fi', 'Free Parking', 'Breakfast Included', 'Room Service', 'Bar / Restaurant'];
+const ADDITIONAL_SERVICES = ['Airport Transfer', 'Laundry', 'Event Organization'];
 
 // Bar-specific options
 const BAR_ATMOSPHERE = ['Relax', 'Modern', 'Traditional', 'Romantic', 'Nightlife'];
-const BAR_SERVICES = ['Wi-Fi falas', 'Ambient i jashtëm (verandë)', 'Live Music / DJ', 'Evente tematike', 'Rezervime', 'Pagesa me kartë'];
-const SUITABLE_FOR = ['Çifte', 'Grupe shoqërore', 'Turistë'];
+const BAR_SERVICES = ['Free Wi-Fi', 'Outdoor Terrace', 'Live Music / DJ', 'Themed Events', 'Reservations', 'Card Payments'];
+const SUITABLE_FOR = ['Couples', 'Groups', 'Tourists'];
 
-const CAR_CATEGORIES = ['Ekonomike', 'Kompakte', 'SUV', 'Luksoze', '4x4', 'Furgon'];
-const FUEL_TYPES = ['Naftë', 'Benzinë', 'Elektrike', 'Hybrid'];
-const TRANSMISSIONS = ['Manual', 'Automatik'];
-const CAR_INCLUSIONS = ['Siguracion bazë', 'Kilometra pa limit', 'Asistencë rrugore'];
-const REQUIRED_DOCS = ['ID / Pasaportë', 'Patentë'];
-const CAR_PAYMENT_METHODS = ['Cash', 'Kartë', 'Transfertë Bankare'];
-const CAR_EXTRA_SERVICES = ['Sedilje fëmijësh', 'GPS / Navigacion', 'Shofer shtesë', 'Siguracion Full Kasko'];
+const CAR_CATEGORIES = ['Economy', 'Compact', 'SUV', 'Luxury', '4x4', 'Van'];
+const FUEL_TYPES = ['Diesel', 'Gasoline', 'Electric', 'Hybrid'];
+const TRANSMISSIONS = ['Manual', 'Automatic'];
+const CAR_INCLUSIONS = ['Basic Insurance', 'Unlimited Miles', 'Roadside Assistance'];
+const REQUIRED_DOCS = ['ID / Passport', 'Driving Licence'];
+const CAR_PAYMENT_METHODS = ['Cash', 'Card', 'Bank Transfer'];
+const CAR_EXTRA_SERVICES = ['Child Seat', 'GPS / Navigation', 'Additional Driver', 'Full Kasko Insurance'];
 
 // Bujtina-specific options
-const BUJTINA_TYPES = ['Bujtinë', 'Guesthouse', 'Agroturizëm'];
-const BUJTINA_STYLES = ['Tradicional', 'Rustik', 'Familjar'];
+const BUJTINA_TYPES = ['Guesthouse', 'Farmhouse', 'Agritourism'];
+const BUJTINA_STYLES = ['Traditional', 'Rustic', 'Family-run'];
 const BUJTINA_ROOM_TYPES = ['Double', 'Triple', 'Family Room'];
-const BUJTINA_AMENITIES = ['Ngrohje', 'Banjo private', 'Wi-Fi', 'Oxhak (opsionale)'];
-const BUJTINA_FACILITIES = ['Parkim falas', 'Ambient i jashtëm', 'Zjarr/oxhak', 'Guides lokale (opsionale)'];
-const BIO_PRODUCTS = ['Djathë', 'Qumësht', 'Reçel', 'Bukë shtëpie'];
+const BUJTINA_AMENITIES = ['Heating', 'Private Bathroom', 'Wi-Fi', 'Fireplace (optional)'];
+const BUJTINA_FACILITIES = ['Free Parking', 'Outdoor Area', 'Fireplace', 'Local Guides (optional)'];
+const BIO_PRODUCTS = ['Cheese', 'Milk', 'Jam', 'Homemade Bread'];
 
 // Tour specific options
 const TOUR_INCLUSIONS = ['Transport', 'Lunch', 'Dinner', 'Guide', 'Entrance Fees', 'Hotel Pickup'];
@@ -71,7 +71,10 @@ export default function EditListingPage({ params }) {
         lng: '',
         currentImage: '',
         category: '',
-        customCategory: ''
+        customCategory: '',
+        city: '',
+        country: '',
+        whatsappNumber: ''
     });
     const [imageFile, setImageFile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -92,10 +95,10 @@ export default function EditListingPage({ params }) {
         additionalServices: [],
         customAdditionalService: '',
         policies: {
-            cancellation: 'Anulim falas deri 24 orë para mbërritjes',
-            children: 'Të mirëpritur',
-            pets: 'Nuk lejohen',
-            payment: 'Cash / Kartë'
+            cancellation: 'Free cancellation up to 24h before arrival',
+            children: 'Welcome',
+            pets: 'Not allowed',
+            payment: 'Cash / Card'
         }
     });
 
@@ -121,15 +124,15 @@ export default function EditListingPage({ params }) {
 
     // Bujtina-specific state
     const [bujtinaData, setBujtinaData] = useState({
-        accommodationType: 'Bujtinë',
+        accommodationType: 'Guesthouse',
         style: [],
         totalRooms: '',
         roomTypes: [],
         roomAmenities: [],
         facilities: [],
         food: {
-            breakfast: 'Po (produkte shtëpie)',
-            meals: 'Ushqim tradicional korçar',
+            breakfast: 'Yes (homemade products)',
+            meals: 'Traditional local food',
             bioProducts: []
         },
         customStyle: '',
@@ -162,7 +165,7 @@ export default function EditListingPage({ params }) {
             paymentMethods: []
         },
         availability: {
-            status: 'E lirë',
+            status: 'Available',
             dates: ''
         },
         extraServices: [],
@@ -214,15 +217,18 @@ export default function EditListingPage({ params }) {
             if (data.listing) {
                 const listing = data.listing;
                 setFormData({
-                    title: listing.title,
-                    description: listing.description,
-                    address: listing.address,
-                    type: listing.type,
-                    lat: listing.lat,
-                    lng: listing.lng,
-                    currentImage: listing.image,
+                    title: listing.title || '',
+                    description: listing.description || '',
+                    address: listing.address || '',
+                    type: listing.type || 'hotel',
+                    lat: listing.lat || '',
+                    lng: listing.lng || '',
+                    currentImage: listing.image || '',
                     category: listing.category || '',
-                    customCategory: ''
+                    customCategory: '',
+                    city: listing.city || '',
+                    country: listing.country || '',
+                    whatsappNumber: listing.whatsappNumber || ''
                 });
                 setSelectedServices(listing.services || []);
                 setExistingGallery(listing.gallery || []);
@@ -572,6 +578,9 @@ export default function EditListingPage({ params }) {
         data.append('type', formData.type);
         data.append('lat', formData.lat);
         data.append('lng', formData.lng);
+        data.append('city', formData.city);
+        data.append('country', formData.country);
+        data.append('whatsappNumber', formData.whatsappNumber);
         if (finalCategory) {
             data.append('category', finalCategory);
         }
@@ -723,6 +732,24 @@ export default function EditListingPage({ params }) {
                         rows={8}
                         style={{ minHeight: '200px', resize: 'vertical' }}
                     />
+                </div>
+
+                {/* Location Details & Contact */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>City *</label>
+                        <input name="city" placeholder="e.g. Korça" className="input" value={formData.city} onChange={handleChange} required />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Country *</label>
+                        <input name="country" placeholder="e.g. Albania" className="input" value={formData.country} onChange={handleChange} required />
+                    </div>
+                </div>
+
+                <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Business WhatsApp Number</label>
+                    <input name="whatsappNumber" placeholder="e.g. +355 69 00 00 000" className="input" value={formData.whatsappNumber} onChange={handleChange} />
+                    <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>Include prefix (e.g. +355) so customers can message you easily.</p>
                 </div>
 
                 {/* Hotel-Specific Fields */}
@@ -1507,108 +1534,6 @@ export default function EditListingPage({ params }) {
                             <input placeholder="e.g. +355 69 00 00 000" className="input" value={tourData.whatsappNumber} onChange={e => setTourData({ ...tourData, whatsappNumber: e.target.value })} />
                         </div>
 
-                        {/* Gallery Management for Tours */}
-                        <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
-                            <h3 style={{ marginBottom: '15px', color: '#a29bfe' }}>Gallery Management</h3>
-
-                            {/* Existing Images */}
-                            <div style={{ marginBottom: '20px' }}>
-                                <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '10px' }}>Existing Images:</p>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' }}>
-                                    {existingGallery.map((url, idx) => (
-                                        <div key={idx} style={{ position: 'relative' }}>
-                                            <img src={url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeExistingImage(idx)}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: '-8px',
-                                                    right: '-8px',
-                                                    background: '#ff7675',
-                                                    border: 'none',
-                                                    borderRadius: '50%',
-                                                    color: 'white',
-                                                    cursor: 'pointer',
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '16px',
-                                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-                                                }}
-                                            >
-                                                ×
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {existingGallery.length === 0 && (
-                                        <p style={{ color: '#666', fontSize: '0.9rem' }}>No images in gallery.</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* New Uploads */}
-                            <div>
-                                <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '10px' }}>Add New Images:</p>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="input"
-                                    onChange={handleNewGalleryUpload}
-                                    style={{ marginBottom: '10px' }}
-                                />
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' }}>
-                                    {newGalleryFiles.map((file, idx) => (
-                                        <div key={idx} style={{ position: 'relative' }}>
-                                            <div style={{
-                                                width: '100%',
-                                                height: '100px',
-                                                background: 'rgba(255,255,255,0.05)',
-                                                borderRadius: '8px',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '10px',
-                                                overflow: 'hidden',
-                                                padding: '5px',
-                                                textAlign: 'center',
-                                                border: '1px dashed rgba(255,255,255,0.2)'
-                                            }}>
-                                                <span style={{ fontSize: '20px', marginBottom: '5px' }}>📄</span>
-                                                <span style={{ wordBreak: 'break-all' }}>{file.name}</span>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeNewGalleryFile(idx)}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: '-8px',
-                                                    right: '-8px',
-                                                    background: '#ff7675',
-                                                    border: 'none',
-                                                    borderRadius: '50%',
-                                                    color: 'white',
-                                                    cursor: 'pointer',
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '16px',
-                                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-                                                }}
-                                            >
-                                                ×
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
 
@@ -1671,6 +1596,109 @@ export default function EditListingPage({ params }) {
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <input name="address" placeholder="Address (Optional)" className="input" value={formData.address || ''} onChange={handleChange} style={{ flex: 1 }} />
                     <button type="button" onClick={handleAddressSearch} className="btn" style={{ background: 'var(--accent)', whiteSpace: 'nowrap' }}>Locate on Map</button>
+                </div>
+
+                {/* Gallery Management - Available for ALL listings */}
+                <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+                    <h3 style={{ marginBottom: '15px', color: '#a29bfe' }}>Gallery Management</h3>
+
+                    {/* Existing Images */}
+                    <div style={{ marginBottom: '20px' }}>
+                        <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '10px' }}>Existing Images:</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' }}>
+                            {existingGallery.map((url, idx) => (
+                                <div key={idx} style={{ position: 'relative' }}>
+                                    <img src={url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeExistingImage(idx)}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '-8px',
+                                            right: '-8px',
+                                            background: '#ff7675',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            color: 'white',
+                                            cursor: 'pointer',
+                                            width: '24px',
+                                            height: '24px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '16px',
+                                            boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                            {existingGallery.length === 0 && (
+                                <p style={{ color: '#666', fontSize: '0.9rem' }}>No images in gallery.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* New Uploads */}
+                    <div>
+                        <p style={{ fontSize: '0.9rem', color: '#aaa', marginBottom: '10px' }}>Add New Images:</p>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="input"
+                            onChange={handleNewGalleryUpload}
+                            style={{ marginBottom: '10px' }}
+                        />
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '15px' }}>
+                            {newGalleryFiles.map((file, idx) => (
+                                <div key={idx} style={{ position: 'relative' }}>
+                                    <div style={{
+                                        width: '100%',
+                                        height: '100px',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '10px',
+                                        overflow: 'hidden',
+                                        padding: '5px',
+                                        textAlign: 'center',
+                                        border: '1px dashed rgba(255,255,255,0.2)'
+                                    }}>
+                                        <span style={{ fontSize: '20px', marginBottom: '5px' }}>📄</span>
+                                        <span style={{ wordBreak: 'break-all' }}>{file.name}</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeNewGalleryFile(idx)}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '-8px',
+                                            right: '-8px',
+                                            background: '#ff7675',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            color: 'white',
+                                            cursor: 'pointer',
+                                            width: '24px',
+                                            height: '24px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '16px',
+                                            boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 <div>

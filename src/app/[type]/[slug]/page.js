@@ -549,9 +549,9 @@ export default function ListingPage({ params }) {
                                     <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
                                             <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Dhoma & Akomodimi</h3>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Rooms & Accommodation</h3>
                                                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                                    <p style={{ marginBottom: '10px' }}><strong>Numri total i dhomave:</strong> {listing.hotelData.totalRooms || '18'}</p>
+                                                    <p style={{ marginBottom: '10px' }}><strong>Total number of rooms:</strong> {listing.hotelData.totalRooms || '18'}</p>
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                         {(listing.hotelData.roomTypes || []).map((room, idx) => (
                                                             <span key={idx} style={{ background: 'rgba(255,255,255,0.1)', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>{room}</span>
@@ -560,7 +560,7 @@ export default function ListingPage({ params }) {
                                                 </div>
                                             </div>
                                             <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Pajisjet në dhomë</h3>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Room Amenities</h3>
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                     {(listing.hotelData.roomAmenities || []).map((amenity, idx) => (
                                                         <span key={idx} style={{ border: '1px solid rgba(255,255,255,0.2)', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>✓ {amenity}</span>
@@ -568,7 +568,7 @@ export default function ListingPage({ params }) {
                                                 </div>
                                             </div>
                                             <div style={{ gridColumn: '1 / -1' }}>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Politikat</h3>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Policies</h3>
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                                                     {listing.hotelData.policies && Object.entries(listing.hotelData.policies).map(([key, val], idx) => (
                                                         <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
@@ -586,7 +586,7 @@ export default function ListingPage({ params }) {
                                     <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
                                             <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Stili / Atmosfera</h3>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Style / Atmosphere</h3>
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                     {(listing.barData.atmosphere || []).map((item, idx) => (
                                                         <span key={idx} style={{ background: 'rgba(0, 210, 211, 0.1)', border: '1px solid #00d2d3', color: '#00d2d3', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>{item}</span>
@@ -594,10 +594,10 @@ export default function ListingPage({ params }) {
                                                 </div>
                                             </div>
                                             <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Publiku & Rregullat</h3>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Crowd & Rules</h3>
                                                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                                    <p><strong>Mosha minimale:</strong> {listing.barData.rules?.minAge || '18+'}</p>
-                                                    <p><strong>Duhani:</strong> {listing.barData.rules?.smokingArea || 'Jo'}</p>
+                                                    <p><strong>Min Age:</strong> {listing.barData.rules?.minAge || '18+'}</p>
+                                                    <p><strong>Smoking:</strong> {listing.barData.rules?.smokingArea || 'No'}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -608,12 +608,12 @@ export default function ListingPage({ params }) {
                                     <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
                                             <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Dhoma & Bujtina</h3>
-                                                <p><strong>Tipi:</strong> {listing.bujtinaData.accommodationType}</p>
-                                                <p><strong>Total dhomat:</strong> {listing.bujtinaData.totalRooms}</p>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Rooms & Guesthouse</h3>
+                                                <p><strong>Type:</strong> {listing.bujtinaData.accommodationType}</p>
+                                                <p><strong>Total Rooms:</strong> {listing.bujtinaData.totalRooms}</p>
                                             </div>
                                             <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Ushqimi & Produkte Bio</h3>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Food & Bio Products</h3>
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                     {(listing.bujtinaData.food?.bioProducts || []).map((prod, idx) => (
                                                         <span key={idx} style={{ background: 'rgba(106, 176, 76, 0.1)', padding: '5px 12px', borderRadius: '15px', color: '#6ab04c' }}>🥗 {prod}</span>
@@ -628,14 +628,14 @@ export default function ListingPage({ params }) {
                                     <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
                                             <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#ff9f43', marginBottom: '15px' }}>Detajet e Makinës</h3>
-                                                <p><strong>Marka:</strong> {listing.rentCarData.brandModel}</p>
-                                                <p><strong>Viti:</strong> {listing.rentCarData.year}</p>
-                                                <p><strong>Karburanti:</strong> {listing.rentCarData.fuelType}</p>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#ff9f43', marginBottom: '15px' }}>Car Details</h3>
+                                                <p><strong>Brand:</strong> {listing.rentCarData.brandModel}</p>
+                                                <p><strong>Year:</strong> {listing.rentCarData.year}</p>
+                                                <p><strong>Fuel:</strong> {listing.rentCarData.fuelType}</p>
                                             </div>
                                             <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#ff9f43', marginBottom: '15px' }}>Çmimi</h3>
-                                                <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{listing.rentCarData.prices?.daily} / ditë</p>
+                                                <h3 style={{ fontSize: '1.3rem', color: '#ff9f43', marginBottom: '15px' }}>Price</h3>
+                                                <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{listing.rentCarData.prices?.daily} / day</p>
                                             </div>
                                         </div>
                                     </div>
@@ -694,11 +694,10 @@ export default function ListingPage({ params }) {
                                     </div>
                                 )}
 
-                                {/* Location & Contact common area (for non-tours) */}
                                 <div style={{ marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '40px' }}>
-                                    <p><strong>📍 Vendndodhja:</strong> {listing.address}</p>
+                                    <p><strong>📍 Location:</strong> {listing.address}</p>
                                     {(listing.city || listing.country) && (
-                                        <p><strong>🌍 Qyteti:</strong> {listing.city}{listing.city && listing.country ? ', ' : ''}{listing.country}</p>
+                                        <p><strong>🌍 City:</strong> {listing.city}{listing.city && listing.country ? ', ' : ''}{listing.country}</p>
                                     )}
                                     <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginTop: '10px' }}>
                                         {listing.owner?.phoneNumber && (
@@ -718,7 +717,7 @@ export default function ListingPage({ params }) {
                                                 className="btn"
                                                 style={{ background: '#2ecc71', color: '#fff', textDecoration: 'none' }}
                                             >
-                                                💬 Kontakto në WhatsApp
+                                                💬 Contact on WhatsApp
                                             </a>
                                         )}
                                         {menu && (
@@ -727,7 +726,7 @@ export default function ListingPage({ params }) {
                                                 className="btn"
                                                 style={{ background: 'var(--accent)', color: '#fff', textDecoration: 'none' }}
                                             >
-                                                🍽️ Shiko Menunë
+                                                🍽️ View Menu
                                             </Link>
                                         )}
                                     </div>

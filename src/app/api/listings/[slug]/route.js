@@ -79,6 +79,9 @@ export async function PUT(req, { params }) {
         const address = formData.get('address');
         const lat = formData.get('lat');
         const lng = formData.get('lng');
+        const city = formData.get('city');
+        const country = formData.get('country');
+        const whatsappNumber = formData.get('whatsappNumber');
         const imageFile = formData.get('image');
         const category = formData.get('category');
         const servicesData = formData.get('services');
@@ -93,6 +96,9 @@ export async function PUT(req, { params }) {
         if (address) listing.address = address;
         if (lat) listing.lat = lat;
         if (lng) listing.lng = lng;
+        if (city) listing.city = city;
+        if (country) listing.country = country;
+        if (whatsappNumber !== null) listing.whatsappNumber = whatsappNumber;
         if (category !== null) listing.category = category;
 
         // Update services if provided

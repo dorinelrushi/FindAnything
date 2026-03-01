@@ -9,6 +9,8 @@ export default function AdminDashboard() {
     const [pendingRegistrations, setPendingRegistrations] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
     const [stats, setStats] = useState({ pending: 0, total: 0 });
+    const [blogs, setBlogs] = useState([]);
+    const [blogsLoaded, setBlogsLoaded] = useState(false);
 
     useEffect(() => {
         if (!loading && (!user || user.role !== 'admin')) {
@@ -19,6 +21,7 @@ export default function AdminDashboard() {
     useEffect(() => {
         if (user && user.role === 'admin') {
             fetchData();
+            fetchBlogs();
         }
     }, [user]);
 
@@ -41,6 +44,32 @@ export default function AdminDashboard() {
             }
         } catch (error) {
             console.error("Failed to fetch data", error);
+        }
+    };
+
+    const fetchBlogs = async () => {
+        try {
+            const res = await fetch('/api/blog?limit=50');
+            const data = await res.json();
+            if (data.blogs) setBlogs(data.blogs);
+        } catch (err) {
+            console.error('Failed to fetch blogs', err);
+        } finally {
+            setBlogsLoaded(true);
+        }
+    };
+
+    const deleteBlog = async (slug) => {
+        if (!confirm('Delete this blog post?')) return;
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/blog/${slug}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            setBlogs(prev => prev.filter(b => b.slug !== slug));
+        } else {
+            alert('Failed to delete blog');
         }
     };
 
@@ -208,6 +237,42 @@ export default function AdminDashboard() {
                         </tbody>
                     </table>
                 </div>
+            </section>
+
+            {/* Blog Management */}
+            <section style={{ marginTop: '60px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+                    <h2>Blog Posts ({blogs.length})</h2>
+                    <a href="/admin/blog/new" className="btn" style={{ background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)', textDecoration: 'none' }}>✍️ New Blog Post</a>
+                </div>
+                {!blogsLoaded ? (
+                    <p style={{ opacity: 0.6 }}>Loading posts...</p>
+                ) : blogs.length === 0 ? (
+                    <div className="glass" style={{ padding: '40px', textAlign: 'center', borderRadius: '20px' }}>
+                        <p style={{ opacity: 0.7 }}>No blog posts yet. Write your first one! ✍️</p>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {blogs.map(blog => (
+                            <div key={blog._id} className="glass" style={{ padding: '18px 22px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+                                <div style={{ flex: 1, minWidth: '200px' }}>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
+                                        {(blog.tags || []).slice(0, 3).map(tag => (
+                                            <span key={tag} style={{ fontSize: '0.65rem', background: 'rgba(162,155,254,0.2)', color: '#a29bfe', padding: '2px 8px', borderRadius: '20px', fontWeight: '700', textTransform: 'uppercase' }}>{tag}</span>
+                                        ))}
+                                    </div>
+                                    <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem' }}>{blog.title}</h3>
+                                    <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.5 }}>{new Date(blog.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                    <a href={`/blog/${blog.slug}`} className="btn" style={{ background: 'rgba(255,255,255,0.08)', textDecoration: 'none', padding: '6px 14px', fontSize: '0.85rem' }}>👁️ View</a>
+                                    <a href={`/admin/blog/edit/${blog.slug}`} className="btn" style={{ background: '#74b9ff', textDecoration: 'none', padding: '6px 14px', fontSize: '0.85rem' }}>✏️ Edit</a>
+                                    <button onClick={() => deleteBlog(blog.slug)} className="btn" style={{ background: '#ff7675', padding: '6px 14px', fontSize: '0.85rem' }}>🗑️ Delete</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             <style jsx>{`

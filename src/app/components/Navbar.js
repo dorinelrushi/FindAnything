@@ -44,6 +44,7 @@ export default function Navbar() {
 
                 <div className="nav-links desktop-only">
                     <Link href="/">Home</Link>
+                    <Link href="/blog">Blog</Link>
                     {user ? (
                         <>
                             {user.role === 'admin' && (
@@ -83,6 +84,7 @@ export default function Navbar() {
                         </div>
                         <div className="mobile-menu-content">
                             <Link href="/" onClick={() => setIsMenuOpen(false)}>Home</Link>
+                            <Link href="/blog" onClick={() => setIsMenuOpen(false)}>Blog</Link>
                             {user ? (
                                 <>
                                     {user.role === 'admin' && (

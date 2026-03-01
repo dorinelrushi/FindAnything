@@ -8,8 +8,14 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'TryToFindEverything - Explore the World',
-  description: 'Discover the best hotels, restaurants, and more around the world.',
+  title: 'TryToFindEverything - Discover Hotels, Restaurants & More Worldwide',
+  description: 'Find the best hotels, restaurants, bars, guesthouses, car rentals, and tours around the world. Your global travel and business discovery platform.',
+  keywords: 'hotels, restaurants, tourism, travel, car rental, tours, guesthouses, discover',
+  openGraph: {
+    title: 'TryToFindEverything - Discover the World',
+    description: 'Find the best hotels, restaurants, bars, guesthouses, car rentals, and tours around the world.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({ children }) {

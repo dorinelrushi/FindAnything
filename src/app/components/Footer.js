@@ -15,13 +15,13 @@ export default function Footer() {
                     <Link href="/explore?type=hotel">Hotels</Link>
                     <Link href="/explore?type=restaurant">Restaurants</Link>
                     <Link href="/explore?type=tour">Tours</Link>
-                    <Link href="/explore?type=bujtina">Bujtinas</Link>
+                    <Link href="/explore?type=bujtina">Guesthouses</Link>
                 </div>
 
                 <div className="footer-section contact">
                     <h4>Contact Us</h4>
                     <p>📧 info@trytofindeverything.com</p>
-                    <p>📞 +355 69 000 0000</p>
+
                     <div className="social-links">
                         <span>📸</span>
                         <span>📘</span>

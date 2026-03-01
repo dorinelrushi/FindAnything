@@ -61,7 +61,7 @@ export default function Dashboard() {
 
     return (
         <div className="container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '12px' }}>
                 <h1 style={{ margin: 0 }}>Business Dashboard</h1>
                 <Link href="/dashboard/ads/manage" className="btn" style={{ background: '#a29bfe', textDecoration: 'none' }}>📊 Manage My Ads</Link>
             </div>
@@ -93,9 +93,6 @@ export default function Dashboard() {
                     </Link>
                     <Link href="/dashboard/add?type=tour" className="glass card" style={{ textDecoration: 'none', color: 'white' }}>
                         <h3>Add Tour</h3>
-                    </Link>
-                    <Link href="/dashboard/add?type=city" className="glass card" style={{ textDecoration: 'none', color: 'white' }}>
-                        <h3>Add City</h3>
                     </Link>
                 </div>
             </div>

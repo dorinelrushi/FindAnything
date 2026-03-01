@@ -15,9 +15,9 @@ const CATEGORIES = {
 
 // Predefined services (for non-hotel types)
 const SERVICES = [
-    'Wi-Fi falas',
-    'Parkim',
-    'Rezervime',
+    'Free Wi-Fi',
+    'Parking',
+    'Reservations',
     'Delivery',
     'Live Music',
     'Outdoor Seating',
@@ -29,31 +29,31 @@ const SERVICES = [
 
 // Hotel-specific options
 const ROOM_TYPES = ['Single', 'Double', 'Twin', 'Triple', 'Family Room', 'Suite'];
-const ROOM_AMENITIES = ['Wi-Fi falas', 'TV', 'Ajër i kondicionuar', 'Mini-bar', 'Banjo private', 'Ballkon'];
-const GENERAL_SERVICES = ['Reception 24/7', 'Wi-Fi falas', 'Parkim falas', 'Mëngjes i përfshirë', 'Shërbim dhome', 'Bar / Restorant'];
-const ADDITIONAL_SERVICES = ['Transfer aeroporti', 'Laundry', 'Organizim eventesh'];
+const ROOM_AMENITIES = ['Free Wi-Fi', 'TV', 'Air Conditioning', 'Mini-bar', 'Private Bathroom', 'Balcony'];
+const GENERAL_SERVICES = ['24/7 Reception', 'Free Wi-Fi', 'Free Parking', 'Breakfast Included', 'Room Service', 'Bar / Restaurant'];
+const ADDITIONAL_SERVICES = ['Airport Transfer', 'Laundry', 'Event Organization'];
 
 // Bar-specific options
 const BAR_ATMOSPHERE = ['Relax', 'Modern', 'Traditional', 'Romantic', 'Nightlife'];
-const BAR_SERVICES = ['Wi-Fi falas', 'Ambient i jashtëm (verandë)', 'Live Music / DJ', 'Evente tematike', 'Rezervime', 'Pagesa me kartë'];
-const SUITABLE_FOR = ['Çifte', 'Grupe shoqërore', 'Turistë'];
+const BAR_SERVICES = ['Free Wi-Fi', 'Outdoor Terrace', 'Live Music / DJ', 'Themed Events', 'Reservations', 'Card Payments'];
+const SUITABLE_FOR = ['Couples', 'Groups', 'Tourists'];
 
 // Bujtina-specific options
-const BUJTINA_TYPES = ['Bujtinë', 'Guesthouse', 'Agroturizëm'];
-const BUJTINA_STYLES = ['Tradicional', 'Rustik', 'Familjar'];
+const BUJTINA_TYPES = ['Guesthouse', 'Farmhouse', 'Agritourism'];
+const BUJTINA_STYLES = ['Traditional', 'Rustic', 'Family-run'];
 const BUJTINA_ROOM_TYPES = ['Double', 'Triple', 'Family Room'];
-const BUJTINA_AMENITIES = ['Ngrohje', 'Banjo private', 'Wi-Fi', 'Oxhak (opsionale)'];
-const BUJTINA_FACILITIES = ['Parkim falas', 'Ambient i jashtëm', 'Zjarr/oxhak', 'Guides lokale (opsionale)'];
-const BIO_PRODUCTS = ['Djathë', 'Qumësht', 'Reçel', 'Bukë shtëpie'];
+const BUJTINA_AMENITIES = ['Heating', 'Private Bathroom', 'Wi-Fi', 'Fireplace (optional)'];
+const BUJTINA_FACILITIES = ['Free Parking', 'Outdoor Area', 'Fireplace', 'Local Guides (optional)'];
+const BIO_PRODUCTS = ['Cheese', 'Milk', 'Jam', 'Homemade Bread'];
 
 // Rent Car specific options
-const CAR_CATEGORIES = ['Ekonomike', 'Kompakte', 'SUV', 'Luksoze', '4x4', 'Furgon'];
-const FUEL_TYPES = ['Naftë', 'Benzinë', 'Elektrike', 'Hybrid'];
-const TRANSMISSIONS = ['Manual', 'Automatik'];
-const CAR_INCLUSIONS = ['Siguracion bazë', 'Kilometra pa limit', 'Asistencë rrugore'];
-const REQUIRED_DOCS = ['ID / Pasaportë', 'Patentë'];
-const CAR_PAYMENT_METHODS = ['Cash', 'Kartë', 'Transfertë Bankare'];
-const CAR_EXTRA_SERVICES = ['Sedilje fëmijësh', 'GPS / Navigacion', 'Shofer shtesë', 'Siguracion Full Kasko'];
+const CAR_CATEGORIES = ['Economy', 'Compact', 'SUV', 'Luxury', '4x4', 'Van'];
+const FUEL_TYPES = ['Diesel', 'Gasoline', 'Electric', 'Hybrid'];
+const TRANSMISSIONS = ['Manual', 'Automatic'];
+const CAR_INCLUSIONS = ['Basic Insurance', 'Unlimited Miles', 'Roadside Assistance'];
+const REQUIRED_DOCS = ['ID / Passport', 'Driving Licence'];
+const CAR_PAYMENT_METHODS = ['Cash', 'Card', 'Bank Transfer'];
+const CAR_EXTRA_SERVICES = ['Child Seat', 'GPS / Navigation', 'Additional Driver', 'Full Kasko Insurance'];
 // Tour specific options
 const TOUR_INCLUSIONS = ['Transport', 'Lunch', 'Dinner', 'Guide', 'Entrance Fees', 'Hotel Pickup'];
 

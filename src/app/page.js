@@ -11,9 +11,14 @@ export default function Home() {
   const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [blogs, setBlogs] = useState([]);
 
   useEffect(() => {
     fetchListings();
+    fetch('/api/blog?limit=3')
+      .then(r => r.json())
+      .then(d => setBlogs(d.blogs || []))
+      .catch(() => { });
   }, [filter, search]);
 
   const fetchListings = async () => {
@@ -65,7 +70,7 @@ export default function Home() {
           <Link href="/explore?type=hotel" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Hotels</Link>
           <Link href="/explore?type=restaurant" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Restaurants</Link>
           <Link href="/explore?type=bar" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Bars</Link>
-          <Link href="/explore?type=bujtina" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Bujtinas</Link>
+          <Link href="/explore?type=bujtina" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Guesthouses</Link>
           <Link href="/explore?type=tour" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Tours</Link>
           <Link href="/explore?type=rentcar" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Rent Car</Link>
         </div>
@@ -110,6 +115,49 @@ export default function Home() {
         </div>
         {listings.length === 0 && !loading && <p style={{ textAlign: 'center' }}>No listings found.</p>}
       </section>
+
+      {/* Blog Grid Section */}
+      {blogs.length > 0 && (
+        <section style={{ marginTop: '80px', marginBottom: '60px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '15px' }}>
+            <div>
+              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#a29bfe', fontWeight: '700' }}>Journal</span>
+              <h2 style={{ fontSize: '2rem', fontWeight: '900', marginTop: '5px', background: 'linear-gradient(135deg, #fff, #a29bfe)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Latest from the Blog</h2>
+            </div>
+            <Link href="/blog" className="btn" style={{ background: 'rgba(162,155,254,0.15)', color: '#a29bfe', textDecoration: 'none', border: '1px solid rgba(162,155,254,0.3)' }}>View All Articles →</Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
+            {blogs.map(blog => (
+              <Link key={blog._id} href={`/blog/${blog.slug}`} style={{ textDecoration: 'none', color: 'white' }}>
+                <article style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', overflow: 'hidden', transition: 'all 0.4s ease', height: '100%', display: 'flex', flexDirection: 'column' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = 'rgba(162,155,254,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}>
+                  {blog.coverImage && (
+                    <div style={{ height: '180px', overflow: 'hidden' }}>
+                      <img src={blog.coverImage} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
+                  <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    {(blog.tags || []).length > 0 && (
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                        {blog.tags.slice(0, 2).map(tag => (
+                          <span key={tag} style={{ fontSize: '0.68rem', background: 'rgba(162,155,254,0.15)', color: '#a29bfe', padding: '2px 9px', borderRadius: '20px', fontWeight: '700', textTransform: 'uppercase' }}>{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '8px', lineHeight: '1.3' }}>{blog.title}</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.9rem', lineHeight: '1.6', flex: 1, marginBottom: '15px' }}>{(blog.excerpt || '').substring(0, 100)}...</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      <span style={{ color: '#a29bfe', fontSize: '0.85rem', fontWeight: '700' }}>Read →</span>
+                    </div>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
