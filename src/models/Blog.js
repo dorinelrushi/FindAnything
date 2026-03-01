@@ -55,9 +55,4 @@ const BlogSchema = new mongoose.Schema({
     }
 });
 
-// Delete cached model in development
-if (mongoose.models.Blog) {
-    delete mongoose.models.Blog;
-}
-
 export default mongoose.models.Blog || mongoose.model('Blog', BlogSchema);

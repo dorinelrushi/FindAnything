@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 import Listing from '@/models/Listing';
 import jwt from 'jsonwebtoken';
 import slugify from 'slugify';

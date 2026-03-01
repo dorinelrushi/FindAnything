@@ -2,9 +2,15 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-
 import FeaturedAds from '@/app/components/FeaturedAds';
 import Stories from '@/app/components/Stories';
+
+// Strip HTML tags for clean preview
+const stripHtml = (html) => {
+  if (!html) return '';
+  // Simple regex-based strip for server-side safety and speed
+  return html.replace(/<[^>]*>?/gm, '');
+};
 
 export default function Home() {
   const [listings, setListings] = useState([]);
@@ -40,12 +46,18 @@ export default function Home() {
 
   const fetchListings = async () => {
     setLoading(true);
-    let url = `/api/listings?limit=6&page=${listingPage}&`;
-    if (filter) url += `type=${filter}&`;
-    if (search) url += `search=${search}`;
+    const params = new URLSearchParams({
+      limit: '6',
+      page: listingPage.toString()
+    });
+    if (filter) params.append('type', filter);
+    if (search) params.append('search', search);
+
+    const url = `/api/listings?${params.toString()}`;
 
     try {
       const res = await fetch(url);
+      if (!res.ok) throw new Error('Network response was not ok');
       const data = await res.json();
       setListings(data.listings || []);
       setListingTotalPages(data.totalPages || 1);
@@ -114,16 +126,20 @@ export default function Home() {
                 href={`/${listing.type}/${listing.slug || listing._id}`}
                 key={listing._id}
                 className="glass card"
-                style={{ textDecoration: 'none', color: 'inherit', transition: 'transform 0.2s' }}
-                onClick={() => {
-                  fetch('/api/user/activity', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ category: listing.type })
-                  });
+                style={{ textDecoration: 'none', color: 'inherit', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column' }}
+                onClick={async () => {
+                  try {
+                    await fetch('/api/user/activity', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ category: listing.type })
+                    });
+                  } catch (e) {
+                    console.warn('Silent activity log failed');
+                  }
                 }}
               >
-                <div style={{ height: '200px', background: '#333', borderRadius: '8px', marginBottom: '15px', backgroundImage: `url(${listing.image || 'https://via.placeholder.com/400x300?text=No+Image'})`, backgroundSize: 'cover' }}></div>
+                <div style={{ height: '200px', background: '#333', borderRadius: '8px', marginBottom: '15px', backgroundImage: `url(${listing.image || 'https://via.placeholder.com/400x300?text=No+Image'})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
                 <h3 style={{ margin: '0 0 10px 0' }}>{listing.title}</h3>
                 <span style={{ fontSize: '0.8rem', background: 'var(--primary)', padding: '2px 8px', borderRadius: '12px', width: 'fit-content', marginBottom: '10px' }}>{listing.type}</span>
                 <p style={{ fontSize: '0.9rem', color: '#bbb', flex: 1 }}>{stripHtml(listing.description).substring(0, 100)}...</p>
