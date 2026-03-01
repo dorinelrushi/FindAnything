@@ -1,17 +1,14 @@
 // Dynamic SEO metadata for blog detail pages
+// Uses direct DB query instead of HTTP self-fetch so it works in production
+import dbConnect from '@/lib/db';
+import Blog from '@/models/Blog';
+
 export async function generateMetadata({ params }) {
     const { slug } = await params;
 
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/blog/${slug}`, { cache: 'no-store' });
-
-        if (!res.ok) {
-            return { title: 'Blog - TryToFindEverything', description: 'Read our latest blog posts.' };
-        }
-
-        const data = await res.json();
-        const blog = data.blog;
+        await dbConnect();
+        const blog = await Blog.findOne({ slug, published: true }).lean();
 
         if (!blog) {
             return { title: 'Blog Post Not Found - TryToFindEverything' };
@@ -29,7 +26,7 @@ export async function generateMetadata({ params }) {
             },
         };
     } catch {
-        return { title: 'Blog - TryToFindEverything' };
+        return { title: 'Blog - TryToFindEverything', description: 'Read our latest blog posts.' };
     }
 }
 

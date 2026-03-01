@@ -1,31 +1,21 @@
-// This file provides dynamic SEO metadata for listing detail pages
-// It fetches the listing on the server side for SEO purposes
+// Dynamic SEO metadata for listing detail pages — direct DB query, no self-HTTP-fetch
+import dbConnect from '@/lib/db';
+import Listing from '@/models/Listing';
 
 export async function generateMetadata({ params }) {
     const { slug, type } = await params;
 
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/listings/${slug}`, { cache: 'no-store' });
+        await dbConnect();
+        const listing = await Listing.findOne({ slug }).lean();
 
-        if (!res.ok) {
+        if (!listing) {
             return {
                 title: 'Listing - TryToFindEverything',
                 description: 'Discover amazing places on TryToFindEverything.',
             };
         }
 
-        const data = await res.json();
-        const listing = data.listing;
-
-        if (!listing) {
-            return {
-                title: 'Listing Not Found - TryToFindEverything',
-                description: 'This listing could not be found.',
-            };
-        }
-
-        // Clean HTML from description for meta description
         const cleanDesc = listing.description
             ? listing.description.replace(/<[^>]+>/g, '').replace(/\*\*(.*?)\*\*/g, '$1').substring(0, 155) + '...'
             : `Discover ${listing.title} on TryToFindEverything.`;
@@ -53,7 +43,7 @@ export async function generateMetadata({ params }) {
                 type: 'website',
             },
         };
-    } catch (error) {
+    } catch {
         return {
             title: 'Listing - TryToFindEverything',
             description: 'Discover amazing places on TryToFindEverything.',
