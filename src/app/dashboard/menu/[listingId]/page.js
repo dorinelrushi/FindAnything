@@ -134,13 +134,13 @@ export default function MenuEditor() {
                                         className="input"
                                     />
                                     <input
-                                        placeholder="Price (e.g. 45$)"
+                                        placeholder="Price (optional) (e.g. 45$)"
                                         value={item.price}
                                         onChange={(e) => i_handleChange(catIndex, itemIndex, 'price', e.target.value)}
                                         className="input"
                                     />
                                     <textarea
-                                        placeholder="Description (e.g. Eggs, beacon, toast...)"
+                                        placeholder="Description (optional) (e.g. Eggs, beacon, toast...)"
                                         value={item.description || ''}
                                         onChange={(e) => i_handleChange(catIndex, itemIndex, 'description', e.target.value)}
                                         className="input"
@@ -150,9 +150,19 @@ export default function MenuEditor() {
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-                                    {item.photo && <img src={item.photo} alt="preview" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />}
+                                    {item.photo && (
+                                        <>
+                                            <img src={item.photo} alt="preview" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
+                                            <button
+                                                onClick={() => i_handleChange(catIndex, itemIndex, 'photo', '')}
+                                                style={{ fontSize: '0.7rem', color: 'red', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                                            >
+                                                Remove
+                                            </button>
+                                        </>
+                                    )}
                                     <label className="btn" style={{ fontSize: '0.8rem', padding: '2px 5px', cursor: 'pointer' }}>
-                                        {item.photo ? 'Change Photo' : 'Add Photo'}
+                                        {item.photo ? 'Change Photo' : 'Add Photo (optional)'}
                                         <input type="file" hidden accept="image/*" onChange={(e) => i_handleImageUpload(catIndex, itemIndex, e.target.files[0])} />
                                     </label>
                                 </div>

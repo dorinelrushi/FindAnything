@@ -13,17 +13,34 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState([]);
 
+  // Pagination State
+  const [listingPage, setListingPage] = useState(1);
+  const [listingTotalPages, setListingTotalPages] = useState(1);
+  const [blogPage, setBlogPage] = useState(1);
+  const [blogTotalPages, setBlogTotalPages] = useState(1);
+
   useEffect(() => {
     fetchListings();
-    fetch('/api/blog?limit=3')
-      .then(r => r.json())
-      .then(d => setBlogs(d.blogs || []))
-      .catch(() => { });
-  }, [filter, search]);
+  }, [filter, search, listingPage]);
+
+  useEffect(() => {
+    fetchBlogs();
+  }, [blogPage]);
+
+  const fetchBlogs = async () => {
+    try {
+      const res = await fetch(`/api/blog?limit=3&page=${blogPage}`);
+      const data = await res.json();
+      setBlogs(data.blogs || []);
+      setBlogTotalPages(data.totalPages || 1);
+    } catch (error) {
+      console.error('Failed to fetch blogs', error);
+    }
+  };
 
   const fetchListings = async () => {
     setLoading(true);
-    let url = '/api/listings?';
+    let url = `/api/listings?limit=6&page=${listingPage}&`;
     if (filter) url += `type=${filter}&`;
     if (search) url += `search=${search}`;
 
@@ -31,6 +48,7 @@ export default function Home() {
       const res = await fetch(url);
       const data = await res.json();
       setListings(data.listings || []);
+      setListingTotalPages(data.totalPages || 1);
     } catch (error) {
       console.error('Failed to fetch listings', error);
     }
@@ -114,6 +132,29 @@ export default function Home() {
           })}
         </div>
         {listings.length === 0 && !loading && <p style={{ textAlign: 'center' }}>No listings found.</p>}
+
+        {/* Listings Pagination Buttons */}
+        {listingTotalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '40px' }}>
+            <button
+              className="btn"
+              disabled={listingPage === 1}
+              onClick={() => setListingPage(prev => Math.max(1, prev - 1))}
+              style={{ padding: '8px 20px', opacity: listingPage === 1 ? 0.5 : 1 }}
+            >
+              Previous
+            </button>
+            <span style={{ display: 'flex', alignItems: 'center', color: '#ccc' }}>Page {listingPage} of {listingTotalPages}</span>
+            <button
+              className="btn"
+              disabled={listingPage === listingTotalPages}
+              onClick={() => setListingPage(prev => Math.min(listingTotalPages, prev + 1))}
+              style={{ padding: '8px 20px', opacity: listingPage === listingTotalPages ? 0.5 : 1 }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Blog Grid Section */}
@@ -156,6 +197,29 @@ export default function Home() {
               </Link>
             ))}
           </div>
+
+          {/* Blog Pagination Buttons */}
+          {blogTotalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '40px' }}>
+              <button
+                className="btn"
+                disabled={blogPage === 1}
+                onClick={() => setBlogPage(prev => Math.max(1, prev - 1))}
+                style={{ padding: '8px 20px', background: 'rgba(255,255,255,0.05)', opacity: blogPage === 1 ? 0.5 : 1 }}
+              >
+                Previous
+              </button>
+              <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.45)', fontSize: '0.9rem' }}>Page {blogPage} of {blogTotalPages}</span>
+              <button
+                className="btn"
+                disabled={blogPage === blogTotalPages}
+                onClick={() => setBlogPage(prev => Math.min(blogTotalPages, prev + 1))}
+                style={{ padding: '8px 20px', background: 'rgba(255,255,255,0.05)', opacity: blogPage === blogTotalPages ? 0.5 : 1 }}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </section>
       )}
     </div>

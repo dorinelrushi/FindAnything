@@ -27,18 +27,29 @@ export async function GET(req) {
     try {
         await dbConnect();
         const { searchParams } = new URL(req.url);
+        const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '20');
         const tag = searchParams.get('tag');
+        const skip = (page - 1) * limit;
 
         let query = { published: true };
         if (tag) query.tags = tag;
 
+        const totalCount = await Blog.countDocuments(query);
+        const totalPages = Math.ceil(totalCount / limit);
+
         const blogs = await Blog.find(query)
             .sort({ createdAt: -1 })
+            .skip(skip)
             .limit(limit)
             .select('title slug excerpt coverImage tags createdAt');
 
-        return NextResponse.json({ blogs });
+        return NextResponse.json({
+            blogs,
+            totalCount,
+            totalPages,
+            currentPage: page
+        });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

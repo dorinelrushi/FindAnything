@@ -77,8 +77,24 @@ export async function GET(req) {
             ];
         }
 
-        const listings = await Listing.find(query).sort({ createdAt: -1 });
-        return NextResponse.json({ listings });
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '20');
+        const skip = (page - 1) * limit;
+
+        const totalCount = await Listing.countDocuments(query);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        const listings = await Listing.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        return NextResponse.json({
+            listings,
+            totalCount,
+            totalPages,
+            currentPage: page
+        });
     } catch (error) {
         console.error("Error fetching listings:", error);
         return NextResponse.json({ error: "Failed to fetch listings" }, { status: 500 });
