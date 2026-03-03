@@ -25,6 +25,13 @@ export default function RootLayout({ children }) {
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin="" />
+        <Script
+          src="https://emrldtp.cc/NTA0MTA5.js?t=504109"
+          strategy="afterInteractive"
+          data-noptimize="1"
+          data-cfasync="false"
+          data-wpfc-render="false"
+        />
       </head>
       <body suppressHydrationWarning={true} className={inter.className}>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-TMCLY9JCVR" strategy="afterInteractive" />
