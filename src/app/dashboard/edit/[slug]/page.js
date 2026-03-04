@@ -674,8 +674,8 @@ export default function EditListingPage({ params }) {
             <h2>Edit Listing</h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Name *</label>
-                    <input name="title" placeholder="Business Name" className="input" value={formData.title} onChange={handleChange} required />
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Name</label>
+                    <input name="title" placeholder="Business Name" className="input" value={formData.title} onChange={handleChange} />
                 </div>
 
                 {/* Category Selection */}
@@ -721,14 +721,13 @@ export default function EditListingPage({ params }) {
 
                 {/* Description */}
                 <div>
-                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Description *</label>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Description</label>
                     <textarea
                         name="description"
                         placeholder="Describe your business..."
                         className="input"
                         value={formData.description}
                         onChange={handleChange}
-                        required
                         rows={8}
                         style={{ minHeight: '200px', resize: 'vertical' }}
                     />
@@ -737,12 +736,12 @@ export default function EditListingPage({ params }) {
                 {/* Location Details & Contact */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>City *</label>
-                        <input name="city" placeholder="e.g. Korça" className="input" value={formData.city} onChange={handleChange} required />
+                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>City</label>
+                        <input name="city" placeholder="e.g. Korça" className="input" value={formData.city} onChange={handleChange} />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Country *</label>
-                        <input name="country" placeholder="e.g. Albania" className="input" value={formData.country} onChange={handleChange} required />
+                        <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Country</label>
+                        <input name="country" placeholder="e.g. Albania" className="input" value={formData.country} onChange={handleChange} />
                     </div>
                 </div>
 
@@ -816,9 +815,9 @@ export default function EditListingPage({ params }) {
                             </div>
                         </div>
 
-                        {/* Pajisjet në dhomë */}
+                        {/* Room Amenities */}
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#fd79a8' }}>Pajisjet në dhomë</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#fd79a8' }}>Room Amenities</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
                                 {ROOM_AMENITIES.map(amenity => (
                                     <label key={amenity} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -861,12 +860,12 @@ export default function EditListingPage({ params }) {
                             )}
                         </div>
 
-                        {/* Shërbimet & Facilitetet */}
+                        {/* Services & Facilities */}
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#fd79a8' }}>Shërbimet & Facilitetet</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#fd79a8' }}>Services & Facilities</h3>
 
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Shërbime të përgjithshme</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>General Services</label>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
                                     {GENERAL_SERVICES.map(service => (
                                         <label key={service} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -910,7 +909,7 @@ export default function EditListingPage({ params }) {
                             </div>
 
                             <div style={{ marginTop: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Shërbime shtesë</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Additional Services</label>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
                                     {ADDITIONAL_SERVICES.map(service => (
                                         <label key={service} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -954,15 +953,15 @@ export default function EditListingPage({ params }) {
                             </div>
                         </div>
 
-                        {/* Politikat */}
+                        {/* Policies */}
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#fd79a8' }}>Politikat</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#fd79a8' }}>Policies</h3>
 
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Politika e anulimit</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Cancellation Policy</label>
                                 <input
                                     type="text"
-                                    placeholder="Anulim falas deri 24 orë para mbërritjes"
+                                    placeholder="Free cancellation up to 24h before arrival"
                                     className="input"
                                     value={hotelData.policies.cancellation}
                                     onChange={(e) => updateHotelPolicy('cancellation', e.target.value)}
@@ -1053,9 +1052,9 @@ export default function EditListingPage({ params }) {
                             )}
                         </div>
 
-                        {/* Shërbime & Facilitetet */}
+                        {/* Services & Facilities */}
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#00d2d3' }}>Shërbime & Facilitetet</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#00d2d3' }}>Services & Facilities</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
                                 {BAR_SERVICES.map(service => (
                                     <label key={service} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -1098,12 +1097,12 @@ export default function EditListingPage({ params }) {
                             )}
                         </div>
 
-                        {/* Publiku & Rregullat */}
+                        {/* Crowd & Rules */}
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#00d2d3' }}>Publiku & Rregullat</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#00d2d3' }}>Crowd & Rules</h3>
 
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Mosha minimale</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Minimum Age</label>
                                 <input
                                     placeholder="e.g. 18+"
                                     className="input"
@@ -1113,7 +1112,7 @@ export default function EditListingPage({ params }) {
                             </div>
 
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>I përshtatshëm për:</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Suitable for:</label>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px', marginBottom: '10px' }}>
                                     {SUITABLE_FOR.map(item => (
                                         <label key={item} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -1190,7 +1189,7 @@ export default function EditListingPage({ params }) {
                                         onChange={(e) => updateBarFeature('openLate', e.target.checked)}
                                         style={{ cursor: 'pointer' }}
                                     />
-                                    <span>📍 Bar i hapur deri vonë</span>
+                                    <span>📍 Open Late</span>
                                 </label>
                                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                                     <input
@@ -1199,7 +1198,7 @@ export default function EditListingPage({ params }) {
                                         onChange={(e) => updateBarFeature('liveMusicTonight', e.target.checked)}
                                         style={{ cursor: 'pointer' }}
                                     />
-                                    <span>🎶 Muzikë live sonte</span>
+                                    <span>🎶 Live Music Tonight</span>
                                 </label>
                             </div>
                             <div style={{ marginTop: '15px' }}>
@@ -1219,15 +1218,15 @@ export default function EditListingPage({ params }) {
                 {formData.type === 'bujtina' && (
                     <>
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Lloji i Akomodimit</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Accommodation Type</h3>
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Tipi</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Type</label>
                                 <select className="input" value={bujtinaData.accommodationType} onChange={(e) => setBujtinaData({ ...bujtinaData, accommodationType: e.target.value })}>
                                     {BUJTINA_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Stili</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Style</label>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
                                     {BUJTINA_STYLES.map(style => (
                                         <label key={style} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -1240,23 +1239,23 @@ export default function EditListingPage({ params }) {
                         </div>
 
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Dhoma & Akomodimi</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Rooms & Accommodation</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Numri i dhomave</label>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Number of Rooms</label>
                                     <input type="number" className="input" value={bujtinaData.totalRooms} onChange={(e) => setBujtinaData({ ...bujtinaData, totalRooms: e.target.value })} />
                                 </div>
                             </div>
                         </div>
 
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Ushqimi</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#6ab04c' }}>Food & Dining</h3>
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Mëngjes tradicional</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Breakfast</label>
                                 <input className="input" value={bujtinaData.food.breakfast} onChange={(e) => setBujtinaData({ ...bujtinaData, food: { ...bujtinaData.food, breakfast: e.target.value } })} />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Produkte bio</label>
+                                <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Bio / Organic Products</label>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
                                     {BIO_PRODUCTS.map(prod => (
                                         <label key={prod} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -1274,27 +1273,27 @@ export default function EditListingPage({ params }) {
                 {formData.type === 'rentcar' && (
                     <>
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Detajet e Makinës</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Car Details</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Marka & Modeli</label>
-                                    <input className="input" value={rentCarData.brandModel} onChange={(e) => setRentCarData({ ...rentCarData, brandModel: e.target.value })} required />
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Brand & Model</label>
+                                    <input className="input" value={rentCarData.brandModel} onChange={(e) => setRentCarData({ ...rentCarData, brandModel: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Viti</label>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Year</label>
                                     <input type="number" className="input" value={rentCarData.year} onChange={(e) => setRentCarData({ ...rentCarData, year: e.target.value })} />
                                 </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Karburanti</label>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Fuel Type</label>
                                     <select className="input" value={rentCarData.fuelType} onChange={(e) => setRentCarData({ ...rentCarData, fuelType: e.target.value })}>
                                         <option value="">Select...</option>
                                         {FUEL_TYPES.map(f => <option key={f} value={f}>{f}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Transmetimi</label>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Transmission</label>
                                     <select className="input" value={rentCarData.transmission} onChange={(e) => setRentCarData({ ...rentCarData, transmission: e.target.value })}>
                                         <option value="">Select...</option>
                                         {TRANSMISSIONS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -1304,22 +1303,22 @@ export default function EditListingPage({ params }) {
                         </div>
 
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Çmimi & Përfshirjet</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Price & Inclusions</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Çmimi ditor</label>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Daily Price</label>
                                     <input className="input" value={rentCarData.prices.daily} onChange={(e) => setRentCarData({ ...rentCarData, prices: { ...rentCarData.prices, daily: e.target.value } })} />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Depozita</label>
+                                    <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Security Deposit</label>
                                     <input className="input" value={rentCarData.prices.deposit} onChange={(e) => setRentCarData({ ...rentCarData, prices: { ...rentCarData.prices, deposit: e.target.value } })} />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Shërbime Shtesë */}
+                        {/* Extra Services */}
                         <div style={{ borderTop: '2px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginTop: '20px' }}>
-                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Shërbime Shtesë</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#ff9f43' }}>Extra Services</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
                                 {CAR_EXTRA_SERVICES.map(srv => (
                                     <label key={srv} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>

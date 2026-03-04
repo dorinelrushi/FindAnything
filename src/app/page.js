@@ -238,6 +238,105 @@ export default function Home() {
           )}
         </section>
       )}
+
+      {/* Services Section */}
+      <section style={{ marginTop: '80px', marginBottom: '80px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '4px', color: '#00cec9', fontWeight: '800' }}>Grow with Us</span>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: '900', marginTop: '10px', background: 'linear-gradient(135deg, #00cec9, #81ecec)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Professional Services</h2>
+          <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '15px', fontSize: '1.1rem' }}>Take your business to the next level with our premium solutions.</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', maxWidth: '1000px', margin: '0 auto' }}>
+          {/* Card 1: Promotion */}
+          <div className="service-card" style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '24px',
+            padding: '40px 30px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            transition: 'all 0.4s ease',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(253, 121, 168, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '25px', color: '#fd79a8', fontSize: '2rem' }}>
+              🚀
+            </div>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>Business Promotion</h3>
+            <div style={{ fontSize: '2rem', fontWeight: '900', color: '#fd79a8', marginBottom: '15px' }}>10€ <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.4)', fontWeight: '500' }}>/ 7 days</span></div>
+            <p style={{ color: 'rgba(255,255,255,0.6)', lineHeight: '1.8', marginBottom: '30px', flex: 1 }}>
+              We will aggressively promote your business across our social media channels and feature you prominently on our website to drive traffic and sales.
+            </p>
+            <a href="https://wa.me/355676925765" target="_blank" rel="noopener noreferrer" style={{
+              background: 'linear-gradient(135deg, #fd79a8, #e84393)',
+              color: 'white',
+              textDecoration: 'none',
+              padding: '14px 30px',
+              borderRadius: '30px',
+              fontWeight: '700',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              width: '100%',
+              justifyContent: 'center',
+              boxShadow: '0 10px 20px rgba(253, 121, 168, 0.3)',
+              transition: 'transform 0.3s'
+            }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              Contact on WhatsApp
+            </a>
+          </div>
+
+          {/* Card 2: Digital Presence */}
+          <div className="service-card" style={{
+            background: 'linear-gradient(to bottom, rgba(162, 155, 254, 0.08), rgba(255,255,255,0.02))',
+            border: '1px solid rgba(162, 155, 254, 0.3)',
+            borderRadius: '24px',
+            padding: '40px 30px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            transition: 'all 0.4s ease',
+            position: 'relative'
+          }}>
+            <div style={{ position: 'absolute', top: '15px', right: '15px', background: '#a29bfe', color: '#000', fontSize: '0.7rem', fontWeight: '800', padding: '4px 12px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px' }}>Popular</div>
+            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(162, 155, 254, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '25px', color: '#a29bfe', fontSize: '2rem' }}>
+              💻
+            </div>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>Digital Presence</h3>
+            <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#a29bfe', marginBottom: '15px', height: '39px', display: 'flex', alignItems: 'center' }}>Custom Quote</div>
+            <p style={{ color: 'rgba(255,255,255,0.6)', lineHeight: '1.8', marginBottom: '30px', flex: 1 }}>
+              Complete identity makeover. We build a modern website, design a stunning professional logo, and provide full-service social media management.
+            </p>
+            <a href="https://wa.me/355676925765" target="_blank" rel="noopener noreferrer" style={{
+              background: '#a29bfe',
+              color: '#000',
+              textDecoration: 'none',
+              padding: '14px 30px',
+              borderRadius: '30px',
+              fontWeight: '800',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              width: '100%',
+              justifyContent: 'center',
+              boxShadow: '0 10px 20px rgba(162, 155, 254, 0.3)',
+              transition: 'transform 0.3s'
+            }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              Contact on WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

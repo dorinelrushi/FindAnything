@@ -12,12 +12,14 @@ function ExploreContent() {
     const initialType = searchParams.get('type') || '';
     const initialSearch = searchParams.get('search') || '';
     const initialCategory = searchParams.get('category') || '';
+    const initialCity = searchParams.get('city') || '';
     const initialServices = searchParams.get('services') ? searchParams.get('services').split(',') : [];
 
     const [listings, setListings] = useState([]);
     const [filter, setFilter] = useState(initialType);
     const [search, setSearch] = useState(initialSearch);
     const [categoryFilter, setCategoryFilter] = useState(initialCategory);
+    const [cityFilter, setCityFilter] = useState(initialCity);
     const [serviceFilters, setServiceFilters] = useState(initialServices);
     const [loading, setLoading] = useState(true);
     const [hydrated, setHydrated] = useState(false);
@@ -26,6 +28,7 @@ function ExploreContent() {
 
     // Get unique categories and services from listings for dynamic filtering
     const [availableCategories, setAvailableCategories] = useState([]);
+    const [availableCities, setAvailableCities] = useState([]);
     const [availableServices, setAvailableServices] = useState([]);
 
     useEffect(() => {
@@ -36,12 +39,13 @@ function ExploreContent() {
         setFilter(initialType);
         setSearch(initialSearch);
         setCategoryFilter(initialCategory);
+        setCityFilter(initialCity);
         setServiceFilters(initialServices);
-    }, [initialType, initialSearch, initialCategory]);
+    }, [initialType, initialSearch, initialCategory, initialCity]);
 
     useEffect(() => {
         fetchListings();
-    }, [filter, search, categoryFilter, serviceFilters]);
+    }, [filter, search, categoryFilter, cityFilter, serviceFilters]);
 
     const fetchListings = async () => {
         setLoading(true);
@@ -49,6 +53,7 @@ function ExploreContent() {
         if (filter) url += `type=${filter}&`;
         if (search) url += `search=${search}&`;
         if (categoryFilter) url += `category=${categoryFilter}&`;
+        if (cityFilter) url += `city=${cityFilter}&`;
         if (serviceFilters.length > 0) url += `services=${serviceFilters.join(',')}&`;
 
         try {
@@ -57,7 +62,7 @@ function ExploreContent() {
             const fetchedListings = data.listings || [];
             setListings(fetchedListings);
 
-            // Extract unique categories and services
+            // Extract unique categories and services from the visible listings
             const cats = new Set();
             const servs = new Set();
             fetchedListings.forEach(listing => {
@@ -74,6 +79,11 @@ function ExploreContent() {
             });
             setAvailableCategories(Array.from(cats).sort());
             setAvailableServices(Array.from(servs).sort());
+
+            // Set cities from the global backend list, ignoring client filters so users can always see all cities
+            if (data.allCities) {
+                setAvailableCities(data.allCities.sort());
+            }
         } catch (error) {
             console.error('Failed to fetch listings', error);
         }
@@ -97,12 +107,12 @@ function ExploreContent() {
 
     const handleFilterChange = (newFilter) => {
         setFilter(newFilter);
-        updateURL({ type: newFilter, category: '', services: [] }); // Reset category when changing type
+        updateURL({ type: newFilter, category: '', services: [], city: cityFilter }); // Reset category when changing type
         setCategoryFilter('');
         setServiceFilters([]);
     };
 
-    const updateURL = ({ type, category, services }) => {
+    const updateURL = ({ type, category, services, city }) => {
         const params = new URLSearchParams(searchParams);
 
         // Update type
@@ -117,6 +127,12 @@ function ExploreContent() {
             else params.delete('category');
         }
 
+        // Update city
+        if (city !== undefined) {
+            if (city) params.set('city', city);
+            else params.delete('city');
+        }
+
         // Update services
         if (services !== undefined) {
             if (services.length > 0) params.set('services', services.join(','));
@@ -128,7 +144,12 @@ function ExploreContent() {
 
     const handleCategoryChange = (category) => {
         setCategoryFilter(category);
-        updateURL({ category, services: serviceFilters });
+        updateURL({ category, services: serviceFilters, city: cityFilter });
+    };
+
+    const handleCityChange = (city) => {
+        setCityFilter(city);
+        updateURL({ city, category: categoryFilter, services: serviceFilters, type: filter });
     };
 
     const toggleServiceFilter = (service) => {
@@ -136,7 +157,7 @@ function ExploreContent() {
             ? serviceFilters.filter(s => s !== service)
             : [...serviceFilters, service];
         setServiceFilters(newServices);
-        updateURL({ category: categoryFilter, services: newServices });
+        updateURL({ category: categoryFilter, services: newServices, city: cityFilter });
     };
 
 
@@ -169,6 +190,18 @@ function ExploreContent() {
                                 ))}
                             </div>
                         </div>
+
+                        {availableCities.length > 0 && (
+                            <div className="tool-section">
+                                <h4 className="section-label">Cities</h4>
+                                <div className="category-scroll">
+                                    <button className={`cat-tag ${cityFilter === '' ? 'active' : ''}`} onClick={() => handleCityChange('')}>All Cities</button>
+                                    {availableCities.map(city => (
+                                        <button key={city} className={`cat-tag ${cityFilter === city ? 'active' : ''}`} onClick={() => handleCityChange(city)}>{city}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {availableCategories.length > 0 && (
                             <div className="tool-section">
@@ -210,23 +243,25 @@ function ExploreContent() {
                                 className="main-search-input"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && updateURL({ type: filter, category: categoryFilter, services: serviceFilters })}
+                                onKeyDown={(e) => e.key === 'Enter' && updateURL({ type: filter, category: categoryFilter, services: serviceFilters, city: cityFilter })}
                             />
                         </div>
                         <button className="mobile-only filter-trigger" onClick={() => setShowFilters(true)}>
                             <span>Filters</span>
-                            <span className="filter-count">{serviceFilters.length + (filter ? 1 : 0) + (categoryFilter ? 1 : 0)}</span>
+                            <span className="filter-count">{serviceFilters.length + (filter ? 1 : 0) + (categoryFilter ? 1 : 0) + (cityFilter ? 1 : 0)}</span>
                         </button>
                     </div>
 
                     <div className="results-content">
                         <div className="results-header">
                             <h2 className="results-title">
-                                {loading ? 'Searching...' : `${listings.length} places found`}
+                                {loading ? 'Searching...' : filter === 'city' ? `${availableCities.length} cities available` : `${listings.length} places found`}
                             </h2>
-                            <div className="sort-placeholder">
-                                <span>Sorted by: <b>Relevance</b></span>
-                            </div>
+                            {filter !== 'city' && (
+                                <div className="sort-placeholder">
+                                    <span>Sorted by: <b>Relevance</b></span>
+                                </div>
+                            )}
                         </div>
 
                         {loading ? (
@@ -276,12 +311,32 @@ function ExploreContent() {
                             </div>
                         )}
 
-                        {!loading && listings.length === 0 && (
+                        {!loading && filter === 'city' && availableCities.length > 0 && (
+                            <div className="listings-grid">
+                                {availableCities.map(city => (
+                                    <div
+                                        key={city}
+                                        className="premium-card glass"
+                                        style={{ cursor: 'pointer', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column', minHeight: '200px' }}
+                                        onClick={() => {
+                                            setFilter('');
+                                            setCityFilter(city);
+                                            updateURL({ type: '', city: city, category: categoryFilter, services: serviceFilters });
+                                        }}
+                                    >
+                                        <h3 style={{ fontSize: '2rem', marginBottom: '15px' }}>{city}</h3>
+                                        <span className="btn" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>Explore Places</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {!loading && listings.length === 0 && filter !== 'city' && (
                             <div className="empty-results">
                                 <div className="empty-icon">📍</div>
                                 <h3>No matching places found</h3>
                                 <p>Try adjusting your filters or search term to see more results.</p>
-                                <button className="btn" onClick={() => { setFilter(''); setSearch(''); setCategoryFilter(''); setServiceFilters([]); updateURL({ type: '', category: '', services: [] }); }}>Clear all filters</button>
+                                <button className="btn" onClick={() => { setFilter(''); setSearch(''); setCategoryFilter(''); setCityFilter(''); setServiceFilters([]); updateURL({ type: '', category: '', city: '', services: [] }); }}>Clear all filters</button>
                             </div>
                         )}
                     </div>
@@ -298,15 +353,17 @@ function ExploreContent() {
                 .explore-container {
                     display: grid;
                     grid-template-columns: 320px 1fr;
-                    height: calc(100vh - 80px);
+                    min-height: calc(100vh - 80px);
                     width: 100%;
-                    overflow: hidden;
+                    align-items: start;
                     position: relative;
                 }
 
                 /* Sidebar Redesign */
                 .sidebar {
-                    height: 100%;
+                    position: sticky;
+                    top: 80px;
+                    height: calc(100vh - 100px);
                     background: rgba(15, 15, 20, 0.4);
                     backdrop-filter: blur(20px);
                     border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -314,7 +371,7 @@ function ExploreContent() {
                     flex-direction: column;
                     padding: 0;
                     margin: 0;
-                    z-index: 1001; /* Higher than navbar 1000 */
+                    z-index: 100;
                 }
 
                 .sidebar-header {
@@ -339,8 +396,8 @@ function ExploreContent() {
                     overflow-y: auto;
                     padding: 10px 30px 40px 30px;
                 }
-                .filter-scroll::-webkit-scrollbar { width: 3px; }
-                .filter-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+                .filter-scroll::-webkit-scrollbar { width: 6px; }
+                .filter-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
 
                 .tool-section { margin-bottom: 45px; }
                 .section-label {
@@ -462,7 +519,7 @@ function ExploreContent() {
                 .results-wrapper {
                     display: flex;
                     flex-direction: column;
-                    height: 100%;
+                    min-height: 100%;
                     background: #0b0b0f;
                     background-image: radial-gradient(circle at 50% -20%, rgba(108, 92, 231, 0.08) 0%, transparent 70%);
                 }
@@ -516,10 +573,8 @@ function ExploreContent() {
 
                 .results-content {
                     flex: 1;
-                    overflow-y: auto;
-                    padding: 0 30px 50px 30px;
+                    padding: 0 30px 80px 30px;
                 }
-                .results-content::-webkit-scrollbar { width: 0; }
 
                 .results-header {
                     display: flex;

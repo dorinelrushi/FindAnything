@@ -13,16 +13,16 @@ const ListingSchema = new mongoose.Schema({
     },
     title: {
         type: String,
-        required: true,
+        required: false,
     },
     slug: {
         type: String,
-        required: true,
+        required: false,
         unique: true,
     },
     description: {
         type: String, // Now supports HTML from rich text editor
-        required: true,
+        required: false,
     },
     category: {
         type: String, // e.g., "Traditional", "Fast Food", "Pizzeria", "Bar & Grill"

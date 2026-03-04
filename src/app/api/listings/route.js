@@ -45,12 +45,14 @@ export async function GET(req) {
         const search = searchParams.get('search');
         const owner = searchParams.get('owner');
         const category = searchParams.get('category');
+        const city = searchParams.get('city');
         const services = searchParams.get('services'); // comma-separated
 
         let query = {};
         if (type) query.type = type;
         if (owner) query.owner = owner;
         if (category) query.category = category;
+        if (city) query.city = city;
 
         // Filter by services - listing must have ALL selected services
         // Service can be in general services, hotel general services, hotel additional services, or room amenities
@@ -91,8 +93,26 @@ export async function GET(req) {
             .skip(skip)
             .limit(limit);
 
+        // Get all unique cities across all listings, ignoring the current filter, so the frontend always has a list of cities
+        const allCitiesRaw = await Listing.distinct('city', { city: { $ne: null, $ne: '' } });
+
+        // Normalize: trim spaces, and make unique case-insensitively
+        const cityMap = new Map();
+        allCitiesRaw.forEach(c => {
+            if (c) {
+                const trimmed = c.trim();
+                const key = trimmed.toLowerCase();
+                if (!cityMap.has(key)) {
+                    // Pick the original casing of the first one we find
+                    cityMap.set(key, trimmed);
+                }
+            }
+        });
+        const allCities = Array.from(cityMap.values()).sort();
+
         return NextResponse.json({
             listings,
+            allCities: allCities,
             totalCount,
             totalPages,
             currentPage: page
@@ -156,8 +176,9 @@ export async function POST(req) {
             }
         }
 
-        // Generate Slug
-        let slug = slugify(title, { lower: true, strict: true });
+        // Generate Slug (fallback to type-timestamp if title is empty)
+        const slugBase = title ? slugify(title, { lower: true, strict: true }) : `${type || 'listing'}-${Date.now()}`;
+        let slug = slugBase || `listing-${Date.now()}`;
         // Simple Uniqueness check (append random number if exists)
         let existingSlug = await Listing.findOne({ slug });
         if (existingSlug) {

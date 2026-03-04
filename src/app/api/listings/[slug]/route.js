@@ -90,14 +90,14 @@ export async function PUT(req, { params }) {
         const bujtinaDataRaw = formData.get('bujtinaData');
         const rentCarDataRaw = formData.get('rentCarData');
 
-        if (title) listing.title = title;
-        if (description) listing.description = description;
+        listing.title = title || listing.title;
+        listing.description = description || listing.description;
         if (type) listing.type = type;
-        if (address) listing.address = address;
+        if (address !== null) listing.address = address;
         if (lat) listing.lat = lat;
         if (lng) listing.lng = lng;
-        if (city) listing.city = city;
-        if (country) listing.country = country;
+        listing.city = city || listing.city;
+        listing.country = country || listing.country;
         if (whatsappNumber !== null) listing.whatsappNumber = whatsappNumber;
         if (category !== null) listing.category = category;
 
@@ -189,14 +189,21 @@ export async function PUT(req, { params }) {
             listing.image = `data:${imageFile.type};base64,${base64Image}`;
         }
 
-        // Update slug if title changed
-        if (title && title !== listing.title) {
-            let newSlug = slugify(title, { lower: true, strict: true });
-            let existing = await Listing.findOne({ slug: newSlug });
-            if (existing && existing._id.toString() !== listing._id.toString()) {
-                newSlug = `${newSlug}-${Date.now()}`;
+        // Update slug if title changed or listing has no slug yet
+        const effectiveTitle = title || listing.title;
+        if (effectiveTitle && (title !== listing.title || !listing.slug)) {
+            let newSlug = slugify(effectiveTitle, { lower: true, strict: true });
+            if (newSlug) {
+                let existing = await Listing.findOne({ slug: newSlug });
+                if (existing && existing._id.toString() !== listing._id.toString()) {
+                    newSlug = `${newSlug}-${Date.now()}`;
+                }
+                listing.slug = newSlug;
             }
-            listing.slug = newSlug;
+        }
+        // If still no slug, generate one from type
+        if (!listing.slug) {
+            listing.slug = `${listing.type || 'listing'}-${Date.now()}`;
         }
 
         await listing.save();

@@ -441,22 +441,24 @@ export default function ListingPage({ params }) {
 
                                             <div style={{ marginBottom: '40px' }}>
                                                 <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#2ecc71' }}>What's Included</h3>
-                                                <div className="inclusions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                                                    {(listing.tourData?.inclusions || []).map((inc, idx) => (
-                                                        <div key={idx} style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '15px',
-                                                            padding: '25px',
-                                                            background: 'rgba(46, 204, 113, 0.05)',
-                                                            border: '1px solid rgba(46, 204, 113, 0.2)',
-                                                            borderRadius: '20px'
-                                                        }}>
-                                                            <span style={{ fontSize: '1.5rem' }}>✅</span>
-                                                            <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>{inc}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                                {listing.tourData?.inclusions && listing.tourData.inclusions.length > 0 ? (
+                                                    <div className="inclusions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                                                        {listing.tourData.inclusions.map((inc, idx) => (
+                                                            <div key={idx} style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '15px',
+                                                                padding: '25px',
+                                                                background: 'rgba(46, 204, 113, 0.05)',
+                                                                border: '1px solid rgba(46, 204, 113, 0.2)',
+                                                                borderRadius: '20px'
+                                                            }}>
+                                                                <span style={{ fontSize: '1.5rem' }}>✅</span>
+                                                                <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>{inc}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : <p style={{ color: 'rgba(255,255,255,0.5)' }}>N/A</p>}
                                             </div>
 
                                             {listing.tourData?.exclusions?.length > 0 && (
@@ -561,11 +563,13 @@ export default function ListingPage({ params }) {
                                             </div>
                                             <div>
                                                 <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Room Amenities</h3>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                    {(listing.hotelData.roomAmenities || []).map((amenity, idx) => (
-                                                        <span key={idx} style={{ border: '1px solid rgba(255,255,255,0.2)', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>✓ {amenity}</span>
-                                                    ))}
-                                                </div>
+                                                {listing.hotelData.roomAmenities && listing.hotelData.roomAmenities.length > 0 ? (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                        {listing.hotelData.roomAmenities.map((amenity, idx) => (
+                                                            <span key={idx} style={{ border: '1px solid rgba(255,255,255,0.2)', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>✓ {amenity}</span>
+                                                        ))}
+                                                    </div>
+                                                ) : <p style={{ color: 'rgba(255,255,255,0.5)' }}>N/A</p>}
                                             </div>
                                             <div style={{ gridColumn: '1 / -1' }}>
                                                 <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Policies</h3>
@@ -587,11 +591,13 @@ export default function ListingPage({ params }) {
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
                                             <div>
                                                 <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Style / Atmosphere</h3>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                    {(listing.barData.atmosphere || []).map((item, idx) => (
-                                                        <span key={idx} style={{ background: 'rgba(0, 210, 211, 0.1)', border: '1px solid #00d2d3', color: '#00d2d3', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>{item}</span>
-                                                    ))}
-                                                </div>
+                                                {listing.barData.atmosphere && listing.barData.atmosphere.length > 0 ? (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                        {listing.barData.atmosphere.map((item, idx) => (
+                                                            <span key={idx} style={{ background: 'rgba(0, 210, 211, 0.1)', border: '1px solid #00d2d3', color: '#00d2d3', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>{item}</span>
+                                                        ))}
+                                                    </div>
+                                                ) : <p style={{ color: 'rgba(255,255,255,0.5)' }}>N/A</p>}
                                             </div>
                                             <div>
                                                 <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Crowd & Rules</h3>
@@ -614,11 +620,13 @@ export default function ListingPage({ params }) {
                                             </div>
                                             <div>
                                                 <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Food & Bio Products</h3>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                    {(listing.bujtinaData.food?.bioProducts || []).map((prod, idx) => (
-                                                        <span key={idx} style={{ background: 'rgba(106, 176, 76, 0.1)', padding: '5px 12px', borderRadius: '15px', color: '#6ab04c' }}>🥗 {prod}</span>
-                                                    ))}
-                                                </div>
+                                                {listing.bujtinaData.food?.bioProducts && listing.bujtinaData.food.bioProducts.length > 0 ? (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                        {listing.bujtinaData.food.bioProducts.map((prod, idx) => (
+                                                            <span key={idx} style={{ background: 'rgba(106, 176, 76, 0.1)', padding: '5px 12px', borderRadius: '15px', color: '#6ab04c' }}>🥗 {prod}</span>
+                                                        ))}
+                                                    </div>
+                                                ) : <p style={{ color: 'rgba(255,255,255,0.5)' }}>N/A</p>}
                                             </div>
                                         </div>
                                     </div>
