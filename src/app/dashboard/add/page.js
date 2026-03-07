@@ -747,7 +747,6 @@ function AddListingForm() {
                                 <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Numri total i dhomave</label>
                                 <input
                                     type="number"
-                                    placeholder="18"
                                     className="input"
                                     value={hotelData.totalRooms}
                                     onChange={(e) => setHotelData({ ...hotelData, totalRooms: e.target.value })}
@@ -1272,7 +1271,6 @@ function AddListingForm() {
                                 <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Number of Rooms</label>
                                 <input
                                     type="number"
-                                    placeholder="e.g. 6"
                                     className="input"
                                     value={bujtinaData.totalRooms}
                                     onChange={(e) => setBujtinaData({ ...bujtinaData, totalRooms: e.target.value })}

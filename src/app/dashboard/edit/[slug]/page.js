@@ -762,7 +762,6 @@ export default function EditListingPage({ params }) {
                                 <label style={{ display: 'block', marginBottom: '8px', color: '#ccc' }}>Numri total i dhomave</label>
                                 <input
                                     type="number"
-                                    placeholder="18"
                                     className="input"
                                     value={hotelData.totalRooms}
                                     onChange={(e) => setHotelData({ ...hotelData, totalRooms: e.target.value })}

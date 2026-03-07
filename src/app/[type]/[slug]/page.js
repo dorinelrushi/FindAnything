@@ -553,7 +553,7 @@ export default function ListingPage({ params }) {
                                             <div>
                                                 <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Rooms & Accommodation</h3>
                                                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                                    <p style={{ marginBottom: '10px' }}><strong>Total number of rooms:</strong> {listing.hotelData.totalRooms || '18'}</p>
+                                                    {listing.hotelData.totalRooms && <p style={{ marginBottom: '10px' }}><strong>Total number of rooms:</strong> {listing.hotelData.totalRooms}</p>}
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                         {(listing.hotelData.roomTypes || []).map((room, idx) => (
                                                             <span key={idx} style={{ background: 'rgba(255,255,255,0.1)', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>{room}</span>
@@ -561,27 +561,31 @@ export default function ListingPage({ params }) {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Room Amenities</h3>
-                                                {listing.hotelData.roomAmenities && listing.hotelData.roomAmenities.length > 0 ? (
+                                            {listing.hotelData.roomAmenities && listing.hotelData.roomAmenities.length > 0 && (
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Room Amenities</h3>
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                         {listing.hotelData.roomAmenities.map((amenity, idx) => (
                                                             <span key={idx} style={{ border: '1px solid rgba(255,255,255,0.2)', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>✓ {amenity}</span>
                                                         ))}
                                                     </div>
-                                                ) : <p style={{ color: 'rgba(255,255,255,0.5)' }}>N/A</p>}
-                                            </div>
-                                            <div style={{ gridColumn: '1 / -1' }}>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Policies</h3>
-                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-                                                    {listing.hotelData.policies && Object.entries(listing.hotelData.policies).map(([key, val], idx) => (
-                                                        <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                                            <p style={{ fontSize: '0.8rem', color: '#aaa', textTransform: 'capitalize' }}>{key}:</p>
-                                                            <p><strong>{val || 'N/A'}</strong></p>
-                                                        </div>
-                                                    ))}
                                                 </div>
-                                            </div>
+                                            )}
+                                            {listing.hotelData.policies && Object.values(listing.hotelData.policies).some(val => val && val.toLowerCase() !== 'n/a') && (
+                                                <div style={{ gridColumn: '1 / -1' }}>
+                                                    <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Policies</h3>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                                                        {Object.entries(listing.hotelData.policies).map(([key, val], idx) => (
+                                                            val && val.toLowerCase() !== 'n/a' && (
+                                                                <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
+                                                                    <p style={{ fontSize: '0.8rem', color: '#aaa', textTransform: 'capitalize' }}>{key}:</p>
+                                                                    <p><strong>{val}</strong></p>
+                                                                </div>
+                                                            )
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -589,16 +593,16 @@ export default function ListingPage({ params }) {
                                 {listing.type === 'bar' && listing.barData && (
                                     <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-                                            <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Style / Atmosphere</h3>
-                                                {listing.barData.atmosphere && listing.barData.atmosphere.length > 0 ? (
+                                            {listing.barData.atmosphere && listing.barData.atmosphere.length > 0 && (
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Style / Atmosphere</h3>
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                         {listing.barData.atmosphere.map((item, idx) => (
                                                             <span key={idx} style={{ background: 'rgba(0, 210, 211, 0.1)', border: '1px solid #00d2d3', color: '#00d2d3', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>{item}</span>
                                                         ))}
                                                     </div>
-                                                ) : <p style={{ color: 'rgba(255,255,255,0.5)' }}>N/A</p>}
-                                            </div>
+                                                </div>
+                                            )}
                                             <div>
                                                 <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Crowd & Rules</h3>
                                                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
@@ -616,18 +620,18 @@ export default function ListingPage({ params }) {
                                             <div>
                                                 <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Rooms & Guesthouse</h3>
                                                 <p><strong>Type:</strong> {listing.bujtinaData.accommodationType}</p>
-                                                <p><strong>Total Rooms:</strong> {listing.bujtinaData.totalRooms}</p>
+                                                {listing.bujtinaData.totalRooms && <p><strong>Total Rooms:</strong> {listing.bujtinaData.totalRooms}</p>}
                                             </div>
-                                            <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Food & Bio Products</h3>
-                                                {listing.bujtinaData.food?.bioProducts && listing.bujtinaData.food.bioProducts.length > 0 ? (
+                                            {listing.bujtinaData.food?.bioProducts && listing.bujtinaData.food.bioProducts.length > 0 && (
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Food & Bio Products</h3>
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                         {listing.bujtinaData.food.bioProducts.map((prod, idx) => (
                                                             <span key={idx} style={{ background: 'rgba(106, 176, 76, 0.1)', padding: '5px 12px', borderRadius: '15px', color: '#6ab04c' }}>🥗 {prod}</span>
                                                         ))}
                                                     </div>
-                                                ) : <p style={{ color: 'rgba(255,255,255,0.5)' }}>N/A</p>}
-                                            </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
