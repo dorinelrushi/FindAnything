@@ -52,7 +52,9 @@ export async function GET(req) {
         if (type) query.type = type;
         if (owner) query.owner = owner;
         if (category) query.category = category;
-        if (city) query.city = city;
+        if (city) {
+            query.city = { $regex: new RegExp(`^${city.trim()}$`, 'i') };
+        }
 
         // Filter by services - listing must have ALL selected services
         // Service can be in general services, hotel general services, hotel additional services, or room amenities

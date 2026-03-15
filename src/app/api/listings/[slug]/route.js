@@ -37,10 +37,18 @@ export async function GET(req, { params }) {
     await dbConnect();
     const { slug } = await params;
 
-    let listing = await Listing.findOne({ slug: slug }).populate('owner', 'name email phoneNumber phonePrefix');
+    let listing = await Listing.findOneAndUpdate(
+        { slug: slug },
+        { $inc: { views: 1 } },
+        { new: true }
+    ).populate('owner', 'name email phoneNumber phonePrefix');
 
     if (!listing && slug.match(/^[0-9a-fA-F]{24}$/)) {
-        listing = await Listing.findById(slug).populate('owner', 'name email phoneNumber phonePrefix');
+        listing = await Listing.findByIdAndUpdate(
+            slug,
+            { $inc: { views: 1 } },
+            { new: true }
+        ).populate('owner', 'name email phoneNumber phonePrefix');
     }
 
     if (!listing) return NextResponse.json({ error: 'Not found' }, { status: 404 });

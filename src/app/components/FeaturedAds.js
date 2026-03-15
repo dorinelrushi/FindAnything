@@ -9,7 +9,6 @@ export default function FeaturedAds() {
     const [currentAdIndex, setCurrentAdIndex] = useState(0);
 
     useEffect(() => {
-        // Check if ad popup was already shown in this session
         const adShown = sessionStorage.getItem('ad_shown');
         if (!adShown) {
             fetchAds();
@@ -27,13 +26,11 @@ export default function FeaturedAds() {
                 setIsVisible(true);
                 sessionStorage.setItem('ad_shown', 'true');
 
-                // Auto-close after 7 seconds
                 setTimeout(() => {
                     setIsVisible(false);
-                }, 7000);
+                }, 10000);
 
                 const token = localStorage.getItem('token');
-                // Track views for all fetched ads
                 data.ads.forEach(ad => {
                     fetch(`/api/ads/${ad._id}/track`, {
                         method: 'POST',
@@ -75,136 +72,67 @@ export default function FeaturedAds() {
     const currentAd = ads[currentAdIndex];
 
     return (
-        <div className="ad-popup-overlay">
-            <style jsx>{`
-                .ad-popup-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100vh;
-                    background: rgba(0, 0, 0, 0.8);
-                    backdrop-filter: blur(5px);
-                    z-index: 10000;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    animation: fadeIn 0.3s ease-out;
-                }
-                .ad-popup-content {
-                    width: 90%;
-                    max-width: 450px;
-                    background: var(--card-bg);
-                    border: 2px solid var(--primary);
-                    border-radius: 20px;
-                    padding: 25px;
-                    position: relative;
-                    box-shadow: 0 0 30px rgba(108, 92, 231, 0.4);
-                    animation: scaleUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                @keyframes scaleUp {
-                    from { transform: scale(0.8); opacity: 0; }
-                    to { transform: scale(1); opacity: 1; }
-                }
-                .close-timer {
-                    position: absolute;
-                    top: -15px;
-                    right: -15px;
-                    width: 40px;
-                    height: 40px;
-                    background: var(--primary);
-                    border-radius: 50%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    font-weight: bold;
-                    cursor: pointer;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-                }
-                .ad-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                }
-                .ad-badge {
-                    background: var(--primary);
-                    color: white;
-                    padding: 4px 12px;
-                    font-size: 0.75rem;
-                    border-radius: 20px;
-                    font-weight: bold;
-                }
-                .ad-timer-bar {
-                    height: 4px;
-                    background: var(--primary);
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    width: 100%;
-                    animation: shrink 7s linear forwards;
-                    border-bottom-left-radius: 20px;
-                    border-bottom-right-radius: 20px;
-                }
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="relative w-full max-w-lg bg-white rounded-[32px] overflow-hidden shadow-airbnb animate-in zoom-in-95 ease-out duration-400">
+                {/* Close Button */}
+                <button 
+                    onClick={() => setIsVisible(false)}
+                    className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center transition-colors"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+
+                {/* Ad Content */}
+                <div className="flex flex-col">
+                    <div className="h-64 overflow-hidden bg-bg-light">
+                        <img 
+                            src={currentAd.listing.image || 'https://via.placeholder.com/600x400'} 
+                            alt={currentAd.content.title}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    
+                    <div className="p-8 space-y-6">
+                        <div className="space-y-2">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand">Sygjeruar</span>
+                            <h3 className="text-3xl font-extrabold text-text-primary">{currentAd.content.title}</h3>
+                            <p className="text-text-secondary leading-relaxed">
+                                {currentAd.content.description}
+                            </p>
+                        </div>
+
+                        <div className="flex gap-4">
+                            {currentAd.content.whatsapp && (
+                                <a
+                                    href={`https://wa.me/${currentAd.content.whatsapp}`}
+                                    target="_blank"
+                                    onClick={() => trackClick(currentAd)}
+                                    className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white py-4 rounded-xl font-bold text-center transition-colors shadow-sm active:scale-95"
+                                >
+                                    WhatsApp
+                                </a>
+                            )}
+                            <Link
+                                href={`/${currentAd.listing.type}/${currentAd.listing.slug || currentAd.listing._id}`}
+                                onClick={() => { trackClick(currentAd); setIsVisible(false); }}
+                                className="flex-1 bg-brand hover:bg-brand-hover text-white py-4 rounded-xl font-bold text-center transition-colors shadow-soft active:scale-95"
+                            >
+                                {currentAd.content.buttonText || 'Shiko më shumë'}
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Animated Timer Bar */}
+                <div className="absolute bottom-0 left-0 h-1 bg-brand w-full origin-left animate-[shrink_10s_linear_forwards]" />
+            </div>
+
+            <style jsx global>{`
                 @keyframes shrink {
-                    from { width: 100%; }
-                    to { width: 0%; }
+                    from { transform: scaleX(1); }
+                    to { transform: scaleX(0); }
                 }
             `}</style>
-
-            <div className="ad-popup-content">
-                <div className="close-timer" onClick={() => setIsVisible(false)}>&times;</div>
-                <div className="ad-header">
-                    <span className="ad-badge">RECOMMENDED</span>
-                    <span style={{ fontSize: '0.8rem', color: '#aaa' }}>Featured Ad</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{
-                        width: '100%',
-                        height: '200px',
-                        borderRadius: '12px',
-                        backgroundImage: `url(${currentAd.listing.image || 'https://via.placeholder.com/400x200'})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                    }}></div>
-
-                    <div>
-                        <h3 style={{ margin: '0 0 10px 0', fontSize: '1.5rem' }}>{currentAd.content.title}</h3>
-                        <p style={{ fontSize: '0.95rem', color: '#ccc', margin: 0, lineHeight: '1.5' }}>
-                            {currentAd.content.description}
-                        </p>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                        {currentAd.content.whatsapp && (
-                            <a
-                                href={`https://wa.me/${currentAd.content.whatsapp}`}
-                                target="_blank"
-                                className="btn"
-                                onClick={() => trackClick(currentAd)}
-                                style={{ flex: 1, textAlign: 'center', background: '#25D366', textDecoration: 'none' }}
-                            >
-                                WhatsApp
-                            </a>
-                        )}
-                        <Link
-                            href={`/${currentAd.listing.type}/${currentAd.listing.slug || currentAd.listing._id}`}
-                            className="btn"
-                            style={{ flex: 1, textAlign: 'center', background: 'var(--primary)', textDecoration: 'none' }}
-                            onClick={() => trackClick(currentAd)}
-                        >
-                            {currentAd.content.buttonText}
-                        </Link>
-                    </div>
-                </div>
-
-                <div className="ad-timer-bar"></div>
-            </div>
         </div>
     );
 }

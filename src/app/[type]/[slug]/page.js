@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect, use } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useFavorites } from '@/context/FavoritesContext';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { cleanPhoneNumber } from '@/lib/utils';
 
 const formatDescription = (text) => {
     if (!text) return '';
@@ -20,6 +22,7 @@ export default function ListingPage({ params }) {
     const [averageRating, setAverageRating] = useState(0);
     const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
     const { user } = useAuth();
+    const { toggleFavorite, isFavorite } = useFavorites();
     const [loading, setLoading] = useState(true);
     const [currency, setCurrency] = useState('€');
     const [selectedImage, setSelectedImage] = useState(null);
@@ -34,6 +37,8 @@ export default function ListingPage({ params }) {
     const [selectedExtras, setSelectedExtras] = useState([]);
     const [promoCode, setPromoCode] = useState('');
     const [calculatedPrice, setCalculatedPrice] = useState(0);
+    const [showLightbox, setShowLightbox] = useState(false);
+    const [currentLightboxSlide, setCurrentLightboxSlide] = useState(0);
     const [priceBreakdown, setPriceBreakdown] = useState({
         adultTotal: 0,
         childTotal: 0,
@@ -41,46 +46,10 @@ export default function ListingPage({ params }) {
         discountAmount: 0,
         isPrivateApplied: false
     });
-
-    // Touch handlers for mobile gallery swipe
-    const [touchStart, setTouchStart] = useState(null);
-    const [touchEnd, setTouchEnd] = useState(null);
-    const minSwipeDistance = 50;
-
-    const onTouchStart = (e) => {
-        setTouchEnd(null);
-        setTouchStart(e.targetTouches[0].clientX);
-    };
-
-    const onTouchMove = (e) => {
-        setTouchEnd(e.targetTouches[0].clientX);
-    };
-
-    const onTouchEndEvent = () => {
-        if (!touchStart || touchEnd === null) return;
-        const distance = touchStart - touchEnd;
-        const isLeftSwipe = distance > minSwipeDistance;
-        const isRightSwipe = distance < -minSwipeDistance;
-
-        if (isLeftSwipe || isRightSwipe) {
-            const currentIndex = listing?.gallery?.indexOf(selectedImage);
-            if (currentIndex > -1) {
-                if (isLeftSwipe) {
-                    // Swipe left -> Next image
-                    const nextIndex = (currentIndex === listing.gallery.length - 1) ? 0 : currentIndex + 1;
-                    setSelectedImage(listing.gallery[nextIndex]);
-                } else {
-                    // Swipe right -> Previous image
-                    const prevIndex = (currentIndex <= 0) ? listing.gallery.length - 1 : currentIndex - 1;
-                    setSelectedImage(listing.gallery[prevIndex]);
-                }
-            }
-        }
-    };
+    const [activeMenuTab, setActiveMenuTab] = useState(0);
 
     useEffect(() => {
         if (listing?.tourData) {
-            // Detect currency
             const priceStr = listing.tourData.price || '';
             if (priceStr.includes('$')) setCurrency('$');
             else if (priceStr.toLowerCase().includes('lek')) setCurrency('LEK');
@@ -89,7 +58,6 @@ export default function ListingPage({ params }) {
             const pricing = listing.tourData.pricing || {};
             let { adultPrice = 0, childPrice = 0, fixedPrice = 0, isGroupWise = false } = pricing;
 
-            // Handle fallback to "Primary Price" field if pricing object is incomplete
             if (listing.tourData.price) {
                 const match = listing.tourData.price.match(/(\d+(\.\d+)?)/);
                 if (match) {
@@ -101,15 +69,11 @@ export default function ListingPage({ params }) {
                 }
             }
 
-            // Extras data - Use business-defined extras if available
             const businessExtras = listing.tourData.extras || [];
-
             let extrasTotal = 0;
             (selectedExtras || []).forEach(name => {
                 const extra = businessExtras.find(e => e.name === name);
-                if (extra) {
-                    extrasTotal += extra.price;
-                }
+                if (extra) extrasTotal += extra.price;
             });
 
             let total = 0;
@@ -133,7 +97,6 @@ export default function ListingPage({ params }) {
                 }
             }
 
-            // Discount logic
             let discountAmount = 0;
             if (promoCode.toUpperCase() === 'WORLD10') {
                 discountAmount = total * 0.1;
@@ -147,7 +110,7 @@ export default function ListingPage({ params }) {
                 extrasTotal,
                 discountAmount,
                 isPrivateApplied,
-                baseSubtotal: adultTotal + childTotal // Combined primary price
+                baseSubtotal: adultTotal + childTotal
             });
         }
     }, [bookingType, numAdults, numChildren, listing, isPrivate, promoCode, selectedExtras]);
@@ -155,25 +118,6 @@ export default function ListingPage({ params }) {
     useEffect(() => {
         fetchListing();
     }, [slug]);
-
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (!selectedImage || !listing?.gallery) return;
-            const currentIndex = listing.gallery.indexOf(selectedImage);
-            if (e.key === 'Escape') setSelectedImage(null);
-            if (e.key === 'ArrowLeft') {
-                const prevIndex = (currentIndex === 0) ? listing.gallery.length - 1 : currentIndex - 1;
-                setSelectedImage(listing.gallery[prevIndex]);
-            }
-            if (e.key === 'ArrowRight') {
-                const nextIndex = (currentIndex === listing.gallery.length - 1) ? 0 : currentIndex + 1;
-                setSelectedImage(listing.gallery[nextIndex]);
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedImage, listing]);
 
     const fetchListing = async () => {
         setLoading(true);
@@ -198,7 +142,6 @@ export default function ListingPage({ params }) {
             const data = await res.json();
             setMenu(data.menu || null);
         } catch (error) {
-            console.error('Failed to fetch menu');
             setMenu(null);
         }
     };
@@ -220,20 +163,15 @@ export default function ListingPage({ params }) {
     const submitReview = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-
         const formData = new FormData();
         formData.append('listingId', listing._id);
         formData.append('rating', newReview.rating);
         formData.append('comment', newReview.comment);
-        if (newReview.image) {
-            formData.append('image', newReview.image);
-        }
+        if (newReview.image) formData.append('image', newReview.image);
 
         const res = await fetch('/api/reviews', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Authorization': `Bearer ${token}` },
             body: formData,
         });
 
@@ -247,862 +185,461 @@ export default function ListingPage({ params }) {
 
     const toggleDay = (day) => {
         setOpenItineraryDays(prev =>
-            prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+            prev.includes(day) ? [] : [day]
         );
     };
 
-    if (loading) return <div className="container" style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
-    if (!listing) return <div className="container" style={{ textAlign: "center", marginTop: "100px", padding: '100px' }}>Listing not found</div>;
+    if (loading) return <div className="container-wide py-20 text-center text-text-secondary font-bold">Loading...</div>;
+    if (!listing) return notFound();
 
     const isTour = listing.type === 'tour';
+    const allImages = [listing.image, ...(listing.gallery || [])].filter(Boolean);
+
+    const nextLightboxSlide = () => setCurrentLightboxSlide(prev => (prev + 1) % allImages.length);
+    const prevLightboxSlide = () => setCurrentLightboxSlide(prev => (prev - 1 + allImages.length) % allImages.length);
 
     return (
-        <div className="container listing-container" style={{ paddingTop: '80px', paddingBottom: '100px' }}>
-            {isTour && (
-                <div className="tour-header" style={{ marginBottom: '40px' }}>
-                    <h1 style={{ fontSize: '3.5rem', fontWeight: '900', marginBottom: '15px', color: '#fff' }}>
+        <main className="bg-white min-h-screen">
+            <div className="container-wide py-6 md:py-10 space-y-6 md:space-y-8">
+                {/* 1. Header Section */}
+                <div className="space-y-4">
+                    <h1 className="text-2xl md:text-5xl font-extrabold text-text-primary tracking-tight">
                         {listing.title}
                     </h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'rgba(255,255,255,0.6)', fontSize: '1.2rem', flexWrap: 'wrap' }}>
-                        <span><span style={{ color: '#a29bfe' }}>📍</span> {listing.address}</span>
-                        {(listing.city || listing.country) && (
-                            <span><span style={{ color: '#a29bfe', marginLeft: '10px' }}>🌍</span> {listing.city}{listing.city && listing.country ? ', ' : ''}{listing.country}</span>
-                        )}
+                    <div className="flex flex-wrap items-center gap-4 text-sm font-semibold">
+                        <div className="flex items-center gap-1">
+                            <span className="text-brand text-lg">★</span>
+                            <span>{averageRating > 0 ? averageRating : '0'}</span>
+                            <span className="text-text-secondary font-normal underline cursor-pointer ml-1">
+                                💬 {reviews.length} reviews
+                            </span>
+                        </div>
+                        <span className="text-text-secondary">·</span>
+                        <div className="flex items-center gap-1 text-text-secondary underline cursor-pointer">
+                            <span className="text-brand">📍</span>
+                            {listing.address}, {listing.city}
+                        </div>
                     </div>
                 </div>
-            )}
 
-            {isTour && (
-                <div className="tour-stats-bar" style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                    gap: '1px',
-                    background: 'rgba(255,255,255,0.1)',
-                    borderRadius: '20px',
-                    overflow: 'hidden',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    marginBottom: '40px',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-                }}>
-                    {[
-                        { icon: '⏳', label: 'Duration', value: listing.tourData?.duration },
-                        { icon: '🌍', label: 'Country', value: listing.tourData?.country },
-                        { icon: '👥', label: 'Max Travellers', value: listing.tourData?.maxTravelers },
-                        { icon: '🛋️', label: 'Min Pax', value: '1' }
-                    ].map((stat, idx) => (
-                        <div key={idx} style={{ padding: '30px 20px', textAlign: 'center', background: 'rgba(20, 20, 25, 0.7)', backdropFilter: 'blur(20px)' }}>
-                            <div style={{ fontSize: '2rem', marginBottom: '12px' }}>{stat.icon}</div>
-                            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px', fontWeight: '600' }}>{stat.label}</div>
-                            <div style={{ fontWeight: '800', fontSize: '1.2rem', color: '#fff' }}>{stat.value || 'N/A'}</div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            <div className="listing-main-content" style={{
-                display: isTour ? 'grid' : 'block',
-                gridTemplateColumns: isTour ? '1fr 400px' : 'none',
-                gap: '40px',
-                alignItems: 'start'
-            }}>
-                <div className="main-column">
-                    <div className={`glass card ${isTour ? 'is-tour-card' : 'non-tour-card'}`} style={{ overflow: 'hidden', marginBottom: '40px', borderRadius: '24px' }}>
-                        <div className="main-hero-image" style={{
-                            height: isTour ? '550px' : '400px',
-                            backgroundImage: `url(${listing.image || 'https://via.placeholder.com/800x400'})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                        }}></div>
-
-                        {!isTour && (
-                            <div className="non-tour-content">
-                                <h1>{listing.title}</h1>
-                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '20px' }}>
-                                    <span style={{ background: 'var(--primary)', padding: '5px 15px', borderRadius: '20px' }}>{listing.type}</span>
-                                    {averageRating > 0 && <span style={{ color: 'gold', fontSize: '1.2rem' }}>★ {averageRating}</span>}
-                                </div>
-                                <div style={{ fontSize: '1.1rem', lineHeight: '1.8' }} dangerouslySetInnerHTML={{ __html: formatDescription(listing.description) }} />
-
-                                {listing.services && listing.services.length > 0 && (
-                                    <div style={{ marginTop: '25px', marginBottom: '20px' }}>
-                                        <h3 style={{ fontSize: '1.2rem', marginBottom: '12px' }}>Services & Amenities</h3>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                            {listing.services.map((service, idx) => (
-                                                <span key={idx} style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '6px 12px', borderRadius: '12px', fontSize: '0.9rem', border: '1px solid rgba(255, 255, 255, 0.2)' }}>✓ {service}</span>
-                                            ))}
+                {/* 2. Photo Gallery Airbnb Style Grid */}
+                <div className="relative w-full h-[300px] md:h-[500px] rounded-3xl overflow-hidden mt-6 mb-8 bg-bg-light">
+                    <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-2 h-full">
+                        {/* Main large image */}
+                        <div
+                            className={`cursor-pointer group relative overflow-hidden h-full ${allImages.length === 1 ? 'col-span-1 md:col-span-3 row-span-2' : allImages.length === 2 ? 'col-span-1 md:col-span-2 row-span-2' : 'col-span-1 md:col-span-2 md:row-span-2'}`}
+                            onClick={() => { setCurrentLightboxSlide(0); setShowLightbox(true); }}
+                        >
+                            {allImages[0] && (
+                                <div className="w-full h-full relative group-hover:brightness-90 transition-all duration-300">
+                                    <img src={allImages[0]} className="w-full h-full object-cover" alt="Main" />
+                                    {/* Video play icon overlay for aesthetics */}
+                                    <div className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="w-16 h-16 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white text-2xl pl-1">
+                                            ▶
                                         </div>
                                     </div>
-                                )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Up to 2 smaller images */}
+                        {allImages.slice(1, 3).map((img, idx) => (
+                            <div
+                                key={idx}
+                                className="hidden md:block cursor-pointer group relative overflow-hidden h-full col-span-1 row-span-1"
+                                onClick={() => { setCurrentLightboxSlide(idx + 1); setShowLightbox(true); }}
+                            >
+                                <img src={img} className="w-full h-full object-cover group-hover:brightness-90 transition-all" alt={`Secondary ${idx}`} />
                             </div>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={() => { setCurrentLightboxSlide(0); setShowLightbox(true); }}
+                        className="absolute bottom-6 right-6 bg-white border border-text-primary px-4 py-2 rounded-xl text-sm font-bold shadow-soft hover:bg-bg-light transition-colors flex items-center gap-2 z-10"
+                    >
+                        <span className="grid grid-cols-3 gap-[2px]">
+                            {Array.from({ length: 9 }).map((_, i) => <span key={i} className="w-1 h-1 bg-text-primary rounded-full transition-colors group-hover:bg-brand" />)}
+                        </span>
+                        Show all photos
+                    </button>
+
+                    {/* Favorite Button */}
+                    <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(listing); }}
+                        className="absolute top-6 right-6 bg-white/90 backdrop-blur-md p-3 rounded-full shadow-lg hover:scale-110 active:scale-90 transition-all z-10 group"
+                    >
+                        <svg
+                            width="24" height="24" viewBox="0 0 24 24"
+                            fill={isFavorite(listing._id) ? "#FF385C" : "none"}
+                            stroke={isFavorite(listing._id) ? "#FF385C" : "currentColor"}
+                            strokeWidth="2"
+                            className="transition-colors"
+                        >
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                {/* 3. Main Content Two-Column Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-16 relative">
+                    <div className="md:col-span-2 space-y-12 pb-20">
+                        {/* Description Section */}
+                        <section className="space-y-4 md:space-y-6 pt-4 border-t">
+                            <h2 className="text-xl md:text-2xl font-bold">Description</h2>
+                            <div
+                                className="text-base md:text-lg text-text-secondary leading-relaxed space-y-4"
+                                dangerouslySetInnerHTML={{ __html: formatDescription(listing.description) }}
+                            />
+                        </section>
+
+                        {/* Amenities / Services */}
+                        {listing.services?.length > 0 && (
+                            <section className="space-y-2 md:space-y-3 pt-6 md:pt-10 border-t">
+                                <h2 className="text-xl md:text-2xl font-bold">What this place offers</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 md:gap-y-4 gap-x-8">
+                                    {listing.services.map((service, idx) => (
+                                        <div key={idx} className="flex items-center gap-4 text-base md:text-lg text-text-secondary font-medium">
+                                            <span className="text-brand">✓</span>
+                                            {service}
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
                         )}
 
-                        {isTour && (
-                            <div className="tour-info-tabs">
-                                <div className="tabs-header" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                    {['overview', 'itinerary', 'include', 'gallery'].map(tab => (
+                        {/* Dynamic Listing Info Section */}
+                        <section className="space-y-6 md:space-y-10 pt-4 md:pt-5 border-t">
+                            {Object.entries(listing)
+                                .filter(([key]) => {
+                                    const basicExcludes = [
+                                        '_id', 'slug', 'title', 'description', 'image', 'gallery', 'services',
+                                        'createdAt', 'updatedAt', '__v', 'password', 'owner', 'lat', 'lng',
+                                        'type', 'id', 'address', 'city', 'country', 'category', 'whatsappNumber',
+                                        'Price', 'price', 'phone'
+                                    ];
+                                    const dataKeys = ['hotelData', 'restaurantData', 'barData', 'rentCarData', 'bujtinaData', 'tourData'];
+                                    const activeDataKey = listing.type === 'rentcar' ? 'rentCarData' : `${listing.type}Data`;
+
+                                    if (basicExcludes.includes(key)) return false;
+                                    if (dataKeys.includes(key) && key !== activeDataKey) return false;
+
+                                    return true;
+                                })
+                                .filter(([, value]) => value !== null && value !== '' && (Array.isArray(value) ? value.length > 0 : (typeof value === 'object' ? Object.keys(value).length > 0 : true)))
+                                .map(([key, value]) => {
+                                    let formattedTitle = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+                                    // Force English Translations for data keys
+                                    const titleTranslations = {
+                                        'bujtinaData': 'Guesthouse Data',
+                                        'rentCarData': 'Rent Car Data',
+                                        'hotelData': 'Hotel Data',
+                                        'restaurantData': 'Restaurant Data',
+                                        'barData': 'Bar Data',
+                                        'tourData': 'Tour Data'
+                                    };
+                                    if (titleTranslations[key]) {
+                                        formattedTitle = titleTranslations[key];
+                                    }
+
+                                    return (
+                                        <div key={key} className="space-y-4 md:space-y-8 border-b border-border-light pb-4 md:pb-8 last:border-0 last:pb-0">
+                                            <h2 className="text-xl md:text-3xl font-extrabold tracking-tight">{formattedTitle}</h2>
+
+                                            {typeof value === 'object' && value !== null && !Array.isArray(value) ? (
+                                                <div className="space-y-4 md:space-y-8">
+                                                    {Object.entries(value).map(([subKey, subVal], i) => {
+                                                        const subKeyFormatted = subKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+                                                        let displayItems = [];
+                                                        if (typeof subVal === 'boolean' && subVal === true) displayItems.push('Yes');
+                                                        else if (typeof subVal === 'string' && subVal.trim() !== '') displayItems.push(...subVal.split(',').map(s => s.trim()));
+                                                        else if (typeof subVal === 'number') displayItems.push(String(subVal));
+                                                        else if (Array.isArray(subVal)) displayItems = subVal.filter(item => typeof item === 'string' && item.trim() !== '');
+                                                        else if (typeof subVal === 'object' && subVal !== null) {
+                                                            Object.entries(subVal).forEach(([k, v]) => {
+                                                                const kFormatted = k.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                                                if (v === true) displayItems.push(kFormatted);
+                                                                else if (typeof v === 'string' && v.trim() !== '') displayItems.push(`${kFormatted}: ${v}`);
+                                                                else if (typeof v === 'number') displayItems.push(`${kFormatted}: ${v}`);
+                                                            });
+                                                        }
+
+                                                        if (displayItems.length === 0) return null;
+
+                                                        return (
+                                                            <div key={i} className="space-y-2 md:space-y-4">
+                                                                <h3 className="text-lg md:text-xl font-bold text-text-primary capitalize">{subKeyFormatted}</h3>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1 md:gap-y-3 gap-x-6">
+                                                                    {displayItems.map((item, idx) => (
+                                                                        <div key={idx} className="flex items-start gap-3 text-base md:text-lg text-text-secondary">
+                                                                            <span className="text-brand text-lg md:text-xl leading-none mt-[2px]">✓</span>
+                                                                            <span className="font-medium text-text-primary">{item}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 md:gap-y-4 gap-x-6 mt-2 md:mt-4">
+                                                    {Array.isArray(value) ? value.filter(i => i).map((item, idx) => (
+                                                        <div key={idx} className="flex items-start gap-3 text-base md:text-lg text-text-secondary">
+                                                            <span className="text-brand text-lg md:text-xl leading-none mt-[2px]">✓</span>
+                                                            <span className="font-medium text-text-primary">{item}</span>
+                                                        </div>
+                                                    )) : (
+                                                        <div className="flex items-start gap-3 text-base md:text-lg text-text-secondary">
+                                                            <span className="text-brand text-lg md:text-xl leading-none mt-[2px]">✓</span>
+                                                            <span className="font-medium text-text-primary">{String(value)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                        </section>
+
+                        {/* Specific Content for Tours */}
+                        {isTour && listing.tourData?.itinerary?.length > 0 && (
+                            <section className="space-y-6 pt-10 border-t">
+                                <h2 className="text-2xl font-bold">Trip Itinerary</h2>
+                                <div className="space-y-4">
+                                    {listing.tourData.itinerary.map((day) => (
+                                        <div key={day.day} className="border border-border-light rounded-2xl overflow-hidden">
+                                            <button
+                                                onClick={() => toggleDay(day.day)}
+                                                className="w-full flex items-center justify-between p-6 bg-white hover:bg-bg-light transition-colors"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-xl font-bold">Day {day.day}</span>
+                                                </div>
+                                                <span className={`text-brand transform transition-transform ${openItineraryDays.includes(day.day) ? 'rotate-180' : ''}`}>
+                                                    ▼
+                                                </span>
+                                            </button>
+                                            {openItineraryDays.includes(day.day) && (
+                                                <div className="p-6 pt-0 text-text-secondary leading-relaxed text-lg border-t border-border-light bg-bg-light/30">
+                                                    {day.content}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Menu Section */}
+                        {menu && menu.categories && menu.categories.length > 0 && (
+                            <section className="space-y-6 pt-10 border-t">
+                                <h2 className="text-2xl font-bold">Menu</h2>
+
+                                {/* Tabs */}
+                                <div className="flex overflow-x-auto hide-scrollbar gap-2 pb-2">
+                                    {menu.categories.map((cat, idx) => (
                                         <button
-                                            key={tab}
-                                            onClick={() => setActiveTab(tab)}
-                                            style={{
-                                                flex: 1,
-                                                padding: '25px',
-                                                background: activeTab === tab ? 'rgba(162, 155, 254, 0.1)' : 'transparent',
-                                                border: 'none',
-                                                borderBottom: activeTab === tab ? '4px solid #a29bfe' : '4px solid transparent',
-                                                color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.5)',
-                                                fontWeight: '700',
-                                                textTransform: 'uppercase',
-                                                fontSize: '0.9rem',
-                                                letterSpacing: '1px',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-                                            }}
+                                            key={idx}
+                                            onClick={() => setActiveMenuTab(idx)}
+                                            className={`whitespace-nowrap px-6 py-3 rounded-full font-bold text-sm transition-all ${activeMenuTab === idx
+                                                ? 'bg-text-primary text-white shadow-md'
+                                                : 'bg-bg-light text-text-secondary hover:bg-border-light hover:text-text-primary'
+                                                }`}
                                         >
-                                            {tab === 'include' ? 'What\'s Included' : tab}
+                                            {cat.name}
                                         </button>
                                     ))}
                                 </div>
 
-                                <div className="tabs-body" style={{ padding: '50px' }}>
-                                    {activeTab === 'overview' && (
-                                        <div className="tab-pane">
-                                            <h2 style={{ marginBottom: '25px', fontSize: '2.2rem', fontWeight: '800' }}>Overview</h2>
-                                            <div style={{ fontSize: '1.15rem', lineHeight: '1.9', color: 'rgba(255,255,255,0.8)' }} dangerouslySetInnerHTML={{ __html: formatDescription(listing.description) }} />
-
-                                            {listing.services && listing.services.length > 0 && (
-                                                <div style={{ marginTop: '40px' }}>
-                                                    <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', color: '#a29bfe' }}>Tour Highlights</h3>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-                                                        {listing.services.map((service, idx) => (
-                                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem' }}>
-                                                                <span style={{ color: '#a29bfe' }}>⭐</span> {service}
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                                {/* Tab Content */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                                    {menu.categories[activeMenuTab]?.items.map((item, idx) => (
+                                        <div key={idx} className="flex gap-4 p-4 rounded-2xl border border-border-light bg-white hover:shadow-airbnb hover:border-brand/30 transition-all group">
+                                            {item.photo && (
+                                                <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-bg-light">
+                                                    <img src={item.photo} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                 </div>
                                             )}
-                                        </div>
-                                    )}
-
-                                    {activeTab === 'itinerary' && (
-                                        <div className="tab-pane">
-                                            <h2 style={{ marginBottom: '30px', fontSize: '2.2rem', fontWeight: '800' }}>Full Itinerary</h2>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                                {listing.tourData?.itinerary?.map((item, idx) => (
-                                                    <div key={idx} style={{
-                                                        background: 'rgba(255,255,255,0.04)',
-                                                        borderRadius: '20px',
-                                                        border: '1px solid rgba(255,255,255,0.06)',
-                                                        transition: 'all 0.3s ease'
-                                                    }}>
-                                                        <button
-                                                            className="itinerary-header"
-                                                            onClick={() => toggleDay(item.day)}
-                                                            style={{
-                                                                width: '100%',
-                                                                padding: '25px 30px',
-                                                                display: 'flex',
-                                                                justifyContent: 'space-between',
-                                                                alignItems: 'center',
-                                                                background: 'transparent',
-                                                                border: 'none',
-                                                                color: '#fff',
-                                                                fontSize: '1.3rem',
-                                                                fontWeight: '700',
-                                                                cursor: 'pointer'
-                                                            }}
-                                                        >
-                                                            <span style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                                                <span style={{ background: '#a29bfe', color: '#000', width: '35px', height: '35px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>{item.day}</span>
-                                                                Day {item.day}
-                                                            </span>
-                                                            <span style={{ transition: 'transform 0.4s', transform: openItineraryDays.includes(item.day) ? 'rotate(180deg)' : 'none', color: '#a29bfe' }}>▼</span>
-                                                        </button>
-                                                        {openItineraryDays.includes(item.day) && (
-                                                            <div className="itinerary-content" style={{
-                                                                padding: '0 30px 30px 80px',
-                                                                color: 'rgba(255,255,255,0.7)',
-                                                                lineHeight: '1.8',
-                                                                fontSize: '1.1rem',
-                                                                whiteSpace: 'pre-line'
-                                                            }}>
-                                                                {item.content}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {activeTab === 'include' && (
-                                        <div className="tab-pane">
-                                            <h2 style={{ marginBottom: '35px', fontSize: '2.2rem', fontWeight: '800' }}>Inclusions & Exclusions</h2>
-
-                                            <div style={{ marginBottom: '40px' }}>
-                                                <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#2ecc71' }}>What's Included</h3>
-                                                {listing.tourData?.inclusions && listing.tourData.inclusions.length > 0 ? (
-                                                    <div className="inclusions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                                                        {listing.tourData.inclusions.map((inc, idx) => (
-                                                            <div key={idx} style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '15px',
-                                                                padding: '25px',
-                                                                background: 'rgba(46, 204, 113, 0.05)',
-                                                                border: '1px solid rgba(46, 204, 113, 0.2)',
-                                                                borderRadius: '20px'
-                                                            }}>
-                                                                <span style={{ fontSize: '1.5rem' }}>✅</span>
-                                                                <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>{inc}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                ) : <p style={{ color: 'rgba(255,255,255,0.5)' }}>N/A</p>}
-                                            </div>
-
-                                            {listing.tourData?.exclusions?.length > 0 && (
-                                                <div>
-                                                    <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#e74c3c' }}>What's Excluded</h3>
-                                                    <div className="exclusions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                                                        {listing.tourData.exclusions.map((exc, idx) => (
-                                                            <div key={idx} style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '15px',
-                                                                padding: '25px',
-                                                                background: 'rgba(231, 76, 60, 0.05)',
-                                                                border: '1px solid rgba(231, 76, 60, 0.2)',
-                                                                borderRadius: '20px'
-                                                            }}>
-                                                                <span style={{ fontSize: '1.5rem' }}>❌</span>
-                                                                <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>{exc}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {activeTab === 'gallery' && (
-                                        <div className="tab-pane">
-                                            <h2 style={{ marginBottom: '35px', fontSize: '2.2rem', fontWeight: '800' }}>Gallery</h2>
-                                            {listing.gallery && listing.gallery.length > 0 ? (
-                                                <div className="gallery-layout">
-                                                    {/* Featured Large Image */}
-                                                    <div
-                                                        onClick={() => setSelectedImage(listing.gallery[0])}
-                                                        style={{
-                                                            width: '100%',
-                                                            height: '400px',
-                                                            backgroundImage: `url(${listing.gallery[0]})`,
-                                                            backgroundSize: 'cover',
-                                                            backgroundPosition: 'center',
-                                                            borderRadius: '20px',
-                                                            cursor: 'pointer',
-                                                            marginBottom: '15px',
-                                                            transition: 'transform 0.3s ease',
-                                                            boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-                                                        }}
-                                                        className="hover-scale"
-                                                    />
-
-                                                    {/* Thumbnails Grid */}
-                                                    {listing.gallery.length > 1 && (
-                                                        <div style={{
-                                                            display: 'grid',
-                                                            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                                                            gap: '15px'
-                                                        }}>
-                                                            {listing.gallery.slice(1).map((img, idx) => (
-                                                                <div
-                                                                    key={idx + 1}
-                                                                    onClick={() => setSelectedImage(img)}
-                                                                    style={{
-                                                                        width: '100%',
-                                                                        aspectRatio: '1',
-                                                                        backgroundImage: `url(${img})`,
-                                                                        backgroundSize: 'cover',
-                                                                        backgroundPosition: 'center',
-                                                                        borderRadius: '16px',
-                                                                        cursor: 'pointer',
-                                                                        transition: 'transform 0.3s ease'
-                                                                    }}
-                                                                    className="hover-scale"
-                                                                />
-                                                            ))}
-                                                        </div>
+                                            <div className="flex-1 flex flex-col">
+                                                <div className="flex justify-between items-start gap-2 mb-1">
+                                                    <h4 className="font-extrabold text-text-primary group-hover:text-brand transition-colors text-lg leading-tight">{item.name}</h4>
+                                                    {item.price && (
+                                                        <span className="font-bold text-brand whitespace-nowrap bg-brand/10 px-2 py-1 rounded-lg text-sm">
+                                                            {item.price.includes('€') || item.price.toLowerCase().includes('lek') ? item.price : `${item.price} €`}
+                                                        </span>
                                                     )}
                                                 </div>
-                                            ) : (
-                                                <p style={{ color: 'rgba(255,255,255,0.5)' }}>No photos available yet.</p>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Restoring Detailed logic for other listing types */}
-                        {!isTour && (
-                            <div className="non-tour-details">
-                                {listing.type === 'hotel' && listing.hotelData && (
-                                    <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-                                            <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Rooms & Accommodation</h3>
-                                                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                                    {listing.hotelData.totalRooms && <p style={{ marginBottom: '10px' }}><strong>Total number of rooms:</strong> {listing.hotelData.totalRooms}</p>}
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                        {(listing.hotelData.roomTypes || []).map((room, idx) => (
-                                                            <span key={idx} style={{ background: 'rgba(255,255,255,0.1)', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>{room}</span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {listing.hotelData.roomAmenities && listing.hotelData.roomAmenities.length > 0 && (
-                                                <div>
-                                                    <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Room Amenities</h3>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                        {listing.hotelData.roomAmenities.map((amenity, idx) => (
-                                                            <span key={idx} style={{ border: '1px solid rgba(255,255,255,0.2)', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>✓ {amenity}</span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {listing.hotelData.policies && Object.values(listing.hotelData.policies).some(val => val && val.toLowerCase() !== 'n/a') && (
-                                                <div style={{ gridColumn: '1 / -1' }}>
-                                                    <h3 style={{ fontSize: '1.3rem', color: '#fd79a8', marginBottom: '15px' }}>Policies</h3>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-                                                        {Object.entries(listing.hotelData.policies).map(([key, val], idx) => (
-                                                            val && val.toLowerCase() !== 'n/a' && (
-                                                                <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                                                    <p style={{ fontSize: '0.8rem', color: '#aaa', textTransform: 'capitalize' }}>{key}:</p>
-                                                                    <p><strong>{val}</strong></p>
-                                                                </div>
-                                                            )
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {listing.type === 'bar' && listing.barData && (
-                                    <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-                                            {listing.barData.atmosphere && listing.barData.atmosphere.length > 0 && (
-                                                <div>
-                                                    <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Style / Atmosphere</h3>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                        {listing.barData.atmosphere.map((item, idx) => (
-                                                            <span key={idx} style={{ background: 'rgba(0, 210, 211, 0.1)', border: '1px solid #00d2d3', color: '#00d2d3', padding: '5px 12px', borderRadius: '15px', fontSize: '0.9rem' }}>{item}</span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#00d2d3', marginBottom: '15px' }}>Crowd & Rules</h3>
-                                                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                                    <p><strong>Min Age:</strong> {listing.barData.rules?.minAge || '18+'}</p>
-                                                    <p><strong>Smoking:</strong> {listing.barData.rules?.smokingArea || 'No'}</p>
-                                                </div>
+                                                {item.description && (
+                                                    <p className="text-text-secondary text-sm leading-snug line-clamp-2 mt-auto">
+                                                        {item.description}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
-                                    </div>
-                                )}
-
-                                {listing.type === 'bujtina' && listing.bujtinaData && (
-                                    <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-                                            <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Rooms & Guesthouse</h3>
-                                                <p><strong>Type:</strong> {listing.bujtinaData.accommodationType}</p>
-                                                {listing.bujtinaData.totalRooms && <p><strong>Total Rooms:</strong> {listing.bujtinaData.totalRooms}</p>}
-                                            </div>
-                                            {listing.bujtinaData.food?.bioProducts && listing.bujtinaData.food.bioProducts.length > 0 && (
-                                                <div>
-                                                    <h3 style={{ fontSize: '1.3rem', color: '#6ab04c', marginBottom: '15px' }}>Food & Bio Products</h3>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                        {listing.bujtinaData.food.bioProducts.map((prod, idx) => (
-                                                            <span key={idx} style={{ background: 'rgba(106, 176, 76, 0.1)', padding: '5px 12px', borderRadius: '15px', color: '#6ab04c' }}>🥗 {prod}</span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {listing.type === 'rentcar' && listing.rentCarData && (
-                                    <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-                                            <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#ff9f43', marginBottom: '15px' }}>Car Details</h3>
-                                                <p><strong>Brand:</strong> {listing.rentCarData.brandModel}</p>
-                                                <p><strong>Year:</strong> {listing.rentCarData.year}</p>
-                                                <p><strong>Fuel:</strong> {listing.rentCarData.fuelType}</p>
-                                            </div>
-                                            <div>
-                                                <h3 style={{ fontSize: '1.3rem', color: '#ff9f43', marginBottom: '15px' }}>Price</h3>
-                                                <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{listing.rentCarData.prices?.daily} / day</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Gallery (for non-tours) */}
-                                {listing.gallery && listing.gallery.length > 0 && (
-                                    <div style={{ marginTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px' }}>
-                                        <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', color: '#fff' }}>Gallery</h3>
-                                        <div className="gallery-layout">
-                                            {/* Featured Large Image */}
-                                            <div
-                                                onClick={() => setSelectedImage(listing.gallery[0])}
-                                                style={{
-                                                    width: '100%',
-                                                    height: '350px',
-                                                    backgroundImage: `url(${listing.gallery[0]})`,
-                                                    backgroundSize: 'cover',
-                                                    backgroundPosition: 'center',
-                                                    borderRadius: '20px',
-                                                    cursor: 'pointer',
-                                                    marginBottom: '15px',
-                                                    transition: 'transform 0.3s ease',
-                                                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-                                                }}
-                                                className="hover-scale"
-                                            />
-
-                                            {/* Thumbnails Grid */}
-                                            {listing.gallery.length > 1 && (
-                                                <div style={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                                                    gap: '15px'
-                                                }}>
-                                                    {listing.gallery.slice(1).map((img, idx) => (
-                                                        <div
-                                                            key={idx + 1}
-                                                            onClick={() => setSelectedImage(img)}
-                                                            style={{
-                                                                width: '100%',
-                                                                aspectRatio: '1',
-                                                                backgroundImage: `url(${img})`,
-                                                                backgroundSize: 'cover',
-                                                                backgroundPosition: 'center',
-                                                                borderRadius: '16px',
-                                                                cursor: 'pointer',
-                                                                transition: 'transform 0.3s ease'
-                                                            }}
-                                                            className="hover-scale"
-                                                        />
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div style={{ marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '40px' }}>
-                                    <p><strong>📍 Location:</strong> {listing.address}</p>
-                                    {(listing.city || listing.country) && (
-                                        <p><strong>🌍 City:</strong> {listing.city}{listing.city && listing.country ? ', ' : ''}{listing.country}</p>
-                                    )}
-                                    <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginTop: '10px' }}>
-                                        {listing.owner?.phoneNumber && (
-                                            <a
-                                                href={`tel:${(listing.owner.phonePrefix + listing.owner.phoneNumber).replace(/\+/g, '')}`}
-                                                className="btn"
-                                                style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', textDecoration: 'none' }}
-                                            >
-                                                📞 {(listing.owner.phonePrefix || '') + ' ' + listing.owner.phoneNumber}
-                                            </a>
-                                        )}
-                                        {(listing.whatsappNumber || listing.owner?.phoneNumber) && (
-                                            <a
-                                                href={`https://wa.me/${(listing.whatsappNumber || (listing.owner.phonePrefix + listing.owner.phoneNumber)).replace(/\+/g, '')}?text=${encodeURIComponent(`Hello, I saw your listing "${listing.title}" and I'm interested!`)}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="btn"
-                                                style={{ background: '#2ecc71', color: '#fff', textDecoration: 'none' }}
-                                            >
-                                                💬 Contact on WhatsApp
-                                            </a>
-                                        )}
-                                        {menu && (
-                                            <Link
-                                                href={`/${listing.type}/${slug}/menu`}
-                                                className="btn"
-                                                style={{ background: 'var(--accent)', color: '#fff', textDecoration: 'none' }}
-                                            >
-                                                🍽️ View Menu
-                                            </Link>
-                                        )}
-                                    </div>
-
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {isTour && (
-                    <div className="sidebar-column">
-                        <div className="glass card sticky sidebar-sticky" style={{ padding: '35px', position: 'sticky', top: '100px', borderRadius: '24px', border: '1px solid rgba(162, 155, 254, 0.3)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-                            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                                <div style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '10px', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '2px' }}>
-                                    {calculatedPrice > 0 ? 'Total Booking Price' : 'Price from'}
-                                </div>
-                                <div style={{ fontSize: '3.2rem', fontWeight: '900', color: '#a29bfe', textShadow: '0 10px 20px rgba(162, 155, 254, 0.3)' }}>
-                                    {calculatedPrice > 0 ? `${currency}${calculatedPrice.toFixed(2)}` : (listing.tourData?.price || `${currency}0`)}
-                                </div>
-                                {calculatedPrice > 0 && bookingType === 'person' && (
-                                    <div style={{ fontSize: '1rem', color: '#2ecc71', fontWeight: '600', marginTop: '5px' }}>
-                                        Avg. {currency}{(calculatedPrice / (numAdults + numChildren)).toFixed(2)} / person
-                                    </div>
-                                )}
-                            </div>
-
-                            <div style={{ marginBottom: '25px' }}>
-                                <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', marginBottom: '12px', fontWeight: '600' }}>📅 Select Date</label>
-                                <input
-                                    type="date"
-                                    className="input"
-                                    value={selectedTourDate}
-                                    onChange={(e) => setSelectedTourDate(e.target.value)}
-                                    style={{ width: '100%', padding: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                                />
-                            </div>
-
-                            {listing.tourData?.pricing?.isGroupWise && (
-                                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                                    <button
-                                        onClick={() => setBookingType('person')}
-                                        style={{
-                                            flex: 1, padding: '10px', borderRadius: '10px',
-                                            background: bookingType === 'person' ? '#a29bfe' : 'rgba(255,255,255,0.05)',
-                                            color: bookingType === 'person' ? '#000' : '#fff',
-                                            border: 'none', cursor: 'pointer', fontWeight: '600'
-                                        }}
-                                    >
-                                        Personal
-                                    </button>
-                                    <button
-                                        onClick={() => setBookingType('group')}
-                                        style={{
-                                            flex: 1, padding: '10px', borderRadius: '10px',
-                                            background: bookingType === 'group' ? '#a29bfe' : 'rgba(255,255,255,0.05)',
-                                            color: bookingType === 'group' ? '#000' : '#fff',
-                                            border: 'none', cursor: 'pointer', fontWeight: '600'
-                                        }}
-                                    >
-                                        Group
-                                    </button>
-                                </div>
-                            )}
-
-                            {bookingType === 'person' ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '25px' }}>
-                                    <div>
-                                        <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', marginBottom: '5px' }}>Adults</label>
-                                        <input
-                                            type="number" min="1" className="input"
-                                            value={numAdults} onChange={e => setNumAdults(parseInt(e.target.value) || 0)}
-                                            style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', marginBottom: '5px' }}>Children</label>
-                                        <input
-                                            type="number" min="0" className="input"
-                                            value={numChildren} onChange={e => setNumChildren(parseInt(e.target.value) || 0)}
-                                            style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div style={{ padding: '15px', background: 'rgba(162, 155, 254, 0.1)', borderRadius: '12px', marginBottom: '25px', textAlign: 'center' }}>
-                                    <span style={{ color: '#a29bfe', fontWeight: '600' }}>Group Booking</span>
-                                    <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginTop: '5px' }}>Fixed price for the entire group</p>
-                                </div>
-                            )}
-
-                            <div style={{ marginBottom: '25px' }}>
-                                <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', marginBottom: '12px', fontWeight: '600' }}>✨ Select Extras</label>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    {(listing.tourData.extras || []).map((extra, idx) => (
-                                        <label key={idx} style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            padding: '12px 15px',
-                                            background: (selectedExtras || []).includes(extra.name) ? 'rgba(162, 155, 254, 0.15)' : 'rgba(255,255,255,0.03)',
-                                            borderRadius: '12px',
-                                            cursor: 'pointer',
-                                            border: (selectedExtras || []).includes(extra.name) ? '1px solid #a29bfe' : '1px solid rgba(255,255,255,0.05)',
-                                            transition: 'all 0.2s'
-                                        }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={(selectedExtras || []).includes(extra.name)}
-                                                    onChange={() => {
-                                                        const current = selectedExtras || [];
-                                                        setSelectedExtras(current.includes(extra.name) ? current.filter(e => e !== extra.name) : [...current, extra.name]);
-                                                    }}
-                                                />
-                                                <span style={{ fontSize: '0.9rem' }}>{extra.name}</span>
-                                            </div>
-                                            <span style={{ fontSize: '0.9rem', color: '#a29bfe', fontWeight: '700' }}>+{currency}{extra.price}</span>
-                                        </label>
                                     ))}
                                 </div>
+                            </section>
+                        )}
+
+                        {/* Reviews Section */}
+                        <section className="space-y-10 pt-10 border-t">
+                            <div className="flex items-center gap-2 text-2xl font-bold">
+                                <span>★</span>
+                                <span>{averageRating > 0 ? averageRating : '0'}</span>
+                                <span className="ml-2">💬 {reviews.length} reviews</span>
                             </div>
 
-                            <div style={{ marginBottom: '25px' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#fff', cursor: 'pointer', marginBottom: '15px' }}>
-                                    <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} style={{ width: '18px', height: '18px' }} />
-                                    <span>Private Individual Tour?</span>
-                                </label>
-
-                                <div style={{ position: 'relative' }}>
-                                    <input
-                                        type="text"
-                                        placeholder="Promo Code (e.g. WORLD10)"
-                                        className="input"
-                                        value={promoCode}
-                                        onChange={e => setPromoCode(e.target.value)}
-                                        style={{ background: 'rgba(255,255,255,0.05)', paddingRight: '40px' }}
-                                    />
-                                    {promoCode.toUpperCase() === 'WORLD10' && (
-                                        <div style={{ marginTop: '10px', color: '#55efc4', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                            <span>✓</span> WORLD10 applied (-10%)
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                                {reviews.map((review) => (
+                                    <div key={review._id} className="space-y-4 p-6 rounded-2xl bg-bg-light/40 border border-border-light">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center font-bold text-brand">
+                                                {review.user?.name?.[0] || 'U'}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold">{review.user?.name || 'Guest'}</div>
+                                                <div className="text-xs text-text-secondary">
+                                                    {new Date(review.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                                </div>
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
+                                        <div className="flex text-brand text-xs">
+                                            {Array.from({ length: review.rating }).map((_, i) => <span key={i}>★</span>)}
+                                        </div>
+                                        <p className="text-text-secondary leading-relaxed italic border-l-2 border-brand/20 pl-4">
+                                            "{review.comment}"
+                                        </p>
+                                    </div>
+                                ))}
                             </div>
 
-                            {calculatedPrice > 0 && (
-                                <div style={{
-                                    padding: '25px',
-                                    background: 'rgba(162, 155, 254, 0.05)',
-                                    borderRadius: '20px',
-                                    marginBottom: '30px',
-                                    border: '1px solid rgba(162, 155, 254, 0.2)',
-                                    boxShadow: 'inset 0 0 20px rgba(0,0,0,0.2)'
-                                }}>
-                                    <div style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '15px' }}>
-                                        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Full Booking Total</div>
-                                        <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#a29bfe' }}>{currency}{calculatedPrice.toFixed(2)}</div>
+                            {/* Add Review Form */}
+                            {user && (
+                                <form onSubmit={submitReview} className="p-8 bg-bg-light rounded-3xl space-y-6 border border-border-light shadow-soft">
+                                    <h3 className="text-xl font-bold">Leave a review</h3>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-border-light">
+                                            <span className="font-bold text-sm">Rating:</span>
+                                            <select
+                                                className="bg-transparent font-bold text-brand outline-none"
+                                                value={newReview.rating}
+                                                onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
+                                            >
+                                                {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} Stars</option>)}
+                                            </select>
+                                        </div>
+                                        <textarea
+                                            placeholder="Share your experience here..."
+                                            className="w-full bg-white p-6 rounded-xl border border-border-light focus:ring-2 focus:ring-brand focus:border-transparent outline-none min-h-[150px] text-lg"
+                                            value={newReview.comment}
+                                            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                                            required
+                                        />
+                                        <button type="submit" className="btn-primary w-full py-4 text-lg">
+                                            Publish review
+                                        </button>
                                     </div>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        <h4 style={{ fontSize: '0.9rem', color: '#fff', marginBottom: '5px', opacity: 0.8 }}>Calculation Results:</h4>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px', marginBottom: '8px' }}>
-                                            <span style={{ color: '#fff', fontWeight: '700' }}>Base Tour Price</span>
-                                            <span style={{ color: '#fff', fontWeight: '700' }}>{currency}{priceBreakdown.baseSubtotal.toFixed(2)}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                                            <span style={{ color: 'rgba(255,255,255,0.6)' }}>• adults ({numAdults})</span>
-                                            <span>{currency}{priceBreakdown.adultTotal.toFixed(2)}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                                            <span style={{ color: 'rgba(255,255,255,0.6)' }}>• children ({numChildren})</span>
-                                            <span>{currency}{priceBreakdown.childTotal.toFixed(2)}</span>
-                                        </div>
-                                        {priceBreakdown.extrasTotal > 0 && (
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', marginTop: '5px' }}>
-                                                <span style={{ color: 'rgba(255,255,255,0.6)' }}>• Selected Extras</span>
-                                                <span style={{ fontWeight: '600' }}>{currency}{priceBreakdown.extrasTotal.toFixed(2)}</span>
-                                            </div>
-                                        )}
-                                        {priceBreakdown.discountAmount > 0 && (
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#2ecc71' }}>
-                                                <span style={{ fontWeight: '600' }}>• Discount applied</span>
-                                                <span style={{ fontWeight: '600' }}>- {currency}{priceBreakdown.discountAmount.toFixed(2)}</span>
-                                            </div>
-                                        )}
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', marginTop: '10px', paddingTop: '10px', borderTop: '2px solid rgba(162, 155, 254, 0.3)' }}>
-                                            <span style={{ fontWeight: '800', color: '#fff' }}>TOTAL PRICE</span>
-                                            <span style={{ fontWeight: '800', color: '#a29bfe' }}>{currency}{calculatedPrice.toFixed(2)}</span>
-                                        </div>
-                                        {priceBreakdown.isPrivateApplied && (
-                                            <div style={{ padding: '8px', background: 'rgba(162, 155, 254, 0.1)', borderRadius: '8px', fontSize: '0.8rem', color: '#a29bfe', textAlign: 'center', marginTop: '5px' }}>
-                                                ✨ Private Tour Rate Applied
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                </form>
                             )}
-
-                            {(listing.tourData?.whatsappNumber || listing.owner?.phoneNumber) && (
-                                <a
-                                    href={`https://wa.me/${(listing.tourData?.whatsappNumber || (listing.owner.phonePrefix + listing.owner.phoneNumber)).replace(/\+/g, '').replace(/\s/g, '')}?text=${encodeURIComponent(`Hello, I would like to book the tour: ${listing.title}
-Date: ${selectedTourDate || 'Not selected'}
-Type: ${bookingType}${isPrivate ? ' (Private)' : ''}
-${bookingType === 'person' ? `Adults: ${numAdults}, Children: ${numChildren}` : ''}
-${selectedExtras.length > 0 ? `Extras: ${selectedExtras.join(', ')}\n` : ''}${promoCode ? `Promo Code: ${promoCode}\n` : ''}TOTAL PRICE: ${currency}${calculatedPrice.toFixed(2)}`)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn"
-                                    style={{
-                                        background: selectedTourDate ? '#2ecc71' : 'rgba(255,255,255,0.1)',
-                                        width: '100%',
-                                        display: 'block',
-                                        textAlign: 'center',
-                                        padding: '22px',
-                                        textDecoration: 'none',
-                                        color: '#fff',
-                                        fontWeight: '800',
-                                        borderRadius: '18px',
-                                        fontSize: '1.2rem',
-                                        transition: 'all 0.3s ease',
-                                        pointerEvents: selectedTourDate ? 'auto' : 'none',
-                                        boxShadow: selectedTourDate ? '0 10px 20px rgba(46, 204, 113, 0.3)' : 'none'
-                                    }}
-                                >
-                                    {selectedTourDate ? '⚡ Instant Booking' : 'Select Date First'}
-                                </a>
-                            )}
-
-                            {menu && (
-                                <Link
-                                    href={`/${listing.type}/${slug}/menu`}
-                                    className="btn"
-                                    style={{
-                                        background: 'var(--accent)',
-                                        width: '100%',
-                                        display: 'block',
-                                        textAlign: 'center',
-                                        padding: '18px',
-                                        marginTop: '15px',
-                                        textDecoration: 'none',
-                                        color: '#fff',
-                                        fontWeight: '700',
-                                        borderRadius: '18px',
-                                        fontSize: '1rem'
-                                    }}
-                                >
-                                    🍽️ Shiko Menunë
-                                </Link>
-                            )}
-
-
-                            <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)' }}>
-                                No credit card required. Pay on the spot.
-                            </p>
-                        </div>
+                        </section>
                     </div>
-                )}
+
+                    {/* Booking/Contact Sidebar */}
+                    <aside className="hidden md:block">
+                        <div className="sticky top-28 p-8 border border-border-light rounded-3xl shadow-airbnb bg-white space-y-8">
+                            <div className="flex items-end justify-between">
+                                <div className="text-2xl font-black text-text-primary">
+                                    {listing.price ? (
+                                        typeof listing.price === 'string' && (listing.price.includes('€') || listing.Price?.includes('Lek') || listing.price.includes('$'))
+                                            ? listing.price
+                                            : `€${listing.price}`
+                                    ) : ''}
+                                </div>
+                                <div className="flex items-center gap-1 text-sm font-bold">
+                                    <span>★</span>
+                                    <span>{averageRating > 0 ? averageRating : '0'}</span>
+                                    <span className="ml-1 text-text-secondary">💬 {reviews.length}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-xl font-bold">Request Details</h3>
+                                    <p className="text-sm text-text-secondary">Direct contact with the host</p>
+                                </div>
+                                <div className="flex flex-col gap-4">
+                                    <a
+                                        href={`tel:${cleanPhoneNumber(listing.whatsappNumber || (listing.owner?.phonePrefix + listing.owner?.phoneNumber))}`}
+                                        className="w-full bg-brand hover:brightness-90 text-white py-4 rounded-xl font-bold text-center flex items-center justify-center gap-2 shadow-soft transition-all active:scale-95"
+                                    >
+                                        <span>📞</span> Call Host
+                                    </a>
+                                    <a
+                                        href={`https://wa.me/${cleanPhoneNumber(listing.whatsappNumber || (listing.owner?.phonePrefix + listing.owner?.phoneNumber))}?text=Hello, I am interested in ${listing.title}`}
+                                        target="_blank"
+                                        className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-4 rounded-xl font-bold text-center flex items-center justify-center gap-2 shadow-soft transition-all active:scale-95"
+                                    >
+                                        <span>💬</span> WhatsApp Message
+                                    </a>
+                                </div>
+                                <p className="text-xs text-text-secondary text-center">You won't be charged yet</p>
+                                <div className="pt-4 border-t border-border-light text-center">
+                                    <button className="text-sm text-text-secondary underline hover:text-text-primary transition-colors flex items-center justify-center gap-2 w-full">
+                                        <span>⚑</span> Report this listing
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
             </div>
 
-            {/* Reviews Section */}
-            <div className="glass card" style={{ marginTop: '60px', padding: '40px', borderRadius: '24px' }}>
-                <h3 style={{ fontSize: '2rem', marginBottom: '30px' }}>Visitor Reviews ({reviews.length})</h3>
-                {reviews.length > 0 ? (
-                    <div style={{ display: 'grid', gap: '30px' }}>
-                        {reviews.map(review => (
-                            <div key={review._id} style={{ paddingBottom: '30px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#a29bfe', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                                            {review.user?.name?.charAt(0) || 'U'}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 'bold' }}>{review.user?.name || 'Verified Explorer'}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)' }}>{new Date(review.createdAt).toLocaleDateString()}</div>
-                                        </div>
-                                    </div>
-                                    <div style={{ color: 'gold' }}>{'★'.repeat(review.rating)}</div>
-                                </div>
-                                <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.8)' }}>{review.comment}</p>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p>No reviews yet. Share your experience!</p>
-                )}
-
-                {user && (
-                    <form onSubmit={submitReview} className="review-form" style={{ marginTop: '40px', padding: '30px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px' }}>
-                        <h4 style={{ marginBottom: '20px' }}>Write a Review</h4>
-                        <div style={{ display: 'grid', gap: '20px' }}>
-                            <select className="input" value={newReview.rating} onChange={e => setNewReview({ ...newReview, rating: Number(e.target.value) })}>
-                                <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
-                                <option value="4">⭐⭐⭐⭐ Good</option>
-                                <option value="3">⭐⭐⭐ Average</option>
-                                <option value="2">⭐⭐ Poor</option>
-                                <option value="1">⭐ Terrible</option>
-                            </select>
-                            <textarea className="input" placeholder="Tell us about your trip..." value={newReview.comment} onChange={e => setNewReview({ ...newReview, comment: e.target.value })} />
-                            <button className="btn" style={{ background: '#a29bfe', color: '#000', fontWeight: 'bold' }}>Submit Review</button>
-                        </div>
-                    </form>
-                )}
-            </div>
-
-            {/* Lightbox */}
-            {selectedImage && (
+            {/* Lightbox Component */}
+            {showLightbox && (
                 <div
-                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.98)', zIndex: 9999, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', touchAction: 'none' }}
-                    onClick={() => setSelectedImage(null)}
-                    onTouchStart={onTouchStart}
-                    onTouchMove={onTouchMove}
-                    onTouchEnd={onTouchEndEvent}
+                    className="fixed inset-0 z-[200] bg-black/95 flex flex-col items-center justify-center animate-in fade-in duration-300"
                 >
-                    <button
-                        className="lightbox-close-btn"
-                        style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', width: '45px', height: '45px', borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}
-                        onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                    >
-                        ✕
-                    </button>
+                    <div className="absolute top-0 w-full p-6 flex justify-between items-center text-white z-50">
+                        <div className="text-sm font-bold tracking-widest">
+                            {currentLightboxSlide + 1} / {allImages.length}
+                        </div>
+                        <button
+                            onClick={() => setShowLightbox(false)}
+                            className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                        >
+                            Close
+                        </button>
+                    </div>
 
-                    <img src={selectedImage} className="lightbox-image" style={{ maxWidth: '95%', maxHeight: '85vh', borderRadius: '15px', objectFit: 'contain', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', transition: 'transform 0.3s ease' }} onClick={e => e.stopPropagation()} draggable="false" />
-
-                    {listing.gallery && listing.gallery.length > 1 && (
-                        <>
+                    <div className="relative w-full h-full flex items-center justify-center p-4 md:p-12">
+                        {allImages.length > 1 && (
                             <button
-                                className="lightbox-nav-left"
-                                style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', width: '55px', height: '55px', borderRadius: '50%', fontSize: '2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    const currentIndex = listing.gallery.indexOf(selectedImage);
-                                    const prevIndex = (currentIndex <= 0) ? listing.gallery.length - 1 : currentIndex - 1;
-                                    setSelectedImage(listing.gallery[prevIndex]);
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                onClick={prevLightboxSlide}
+                                className="absolute left-4 md:left-8 bg-white/10 hover:bg-white/30 text-white w-12 h-12 rounded-full flex items-center justify-center transition-all z-10 font-bold text-xl backdrop-blur-sm"
                             >
-                                ‹
+                                ←
                             </button>
-                            <button
-                                className="lightbox-nav-right"
-                                style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', width: '55px', height: '55px', borderRadius: '50%', fontSize: '2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    const currentIndex = listing.gallery.indexOf(selectedImage);
-                                    const nextIndex = (currentIndex === listing.gallery.length - 1) ? 0 : currentIndex + 1;
-                                    setSelectedImage(listing.gallery[nextIndex]);
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                            >
-                                ›
-                            </button>
+                        )}
 
-                            <div className="lightbox-counter" style={{ position: 'absolute', bottom: '30px', background: 'rgba(0,0,0,0.6)', padding: '10px 20px', borderRadius: '20px', color: '#fff', fontSize: '1rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', letterSpacing: '1px', fontWeight: '600' }} onClick={e => e.stopPropagation()}>
-                                {listing.gallery.indexOf(selectedImage) + 1} / {listing.gallery.length}
-                            </div>
-                        </>
-                    )}
+                        <img
+                            src={allImages[currentLightboxSlide]}
+                            className="max-w-full max-h-full object-contain shadow-2xl animate-in zoom-in-95 duration-400 select-none"
+                        />
+
+                        {allImages.length > 1 && (
+                            <button
+                                onClick={nextLightboxSlide}
+                                className="absolute right-4 md:right-8 bg-white/10 hover:bg-white/30 text-white w-12 h-12 rounded-full flex items-center justify-center transition-all z-10 font-bold text-xl backdrop-blur-sm"
+                            >
+                                →
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
-        </div>
+        </main>
     );
 }

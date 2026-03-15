@@ -41,44 +41,44 @@ export default function BlogDetailPage({ params }) {
     };
 
     if (loading) return (
-        <div style={{ minHeight: '100vh', background: '#0b0b0f', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+        <div className="min-h-screen bg-bg-light flex items-center justify-center text-text-secondary font-bold">
             Loading article...
         </div>
     );
 
     if (!blog) return (
-        <div style={{ minHeight: '100vh', background: '#0b0b0f', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', gap: '20px' }}>
-            <h1 style={{ fontSize: '3rem' }}>404</h1>
-            <p>Blog post not found.</p>
-            <Link href="/blog" className="btn">← Back to Blog</Link>
+        <div className="min-h-screen bg-bg-light flex flex-col items-center justify-center text-text-primary gap-6">
+            <h1 className="text-6xl font-black text-brand">404</h1>
+            <p className="text-xl font-medium text-text-secondary">Blog post not found.</p>
+            <Link href="/blog" className="btn-primary px-8 py-3">← Back to Blog</Link>
         </div>
     );
 
     return (
-        <div style={{ minHeight: '100vh', background: '#0b0b0f', color: 'white' }}>
+        <div className="min-h-screen bg-white">
             {/* Hero */}
             {blog.coverImage && (
-                <div style={{ position: 'relative', height: 'clamp(280px, 50vw, 500px)', overflow: 'hidden' }}>
-                    <img src={blog.coverImage} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.5)' }} />
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0b0b0f 0%, transparent 50%)' }} />
+                <div className="relative h-[400px] md:h-[500px] w-full mt-4 max-w-7xl mx-auto rounded-3xl overflow-hidden">
+                    <img src={blog.coverImage} alt={blog.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
             )}
 
-            <div style={{ maxWidth: '780px', margin: '0 auto', padding: '50px 20px 100px' }}>
+            <div className="max-w-[800px] mx-auto px-6 py-12 md:py-20">
                 {/* Breadcrumb */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '30px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)' }}>
-                    <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>Home</Link>
+                <div className="flex items-center gap-2 mb-8 text-sm font-medium text-text-secondary">
+                    <Link href="/" className="hover:text-brand transition-colors">Home</Link>
                     <span>/</span>
-                    <Link href="/blog" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>Blog</Link>
+                    <Link href="/blog" className="hover:text-brand transition-colors">Blog</Link>
                     <span>/</span>
-                    <span style={{ color: 'rgba(255,255,255,0.7)' }}>{blog.title}</span>
+                    <span className="text-text-primary line-clamp-1">{blog.title}</span>
                 </div>
 
                 {/* Tags */}
                 {(blog.tags || []).length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
+                    <div className="flex flex-wrap gap-2 mb-6">
                         {blog.tags.map(tag => (
-                            <span key={tag} style={{ fontSize: '0.75rem', background: 'rgba(162,155,254,0.15)', color: '#a29bfe', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            <span key={tag} className="px-4 py-1.5 bg-brand/10 text-brand rounded-full text-xs font-bold uppercase tracking-wider">
                                 #{tag}
                             </span>
                         ))}
@@ -86,24 +86,26 @@ export default function BlogDetailPage({ params }) {
                 )}
 
                 {/* Title */}
-                <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 3rem)', fontWeight: '900', lineHeight: '1.15', marginBottom: '20px', background: 'linear-gradient(135deg, #fff, rgba(255,255,255,0.7))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-text-primary leading-tight mb-8">
                     {blog.title}
                 </h1>
 
                 {/* Meta */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '15px 0', marginBottom: '40px', flexWrap: 'wrap' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>
-                        📅 {new Date(blog.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                    </span>
-                    {blog.author?.name && (
-                        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>✍️ {blog.author.name}</span>
-                    )}
+                <div className="flex flex-wrap items-center justify-between gap-4 py-6 border-y border-border-light mb-10">
+                    <div className="flex items-center gap-6">
+                        <span className="font-medium text-text-secondary text-sm">
+                            📅 {new Date(blog.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
+                        {blog.author?.name && (
+                            <span className="font-bold text-text-primary text-sm">✍️ {blog.author.name}</span>
+                        )}
+                    </div>
                     {/* Admin Controls */}
                     {user?.role === 'admin' && (
-                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
-                            <Link href={`/admin/blog/edit/${blog.slug}`} className="btn" style={{ background: '#74b9ff', textDecoration: 'none', padding: '6px 14px', fontSize: '0.85rem' }}>✏️ Edit</Link>
-                            <button onClick={handleDelete} disabled={deleting} className="btn" style={{ background: '#ff7675', padding: '6px 14px', fontSize: '0.85rem' }}>
-                                {deleting ? '⏳' : '🗑️ Delete'}
+                        <div className="flex gap-3">
+                            <Link href={`/admin/blog/edit/${blog.slug}`} className="px-4 py-2 bg-text-primary text-white rounded-xl text-xs font-bold shadow-soft hover:bg-black transition-colors">✏️ Edit</Link>
+                            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-xs font-bold shadow-soft hover:bg-red-100 transition-colors">
+                                {deleting ? '⏳ Deleting...' : '🗑️ Delete'}
                             </button>
                         </div>
                     )}
@@ -111,33 +113,38 @@ export default function BlogDetailPage({ params }) {
 
                 {/* Blog Content */}
                 <div
-                    className="blog-content"
+                    className="blog-content prose prose-lg max-w-none text-text-primary prose-headings:font-bold prose-headings:text-text-primary prose-a:text-brand hover:prose-a:text-brand-hover prose-img:rounded-3xl prose-img:shadow-soft"
                     dangerouslySetInnerHTML={{ __html: blog.content }}
                 />
 
                 {/* Back */}
-                <div style={{ marginTop: '60px', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '30px' }}>
-                    <Link href="/blog" className="btn" style={{ background: 'rgba(255,255,255,0.05)', textDecoration: 'none' }}>← All Articles</Link>
+                <div className="mt-16 pt-8 border-t border-border-light text-center">
+                    <Link href="/blog" className="inline-block px-8 py-4 bg-bg-light hover:bg-border-light text-text-primary font-bold rounded-xl transition-colors shadow-soft">
+                        ← All Articles
+                    </Link>
                 </div>
             </div>
 
             <style jsx global>{`
-                .blog-content { font-size: 1.1rem; line-height: 1.9; color: rgba(255,255,255,0.85); }
-                .blog-content h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; margin: 40px 0 15px; color: white; }
-                .blog-content h2 { font-size: clamp(1.3rem, 3vw, 1.9rem); font-weight: 800; margin: 35px 0 12px; color: #a29bfe; }
-                .blog-content h3 { font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 700; margin: 25px 0 10px; color: #fd79a8; }
-                .blog-content p { margin: 0 0 20px; }
-                .blog-content ul, .blog-content ol { padding-left: 28px; margin: 15px 0 25px; }
-                .blog-content li { margin-bottom: 10px; }
-                .blog-content blockquote { border-left: 4px solid #a29bfe; padding: 15px 25px; margin: 25px 0; background: rgba(162,155,254,0.07); border-radius: 0 12px 12px 0; font-style: italic; color: rgba(255,255,255,0.7); font-size: 1.15rem; }
-                .blog-content img { max-width: 100%; border-radius: 16px; margin: 20px 0; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: block; }
-                .blog-content figure { margin: 25px 0; text-align: center; }
-                .blog-content hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 35px 0; }
-                .blog-content a { color: #a29bfe; text-decoration: underline; }
-                .blog-content strong { color: white; }
-                @media (max-width: 640px) {
-                    .blog-content { font-size: 1rem; }
-                    .blog-content blockquote { padding: 12px 16px; }
+                .blog-content p { margin-bottom: 1.5em; line-height: 1.8; color: var(--text-secondary); }
+                .blog-content h1 { font-size: 2.5em; margin-bottom: 0.5em; }
+                .blog-content h2 { font-size: 2em; margin-top: 1.5em; margin-bottom: 0.5em; }
+                .blog-content h3 { font-size: 1.5em; margin-top: 1.5em; margin-bottom: 0.5em; }
+                .blog-content ul, .blog-content ol { margin-left: 1.5em; margin-bottom: 1.5em; color: var(--text-secondary); }
+                .blog-content li { margin-bottom: 0.5em; }
+                .blog-content blockquote {
+                    border-left: 4px solid var(--brand);
+                    background: var(--bg-light);
+                    padding: 1em 1.5em;
+                    border-radius: 0 16px 16px 0;
+                    font-style: italic;
+                    color: var(--text-secondary);
+                    margin: 1.5em 0;
+                }
+                .blog-content img {
+                    border-radius: 20px;
+                    border: 1px solid var(--border-light);
+                    background: var(--bg-light);
                 }
             `}</style>
         </div>

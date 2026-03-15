@@ -1,555 +1,70 @@
-/* Mobile First & Performance Optimizations */
-:root {
-  --background: #0f0f13;
-  --foreground: #ffffff;
-  --primary: #6c5ce7;
-  --secondary: #a29bfe;
-  --accent: #fd79a8;
-  --card-bg: rgba(255, 255, 255, 0.05);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --glass: rgba(255, 255, 255, 0.05);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-  --font-main: 'Inter', sans-serif;
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #FF5A00; /* Vibrant Orange */
+  --color-brand-hover: #E04D00;
+  --color-text-primary: #222222;
+  --color-text-secondary: #717171;
+  --color-border-light: #B0B0B0; /* Darker border for better visibility */
+  --color-bg-light: #F7F7F7;
+  
+  --shadow-airbnb: 0 6px 16px rgba(0, 0, 0, 0.12);
+  --shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-main);
-  margin: 0;
-  padding: 0;
-  background-image:
-    radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+@layer base {
+  body {
+    @apply bg-white text-text-primary font-sans antialiased;
+    margin: 0;
+    padding: 0;
+  }
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Speed: Layout stays stable */
-main {
-  min-height: 80vh;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Utilities */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 15px;
-  /* Smaller padding for mobile */
-}
-
-.glass {
-  background: var(--glass);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: var(--glass-border);
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-.btn {
-  background: var(--primary);
-  color: white;
-  padding: 12px 20px;
-  /* Larger touch target */
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s, background 0.2s;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-@media (hover: hover) {
-  .btn:hover {
-    background: var(--secondary);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+  * {
+    @apply border-border-light;
   }
 }
 
-.btn:active {
-  transform: scale(0.95);
-}
-
-.map-wrapper {
-  height: 400px;
-  width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-  z-index: 10;
-}
-
-@media (max-width: 768px) {
-  .map-wrapper {
-    height: 300px;
-    /* Shorter map on mobile for better scrolling */
+@layer components {
+  .container-wide {
+    @apply max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20;
+  }
+  
+  .btn-airbnb {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold transition-all duration-200 active:scale-95 cursor-pointer;
+  }
+  
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold transition-all duration-200 active:scale-95 cursor-pointer bg-brand text-white hover:bg-brand-hover;
+  }
+  
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold transition-all duration-200 active:scale-95 cursor-pointer border border-text-primary text-text-primary hover:bg-bg-light;
+  }
+  
+  .card-airbnb {
+    @apply bg-white rounded-xl overflow-hidden transition-all duration-200 hover:shadow-soft;
+  }
+  
+  .input-airbnb {
+    @apply w-full px-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-sm;
   }
 
-  .nav {
-    padding: 10px;
-    margin: 5px;
-    border-radius: 12px;
+  .input {
+    @apply w-full px-4 py-3 border border-border-light rounded-lg bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all shadow-sm;
   }
 }
 
-.input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 14px;
-  border-radius: 12px;
-  color: white;
-  width: 100%;
-  margin-bottom: 10px;
-  font-size: 16px;
-  /* Prevents auto-zoom on iOS */
-  transition: all 0.3s ease;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--primary);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Select dropdown styling */
-select.input,
-select {
-  background: rgba(255, 255, 255, 0.95);
-  color: #000;
-  cursor: pointer;
-}
-
-select.input option,
-select option {
-  background: #fff;
-  color: #000;
-  padding: 8px;
-}
-
-/* Textarea styling */
-textarea.input,
-textarea {
-  resize: vertical;
-  min-height: 100px;
-  font-family: inherit;
-}
-
-/* Grid for cards */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.card {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 15px;
-}
-
-.nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 40px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  margin-bottom: 40px;
-}
-
-.nav-links {
-  display: flex;
-  gap: 20px;
-}
-
-.search-bar {
-  display: flex;
-  gap: 10px;
-  max-width: 500px;
-  margin: 0 auto 40px auto;
-}
-
-/* Map specific */
+/* Maintain some compatibility for Leaflet if needed, but styled for light theme */
 .leaflet-container {
-  width: 100%;
-  height: 400px;
-  border-radius: 16px;
-  margin-bottom: 40px;
+  @apply rounded-xl border border-border-light;
   z-index: 1;
 }
 
-/* Badge styling */
-.badge {
-  display: inline-block;
-  background: var(--primary);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
+.leaflet-routing-container {
+  @apply !bg-white/90 !backdrop-blur-md !border !border-border-light !rounded-lg !shadow-airbnb !p-4;
 }
 
-/* Routing Machine Text Color Override */
-.leaflet-routing-container,
-.leaflet-routing-container * {
-  color: black !important;
-}
-
-/* Footer Styles */
-.footer {
-  background: #0b0b0f;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 80px 40px 40px 40px;
-  margin-top: 50px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 60px;
-}
-
-.footer-logo {
-  color: white;
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 20px;
-  background: linear-gradient(90deg, #fff, #a29bfe);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.footer-section h4 {
-  color: white;
-  font-weight: 700;
-  margin-bottom: 25px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-size: 0.8rem;
-}
-
-.footer-section.links {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.footer-section.links a {
-  color: rgba(255, 255, 255, 0.5);
-  transition: all 0.2s;
-}
-
-.footer-section.links a:hover {
-  color: white;
-  transform: translateX(5px);
-}
-
-.social-links {
-  display: flex;
-  gap: 20px;
-  font-size: 1.5rem;
-  margin-top: 20px;
-  cursor: pointer;
-}
-
-.footer-bottom {
-  max-width: 1200px;
-  margin: 60px auto 0 auto;
-  padding-top: 30px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-@media (max-width: 900px) {
-  .footer-content {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
-  .footer {
-    padding: 60px 25px 30px 25px;
-  }
-}
-
-/* Listing Page Responsive Overrides */
-@media (max-width: 768px) {
-  .listing-container {
-    padding-top: 20px !important;
-    padding-bottom: 40px !important;
-  }
-
-  .tour-header {
-    margin-bottom: 20px !important;
-    text-align: center;
-  }
-
-  .tour-header h1 {
-    font-size: 2rem !important;
-    margin-bottom: 10px !important;
-  }
-
-  .tour-stats-bar {
-    grid-template-columns: 1fr 1fr !important;
-    margin-bottom: 20px !important;
-  }
-
-  .tour-stats-bar div {
-    padding: 15px 10px !important;
-  }
-
-  .listing-main-content {
-    grid-template-columns: 1fr !important;
-    gap: 20px !important;
-  }
-
-  .main-column {
-    order: 2;
-  }
-
-  .sidebar-column {
-    order: 1;
-    position: static !important;
-  }
-
-  .sidebar-sticky {
-    position: static !important;
-    padding: 20px !important;
-  }
-
-  .tabs-header button {
-    padding: 12px 5px !important;
-    font-size: 0.75rem !important;
-  }
-
-  .tabs-body {
-    padding: 20px !important;
-  }
-
-  .tab-pane h2 {
-    font-size: 1.5rem !important;
-    margin-bottom: 15px !important;
-  }
-
-  .tour-info-tabs .tabs-body {
-    padding: 20px 15px !important;
-  }
-
-  .glass.card {
-    padding: 20px !important;
-  }
-
-  .is-tour-card {
-    padding: 0 !important;
-  }
-
-  .main-hero-image {
-    height: 300px !important;
-  }
-
-  .review-form {
-    padding: 20px !important;
-  }
-
-  .hero-title {
-    font-size: 2rem !important;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem !important;
-  }
-
-  .grid {
-    grid-template-columns: 1fr !important;
-    gap: 15px !important;
-  }
-
-  .gallery-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 10px !important;
-  }
-
-  .gallery-grid>div {
-    height: 150px !important;
-  }
-
-  .inclusions-grid {
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-  }
-
-  .itinerary-content {
-    padding: 0 15px 20px 40px !important;
-    font-size: 0.95rem !important;
-  }
-
-  .itinerary-header {
-    padding: 15px 20px !important;
-    font-size: 1.1rem !important;
-  }
-
-  /* Added Mobile Typography & Spacing Overrides */
-  .listing-main-content h1 {
-    font-size: 1.6rem !important;
-    line-height: 1.2 !important;
-    margin-bottom: 10px !important;
-  }
-
-  .listing-main-content h3 {
-    font-size: 1.25rem !important;
-    margin-bottom: 8px !important;
-  }
-
-  .listing-main-content div[style*="1.1rem"],
-  .listing-main-content div[style*="1.15rem"],
-  .listing-main-content p {
-    font-size: 0.95rem !important;
-    line-height: 1.5 !important;
-  }
-
-  .listing-main-content div[style*="gap: 15px"],
-  .listing-main-content div[style*="gap: 30px"] {
-    gap: 10px !important;
-  }
-
-  .listing-main-content .btn {
-    padding: 10px 15px !important;
-    font-size: 0.9rem !important;
-    width: 100% !important;
-    margin-bottom: 10px !important;
-  }
-
-  .search-bar {
-    flex-direction: column !important;
-    padding: 15px !important;
-    margin-bottom: 20px !important;
-    border-radius: 16px !important;
-  }
-
-  .search-bar .input,
-  .search-bar .btn {
-    width: 100% !important;
-    margin: 5px 0 !important;
-  }
-
-  .home-categories-grid {
-    gap: 8px !important;
-  }
-
-  .home-categories-grid .btn {
-    padding: 8px 12px !important;
-    font-size: 0.85rem !important;
-    flex: 1 1 calc(33% - 8px) !important;
-    text-align: center !important;
-    margin-bottom: 0 !important;
-  }
-
-  .footer {
-    padding: 40px 20px 20px 20px !important;
-    margin-top: 30px !important;
-  }
-
-  .footer-content {
-    gap: 30px !important;
-  }
-
-  .footer-logo {
-    font-size: 1.6rem !important;
-  }
-
-  .footer-section h4 {
-    margin-bottom: 15px !important;
-  }
-
-  .non-tour-card {
-    padding: 0 !important;
-  }
-
-  .non-tour-content {
-    padding: 20px !important;
-  }
-
-  .non-tour-details {
-    padding: 0 20px 20px 20px !important;
-  }
-}
-
-/* Default Desktop Paddings */
-.non-tour-card {
-  padding: 40px;
-}
-
-.non-tour-content {
-  padding: 40px;
-}
-
-.non-tour-details {
-  padding: 0 40px 40px 40px;
-}
-
-/* Lightbox Mobile Adjustments */
-@media (max-width: 768px) {
-  .lightbox-close-btn {
-    width: 35px !important;
-    height: 35px !important;
-    font-size: 1rem !important;
-    top: 15px !important;
-    right: 15px !important;
-  }
-
-  .lightbox-nav-left {
-    width: 40px !important;
-    height: 40px !important;
-    font-size: 1.5rem !important;
-    left: 10px !important;
-  }
-
-  .lightbox-nav-right {
-    width: 40px !important;
-    height: 40px !important;
-    font-size: 1.5rem !important;
-    right: 10px !important;
-  }
-
-  .lightbox-counter {
-    padding: 8px 15px !important;
-    font-size: 0.85rem !important;
-    bottom: 20px !important;
-  }
-
-  .lightbox-image {
-    max-width: 100% !important;
-    border-radius: 0 !important;
-  }
+/* Airbnb-style search bar component helper */
+.search-pill {
+  @apply flex items-center bg-white border border-border-light rounded-full shadow-soft hover:shadow-airbnb transition-all duration-200 p-2 pl-4 cursor-pointer;
 }

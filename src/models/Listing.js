@@ -65,6 +65,10 @@ const ListingSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    views: {
+        type: Number,
+        default: 0,
+    },
     // Hotel-specific fields
     hotelData: {
         totalRooms: { type: Number },

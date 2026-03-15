@@ -2,6 +2,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
     const { user, loading } = useAuth();
@@ -27,7 +28,6 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
         try {
-            // Fetch pending registrations
             const resPending = await fetch('/api/admin/registrations');
             const dataPending = await resPending.json();
             if (dataPending.registrations) {
@@ -35,7 +35,6 @@ export default function AdminDashboard() {
                 setStats(prev => ({ ...prev, pending: dataPending.registrations.length }));
             }
 
-            // Fetch all users
             const resAll = await fetch('/api/admin/users');
             const dataAll = await resAll.json();
             if (dataAll.users) {
@@ -60,7 +59,7 @@ export default function AdminDashboard() {
     };
 
     const deleteBlog = async (slug) => {
-        if (!confirm('Delete this blog post?')) return;
+        if (!confirm('Delete this post?')) return;
         const token = localStorage.getItem('token');
         const res = await fetch(`/api/blog/${slug}`, {
             method: 'DELETE',
@@ -69,7 +68,7 @@ export default function AdminDashboard() {
         if (res.ok) {
             setBlogs(prev => prev.filter(b => b.slug !== slug));
         } else {
-            alert('Failed to delete blog');
+            alert('Delete failed');
         }
     };
 
@@ -94,203 +93,166 @@ export default function AdminDashboard() {
         }
     };
 
-    if (loading || !user || user.role !== 'admin') return <div className="container" style={{ textAlign: 'center', marginTop: '100px' }}>Loading...</div>;
+    if (loading || !user || user.role !== 'admin') return <div className="container-wide py-20 text-center font-bold">Loading...</div>;
 
     return (
-        <div className="container">
-            <header style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800' }}>Admin Panel</h1>
-                    <p style={{ opacity: 0.7 }}>Manage business registrations and platform status</p>
-                </div>
-                <div className="glass" style={{ padding: '15px 25px', borderRadius: '15px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '5px' }}>Pending</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>{stats.pending}</div>
-                </div>
-            </header>
-
-            <section>
-                <h2 style={{ marginBottom: '20px' }}>Business Registrations</h2>
-                {pendingRegistrations.length === 0 ? (
-                    <div className="glass" style={{ padding: '60px 40px', textAlign: 'center', borderRadius: '20px' }}>
-                        <p style={{ fontSize: '1.2rem', opacity: 0.8 }}>No pending business registrations at the moment.</p>
+        <main className="min-h-screen bg-white">
+            <div className="container-wide py-10 space-y-12">
+                {/* 1. Header & Stats Section */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-8">
+                    <div className="space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand">Platform Admin</span>
+                        <h1 className="text-4xl font-extrabold text-text-primary tracking-tight">Admin Dashboard</h1>
                     </div>
-                ) : (
-                    <div className="grid">
-                        {pendingRegistrations.map((reg) => (
-                            <div key={reg._id} className="glass card" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                <div>
-                                    <h3 style={{ margin: 0, fontSize: '1.3rem' }}>{reg.name || 'No Name'}</h3>
-                                    <p style={{ margin: '5px 0', fontSize: '0.9rem', opacity: 0.7 }}>{reg.email}</p>
+                    <div className="flex gap-4">
+                        <div className="bg-bg-light border border-border-light px-6 py-4 rounded-2xl flex items-center gap-4">
+                            <div className="text-xs font-bold text-text-secondary uppercase tracking-widest">Pending</div>
+                            <div className="text-2xl font-black text-brand">{stats.pending}</div>
+                        </div>
+                        <div className="bg-bg-light border border-border-light px-6 py-4 rounded-2xl flex items-center gap-4">
+                            <div className="text-xs font-bold text-text-secondary uppercase tracking-widest">Total Users</div>
+                            <div className="text-2xl font-black text-text-primary">{stats.total}</div>
+                        </div>
+                    </div>
+                </div>
 
-                                    <div style={{
-                                        marginTop: '15px',
-                                        padding: '12px',
-                                        background: 'rgba(108, 92, 231, 0.1)',
-                                        borderRadius: '10px',
-                                        border: '1px solid rgba(108, 92, 231, 0.2)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '5px'
-                                    }}>
-                                        <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, fontWeight: 'bold' }}>Business Contact</span>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span style={{ fontSize: '1.2rem' }}>📱</span>
-                                            <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--secondary)' }}>
-                                                {reg.phonePrefix} {reg.phoneNumber || 'N/A'}
-                                            </span>
+                {/* 2. Pending business Registrations Section */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-brand animate-ping" />
+                        <h2 className="text-xl font-bold text-text-primary">New Business Registrations</h2>
+                    </div>
+
+                    {pendingRegistrations.length === 0 ? (
+                        <div className="py-16 bg-bg-light rounded-[32px] border border-border-light border-dashed text-center">
+                            <p className="text-text-secondary font-medium italic">No pending registrations at the moment.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {pendingRegistrations.map((reg) => (
+                                <div key={reg._id} className="p-8 bg-white border border-border-light rounded-[24px] shadow-soft hover:shadow-airbnb transition-all space-y-6 flex flex-col">
+                                    <div className="space-y-1">
+                                        <h3 className="text-xl font-extrabold text-text-primary">{reg.name || 'No Name'}</h3>
+                                        <p className="text-sm text-text-secondary font-medium">{reg.email}</p>
+                                    </div>
+
+                                    <div className="p-4 bg-bg-light rounded-xl space-y-2 border border-border-light">
+                                        <span className="text-[10px] font-black uppercase text-text-secondary tracking-widest">Business Contact</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">📱</span>
+                                            <span className="text-base font-bold text-text-primary">{reg.phonePrefix} {reg.phoneNumber}</span>
                                         </div>
                                         {reg.phoneNumber && (
-                                            <a
-                                                href={`https://wa.me/${(reg.phonePrefix + reg.phoneNumber).replace(/\+/g, '')}`}
+                                            <a 
+                                                href={`https://wa.me/${(reg.phonePrefix + reg.phoneNumber).replace(/\+/g, '')}`} 
                                                 target="_blank"
-                                                style={{
-                                                    fontSize: '0.85rem',
-                                                    color: '#2ecc71',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '5px',
-                                                    marginTop: '5px',
-                                                    textDecoration: 'none',
-                                                    fontWeight: '600'
-                                                }}
+                                                className="text-xs font-bold text-[#25D366] flex items-center gap-1 hover:underline"
                                             >
                                                 <span>💬 WhatsApp Business</span>
                                             </a>
                                         )}
                                     </div>
-                                </div>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>
-                                    Registered: {new Date(reg.createdAt).toLocaleDateString()}
-                                </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: 'auto' }}>
-                                    <button
-                                        onClick={() => handleAction(reg._id, 'approved')}
-                                        className="btn"
-                                        style={{ flex: 1, background: '#2ecc71', padding: '10px' }}
-                                    >
-                                        Approve
-                                    </button>
-                                    <button
-                                        onClick={() => handleAction(reg._id, 'rejected')}
-                                        className="btn"
-                                        style={{ flex: 1, background: '#e74c3c', padding: '10px' }}
-                                    >
-                                        Reject
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
 
-            <section style={{ marginTop: '60px' }}>
-                <h2 style={{ marginBottom: '20px' }}>All Platform Users ({stats.total})</h2>
-                <div className="glass" style={{ borderRadius: '20px', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: 'rgba(255,255,255,0.05)', textAlign: 'left' }}>
-                                <th style={{ padding: '15px' }}>Name</th>
-                                <th style={{ padding: '15px' }}>Email</th>
-                                <th style={{ padding: '15px' }}>Role</th>
-                                <th style={{ padding: '15px' }}>Phone</th>
-                                <th style={{ padding: '15px' }}>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {allUsers.map((u) => (
-                                <tr key={u._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <td style={{ padding: '15px' }}>{u.name || '-'}</td>
-                                    <td style={{ padding: '15px' }}>{u.email}</td>
-                                    <td style={{ padding: '15px' }}>
-                                        <span style={{
-                                            background: u.role === 'admin' ? '#fdcb6e' : u.role === 'business' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                                            color: u.role === 'admin' ? 'black' : 'white',
-                                            padding: '2px 8px',
-                                            borderRadius: '5px',
-                                            fontSize: '0.8rem'
-                                        }}>
-                                            {u.role}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '15px' }}>
-                                        {u.phoneNumber ? (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <span>{u.phonePrefix} {u.phoneNumber}</span>
-                                                <a
-                                                    href={`https://wa.me/${(u.phonePrefix + u.phoneNumber).replace(/\+/g, '')}`}
-                                                    target="_blank"
-                                                    title="Open in WhatsApp"
-                                                    style={{ color: '#2ecc71', fontSize: '1.1rem', textDecoration: 'none' }}
-                                                >
-                                                    💬
-                                                </a>
-                                            </div>
-                                        ) : (
-                                            <span style={{ opacity: 0.3 }}>N/A</span>
-                                        )}
-                                    </td>
-                                    <td style={{ padding: '15px' }}>{u.status}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            {/* Blog Management */}
-            <section style={{ marginTop: '60px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-                    <h2>Blog Posts ({blogs.length})</h2>
-                    <a href="/admin/blog/new" className="btn" style={{ background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)', textDecoration: 'none' }}>✍️ New Blog Post</a>
-                </div>
-                {!blogsLoaded ? (
-                    <p style={{ opacity: 0.6 }}>Loading posts...</p>
-                ) : blogs.length === 0 ? (
-                    <div className="glass" style={{ padding: '40px', textAlign: 'center', borderRadius: '20px' }}>
-                        <p style={{ opacity: 0.7 }}>No blog posts yet. Write your first one! ✍️</p>
-                    </div>
-                ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {blogs.map(blog => (
-                            <div key={blog._id} className="glass" style={{ padding: '18px 22px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-                                <div style={{ flex: 1, minWidth: '200px' }}>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
-                                        {(blog.tags || []).slice(0, 3).map(tag => (
-                                            <span key={tag} style={{ fontSize: '0.65rem', background: 'rgba(162,155,254,0.2)', color: '#a29bfe', padding: '2px 8px', borderRadius: '20px', fontWeight: '700', textTransform: 'uppercase' }}>{tag}</span>
-                                        ))}
+                                    <div className="mt-auto pt-4 flex gap-3">
+                                        <button 
+                                            onClick={() => handleAction(reg._id, 'approved')}
+                                            className="flex-1 bg-brand text-white py-3 rounded-xl font-bold text-sm shadow-soft hover:bg-brand-hover transition-colors"
+                                        >
+                                            Approve
+                                        </button>
+                                        <button 
+                                            onClick={() => handleAction(reg._id, 'rejected')}
+                                            className="flex-1 bg-bg-light text-text-secondary py-3 rounded-xl font-bold text-sm hover:bg-border-light transition-colors"
+                                        >
+                                            Reject
+                                        </button>
                                     </div>
-                                    <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem' }}>{blog.title}</h3>
-                                    <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.5 }}>{new Date(blog.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                                    <a href={`/blog/${blog.slug}`} className="btn" style={{ background: 'rgba(255,255,255,0.08)', textDecoration: 'none', padding: '6px 14px', fontSize: '0.85rem' }}>👁️ View</a>
-                                    <a href={`/admin/blog/edit/${blog.slug}`} className="btn" style={{ background: '#74b9ff', textDecoration: 'none', padding: '6px 14px', fontSize: '0.85rem' }}>✏️ Edit</a>
-                                    <button onClick={() => deleteBlog(blog.slug)} className="btn" style={{ background: '#ff7675', padding: '6px 14px', fontSize: '0.85rem' }}>🗑️ Delete</button>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                {/* 3. Blog Management Section */}
+                <section className="space-y-6 pt-10 border-t">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-bold text-text-primary">Blog Management</h2>
+                        <Link href="/admin/blog/new" className="bg-text-primary text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-black transition-colors">
+                            ✍️ New Post
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {blogs.map(blog => (
+                            <div key={blog._id} className="p-4 bg-white border border-border-light rounded-2xl flex items-center gap-4 hover:shadow-soft transition-all group">
+                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-bg-light flex-shrink-0">
+                                    <img src={blog.coverImage || 'https://via.placeholder.com/100'} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-text-primary truncate">{blog.title}</h3>
+                                    <p className="text-[10px] text-text-secondary uppercase font-black tracking-widest">{new Date(blog.createdAt).toLocaleDateString()}</p>
+                                </div>
+                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Link href={`/admin/blog/edit/${blog.slug}`} className="p-2 hover:bg-bg-light rounded-lg text-text-secondary">
+                                        ✏️
+                                    </Link>
+                                    <button onClick={() => deleteBlog(blog.slug)} className="p-2 hover:bg-red-50 rounded-lg text-red-500">
+                                        🗑️
+                                    </button>
                                 </div>
                             </div>
                         ))}
                     </div>
-                )}
-            </section>
+                </section>
 
-            <style jsx>{`
-                .container {
-                    padding-top: 50px;
-                    padding-bottom: 50px;
-                }
-                .card {
-                    padding: 25px;
-                    border-radius: 20px;
-                    transition: all 0.3s ease;
-                }
-                .card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-                    border-color: var(--primary);
-                }
-            `}</style>
-        </div>
+                {/* 4. User List Table Section */}
+                <section className="space-y-6 pt-10 border-t">
+                    <h2 className="text-xl font-bold text-text-primary">All Users</h2>
+                    <div className="overflow-x-auto rounded-[24px] border border-border-light shadow-soft">
+                        <table className="w-full text-left">
+                            <thead className="bg-bg-light border-b border-border-light">
+                                <tr>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Name</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Email</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Role</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Contact</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border-light">
+                                {allUsers.map((u) => (
+                                    <tr key={u._id} className="hover:bg-bg-light/30 transition-colors">
+                                        <td className="px-6 py-4 font-bold text-text-primary">{u.name || '-'}</td>
+                                        <td className="px-6 py-4 text-sm text-text-secondary">{u.email}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider ${
+                                                u.role === 'admin' ? 'bg-orange-100 text-orange-700' : 
+                                                u.role === 'business' ? 'bg-brand/10 text-brand' : 
+                                                'bg-bg-light text-text-secondary'
+                                            }`}>
+                                                {u.role}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {u.phoneNumber ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-bold text-text-primary">{u.phonePrefix} {u.phoneNumber}</span>
+                                                    <a href={`https://wa.me/${(u.phonePrefix + u.phoneNumber).replace(/\+/g, '')}`} target="_blank" className="text-[#25D366]">💬</a>
+                                                </div>
+                                            ) : '-'}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`text-[10px] font-bold ${u.status === 'approved' ? 'text-green-600' : 'text-orange-500'}`}>
+                                                {u.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
     );
 }

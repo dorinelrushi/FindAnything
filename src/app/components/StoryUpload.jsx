@@ -16,27 +16,23 @@ export default function StoryUpload({ onStoryUploaded }) {
         formData.append('file', file);
 
         try {
-            // Upload the file
             const uploadRes = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData
             });
             const uploadData = await uploadRes.json();
-
             if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed');
 
-            // Save story to DB
             const storyRes = await fetch('/api/stories', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ imageUrl: uploadData.url })
             });
             const storyData = await storyRes.json();
-
             if (!storyRes.ok) throw new Error(storyData.error || 'Failed to save story');
 
             if (onStoryUploaded) onStoryUploaded();
-            alert('Story uploaded successfully!');
+            alert('Story u ngarkua me sukses!');
         } catch (err) {
             setError(err.message);
         } finally {
@@ -45,48 +41,35 @@ export default function StoryUpload({ onStoryUploaded }) {
     };
 
     return (
-        <div className="story-upload-btn glass" style={{
-            padding: '15px',
-            borderRadius: '12px',
-            background: 'linear-gradient(45deg, #6c5ce7, #a29bfe)',
-            cursor: 'pointer',
-            position: 'relative',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            textAlign: 'center',
-            minWidth: '150px'
-        }}>
-            <style jsx>{`
-                .story-upload-btn:hover {
-                    opacity: 0.9;
-                    transform: translateY(-2px);
-                    transition: all 0.2s;
-                }
-                input[type="file"] {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    opacity: 0;
-                    cursor: pointer;
-                }
-                .icon {
-                    font-size: 2rem;
-                }
-            `}</style>
+        <div className="relative group overflow-hidden bg-white border-2 border-dashed border-border-light rounded-2xl p-8 flex flex-col items-center justify-center gap-4 hover:border-brand hover:bg-brand/5 transition-all cursor-pointer min-w-[200px]">
+            <div className="w-12 h-12 bg-bg-light rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                {uploading ? '⏳' : '📸'}
+            </div>
+            
+            <div className="text-center">
+                <div className="text-sm font-bold text-text-primary">
+                    {uploading ? 'Duke u ngarkuar...' : 'Shto një Story'}
+                </div>
+                {!uploading && (
+                    <div className="text-[10px] font-medium text-text-secondary uppercase tracking-widest mt-1">
+                        (Limit 3 në ditë)
+                    </div>
+                )}
+            </div>
 
-            <div className="icon">📸</div>
-            <div style={{ fontWeight: 'bold' }}>{uploading ? 'Uploading...' : 'Add Story'}</div>
-            <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>(3 daily limit)</div>
+            <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleUpload} 
+                disabled={uploading} 
+                className="absolute inset-0 opacity-0 cursor-pointer"
+            />
 
-            <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} />
-
-            {error && <div style={{ color: '#ff7675', fontSize: '0.8rem', marginTop: '5px' }}>{error}</div>}
+            {error && (
+                <div className="text-xs text-red-500 font-bold bg-red-50 px-2 py-1 rounded">
+                    {error}
+                </div>
+            )}
         </div>
     );
 }

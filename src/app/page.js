@@ -1,16 +1,20 @@
 'use client';
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import FeaturedAds from '@/app/components/FeaturedAds';
 import Stories from '@/app/components/Stories';
+import { useFavorites } from '@/context/FavoritesContext';
 
-// Strip HTML tags for clean preview
-const stripHtml = (html) => {
-  if (!html) return '';
-  // Simple regex-based strip for server-side safety and speed
-  return html.replace(/<[^>]*>?/gm, '');
-};
+const CATEGORIES = [
+  { id: '', label: 'All', emoji: '🌟' },
+  { id: 'city', label: 'City', emoji: '🏘️' },
+  { id: 'hotel', label: 'Hotels', emoji: '🏨' },
+  { id: 'restaurant', label: 'Restaurants', emoji: '🍽️' },
+  { id: 'bar', label: 'Bars', emoji: '🍸' },
+  { id: 'bujtina', label: 'Guesthouses', emoji: '🏡' },
+  { id: 'tour', label: 'Tours', emoji: '🏔️' },
+  { id: 'rentcar', label: 'Car Rentals', emoji: '🚗' },
+];
 
 export default function Home() {
   const [listings, setListings] = useState([]);
@@ -18,12 +22,13 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState([]);
-
-  // Pagination State
+  const { toggleFavorite, isFavorite } = useFavorites();
   const [listingPage, setListingPage] = useState(1);
   const [listingTotalPages, setListingTotalPages] = useState(1);
   const [blogPage, setBlogPage] = useState(1);
   const [blogTotalPages, setBlogTotalPages] = useState(1);
+  const isFirstRunListing = useRef(true);
+  const isFirstRunBlog = useRef(true);
 
   useEffect(() => {
     fetchListings();
@@ -31,6 +36,28 @@ export default function Home() {
 
   useEffect(() => {
     fetchBlogs();
+  }, [blogPage]);
+
+  useEffect(() => {
+    if (isFirstRunListing.current) {
+      isFirstRunListing.current = false;
+      return;
+    }
+    const listingsSection = document.getElementById('listings-grid');
+    if (listingsSection) {
+      listingsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [listingPage]);
+
+  useEffect(() => {
+    if (isFirstRunBlog.current) {
+      isFirstRunBlog.current = false;
+      return;
+    }
+    const blogsSection = document.getElementById('blogs-section');
+    if (blogsSection) {
+      blogsSection.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [blogPage]);
 
   const fetchBlogs = async () => {
@@ -47,17 +74,14 @@ export default function Home() {
   const fetchListings = async () => {
     setLoading(true);
     const params = new URLSearchParams({
-      limit: '6',
+      limit: '10',
       page: listingPage.toString()
     });
     if (filter) params.append('type', filter);
     if (search) params.append('search', search);
 
-    const url = `/api/listings?${params.toString()}`;
-
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Network response was not ok');
+      const res = await fetch(`/api/listings?${params.toString()}`);
       const data = await res.json();
       setListings(data.listings || []);
       setListingTotalPages(data.totalPages || 1);
@@ -67,276 +91,250 @@ export default function Home() {
     setLoading(false);
   };
 
+  const stripHtml = (html) => {
+    if (!html) return '';
+    return html.replace(/<[^>]*>?/gm, '');
+  };
+
   return (
-    <div className="container">
+    <main className="container-wide py-8 space-y-12">
+      {/* Stories Section */}
       <Stories />
 
-      <section style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 className="hero-title" style={{ fontSize: '3rem', marginBottom: '20px', background: 'linear-gradient(to right, #6c5ce7, #fd79a8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Explore the World
-        </h1>
-        <p className="hero-subtitle" style={{ fontSize: '1.2rem', color: '#ccc' }}>Find the best places to stay, eat, and experiences around the world.</p>
-
-        <div className="search-bar glass" style={{ padding: '10px', marginTop: '30px', alignItems: 'center' }}>
-          <input
-            type="text"
-            placeholder="Search places..."
-            className="input"
-            style={{ margin: 0, border: 'none', background: 'transparent' }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                window.location.href = `/explore?search=${search}`;
-              }
-            }}
-          />
-          <Link href={`/explore?search=${search}`} className="btn" style={{ textDecoration: 'none' }}>Search</Link>
+      {/* Hero & Filter Section */}
+      <section className="space-y-8">
+        <div className="text-center space-y-4 pt-4">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-text-primary">
+            Explore the World
+          </h1>
+          <p className="text-[16px] lg:text-lg md:text-xl text-text-secondary max-w-2xl mx-auto">
+            Find the best places to stay, eat, and unique experiences everywhere you go.
+          </p>
         </div>
 
-        <div className="home-categories-grid" style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
-          <Link href="/explore" className="btn" style={{ background: 'var(--secondary)', textDecoration: 'none' }}>All</Link>
-          <Link href="/explore?type=city" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Cities</Link>
-          <Link href="/explore?type=hotel" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Hotels</Link>
-          <Link href="/explore?type=restaurant" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Restaurants</Link>
-          <Link href="/explore?type=bar" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Bars</Link>
-          <Link href="/explore?type=bujtina" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Guesthouses</Link>
-          <Link href="/explore?type=tour" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Tours</Link>
-          <Link href="/explore?type=rentcar" className="btn" style={{ background: 'var(--card-bg)', textDecoration: 'none' }}>Rent Car</Link>
+        {/* Search Bar - Airbnb Style */}
+        <div className="max-w-2xl mx-auto">
+          <div className="search-pill">
+            <input
+              type="text"
+              placeholder="Search for places, hotels, restaurants..."
+              className="flex-1 bg-transparent border-none focus:ring-0 text-text-primary text-[15px] lg:placeholder:text-[17px]  placeholder:text-[#aba9a9] font-medium"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  window.location.href = `/explore?search=${search}`;
+                }
+              }}
+            />
+            <button
+              onClick={() => window.location.href = `/explore?search=${search}`}
+              className="bg-brand text-white p-3 rounded-full hover:bg-brand-hover transition-colors shadow-sm active:scale-95"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Category Filters */}
+        <div className="flex lg:justify-center items-center gap-[5px] overflow-x-auto pb-4 scrollbar-hide pt-4">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => { 
+                if (cat.id === 'city') {
+                  window.location.href = '/explore?type=city';
+                } else {
+                  setFilter(cat.id); 
+                  setListingPage(1); 
+                }
+              }}
+              className={`flex flex-col items-center gap-2 min-w-[70px] lg:min-w-[100px] pb-3 transition-all border-b-2 hover:text-brand hover:border-brand-hover ${filter === cat.id ? 'border-brand text-brand' : 'border-transparent text-text-secondary opacity-70'
+                }`}
+            >
+              <span className="text-2xl">{cat.emoji}</span>
+              <span className="text-xs font-bold whitespace-nowrap">{cat.label}</span>
+            </button>
+          ))}
         </div>
       </section>
 
+      {/* Featured Ads (Redesigned inside its own component) */}
       <FeaturedAds />
 
-      <section>
-        <div className="grid">
-          {listings.map(listing => {
-            // Strip HTML tags for clean preview
-            const stripHtml = (html) => {
-              if (typeof window !== 'undefined') {
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-                return tmp.textContent || tmp.innerText || '';
-              }
-              return html;
-            };
+      {/* Listings Grid */}
+      <section className="space-y-8 scroll-mt-24" id="listings-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+          {listings.map((listing) => (
+            <Link
+              key={listing._id}
+              href={`/${listing.type}/${listing.slug || listing._id}`}
+              className="group space-y-3 cursor-pointer"
+            >
+              <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-bg-light relative">
+                <img
+                  src={listing.image || 'https://via.placeholder.com/400x300?text=No+Image'}
+                  alt={listing.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-brand shadow-sm">
+                  {listing.type}
+                </div>
+                {/* Favorite Button */}
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(listing); }}
+                  className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 active:scale-90 transition-all z-10"
+                >
+                  <svg
+                    width="16" height="16" viewBox="0 0 24 24"
+                    fill={isFavorite(listing._id) ? "#FF385C" : "none"}
+                    stroke={isFavorite(listing._id) ? "#FF385C" : "currentColor"}
+                    strokeWidth="2.5"
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </button>
+              </div>
 
-            return (
-              <Link
-                href={`/${listing.type}/${listing.slug || listing._id}`}
-                key={listing._id}
-                className="glass card"
-                style={{ textDecoration: 'none', color: 'inherit', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column' }}
-                onClick={async () => {
-                  try {
-                    await fetch('/api/user/activity', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ category: listing.type })
-                    });
-                  } catch (e) {
-                    console.warn('Silent activity log failed');
-                  }
-                }}
-              >
-                <div style={{ height: '200px', background: '#333', borderRadius: '8px', marginBottom: '15px', backgroundImage: `url(${listing.image || 'https://via.placeholder.com/400x300?text=No+Image'})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-                <h3 style={{ margin: '0 0 10px 0' }}>{listing.title}</h3>
-                <span style={{ fontSize: '0.8rem', background: 'var(--primary)', padding: '2px 8px', borderRadius: '12px', width: 'fit-content', marginBottom: '10px' }}>{listing.type}</span>
-                <p style={{ fontSize: '0.9rem', color: '#bbb', flex: 1 }}>{stripHtml(listing.description).substring(0, 100)}...</p>
-              </Link>
-            );
-          })}
+              <div className="space-y-1">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-bold text-base text-text-primary line-clamp-1 group-hover:text-brand transition-colors">{listing.title}</h3>
+                  <div className="flex items-center gap-1 text-sm">
+                    <span className="text-brand">★</span>
+                    <span className="font-bold">4.9</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={(e) => { 
+                      e.preventDefault(); 
+                      e.stopPropagation(); 
+                      window.location.href = `/explore?city=${listing.city}`; 
+                    }}
+                    className="text-[13px] font-bold text-text-secondary hover:text-brand transition-colors"
+                  >
+                    📍 {listing.city}
+                  </button>
+                </div>
+                <p className="text-text-secondary text-sm line-clamp-2 leading-relaxed opacity-80 pt-1">
+                  {stripHtml(listing.description).substring(0, 80)}...
+                </p>
+                <div className="pt-2">
+                  <span className="font-black text-text-primary text-lg">
+                    {listing.price ? (typeof listing.price === 'string' && (listing.price.includes('€') || listing.price.includes('Lek') || listing.price.includes('$')) ? listing.price : `€${listing.price}`) : ''}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
-        {listings.length === 0 && !loading && <p style={{ textAlign: 'center' }}>No listings found.</p>}
 
-        {/* Listings Pagination Buttons */}
+        {listings.length === 0 && !loading && (
+          <div className="text-center py-20 bg-bg-light rounded-3xl">
+            <p className="text-text-secondary font-medium italic">No listings found.</p>
+          </div>
+        )}
+
+        {/* Listings Pagination */}
         {listingTotalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '40px' }}>
+          <div className="flex justify-center items-center gap-6 pt-8">
             <button
-              className="btn"
               disabled={listingPage === 1}
               onClick={() => setListingPage(prev => Math.max(1, prev - 1))}
-              style={{ padding: '8px 20px', opacity: listingPage === 1 ? 0.5 : 1 }}
+              className="p-3 rounded-full border border-border-light hover:bg-bg-light transition-colors disabled:opacity-30 active:scale-95"
             >
-              Previous
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
             </button>
-            <span style={{ display: 'flex', alignItems: 'center', color: '#ccc' }}>Page {listingPage} of {listingTotalPages}</span>
+            <span className="text-sm font-bold text-text-primary">Page {listingPage} of {listingTotalPages}</span>
             <button
-              className="btn"
               disabled={listingPage === listingTotalPages}
               onClick={() => setListingPage(prev => Math.min(listingTotalPages, prev + 1))}
-              style={{ padding: '8px 20px', opacity: listingPage === listingTotalPages ? 0.5 : 1 }}
+              className="p-3 rounded-full border border-border-light hover:bg-bg-light transition-colors disabled:opacity-30 active:scale-95"
             >
-              Next
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6 6-6" /></svg>
             </button>
           </div>
         )}
       </section>
 
-      {/* Blog Grid Section */}
+      {/* Blogs Section */}
       {blogs.length > 0 && (
-        <section style={{ marginTop: '80px', marginBottom: '60px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '15px' }}>
+        <section className="pt-12 border-t border-border-light scroll-mt-24" id="blogs-section">
+          <div className="flex justify-between items-end mb-8">
             <div>
-              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#a29bfe', fontWeight: '700' }}>Journal</span>
-              <h2 style={{ fontSize: '2rem', fontWeight: '900', marginTop: '5px', background: 'linear-gradient(135deg, #fff, #a29bfe)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Latest from the Blog</h2>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-brand">Journal</span>
+              <h2 className="text-3xl font-extrabold text-text-primary mt-2">Latest from the Blog</h2>
             </div>
-            <Link href="/blog" className="btn" style={{ background: 'rgba(162,155,254,0.15)', color: '#a29bfe', textDecoration: 'none', border: '1px solid rgba(162,155,254,0.3)' }}>View All Articles →</Link>
+            <Link href="/blog" className="text-sm font-bold text-text-primary hover:text-brand transition-colors underline underline-offset-4">
+              View all →
+            </Link>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {blogs.map(blog => (
-              <Link key={blog._id} href={`/blog/${blog.slug}`} style={{ textDecoration: 'none', color: 'white' }}>
-                <article style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', overflow: 'hidden', transition: 'all 0.4s ease', height: '100%', display: 'flex', flexDirection: 'column' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = 'rgba(162,155,254,0.3)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}>
-                  {blog.coverImage && (
-                    <div style={{ height: '180px', overflow: 'hidden' }}>
-                      <img src={blog.coverImage} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', display: 'block' }} />
-                    </div>
-                  )}
-                  <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    {(blog.tags || []).length > 0 && (
-                      <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
-                        {blog.tags.slice(0, 2).map(tag => (
-                          <span key={tag} style={{ fontSize: '0.68rem', background: 'rgba(162,155,254,0.15)', color: '#a29bfe', padding: '2px 9px', borderRadius: '20px', fontWeight: '700', textTransform: 'uppercase' }}>{tag}</span>
-                        ))}
-                      </div>
-                    )}
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '8px', lineHeight: '1.3' }}>{blog.title}</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.9rem', lineHeight: '1.6', flex: 1, marginBottom: '15px' }}>{(blog.excerpt || '').substring(0, 100)}...</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                      <span style={{ color: '#a29bfe', fontSize: '0.85rem', fontWeight: '700' }}>Read →</span>
-                    </div>
-                  </div>
-                </article>
+              <Link key={blog._id} href={`/blog/${blog.slug}`} className="group space-y-4">
+                <div className="aspect-video rounded-2xl overflow-hidden bg-bg-light">
+                  <img
+                    src={blog.coverImage || 'https://via.placeholder.com/600x400'}
+                    alt={blog.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[10px] font-bold uppercase text-brand tracking-widest">
+                    {blog.tags?.[0] || 'News'}
+                  </span>
+                  <h3 className="text-xl font-bold text-text-primary leading-tight hover:text-brand transition-colors">
+                    {blog.title}
+                  </h3>
+                  <p className="text-text-secondary text-sm line-clamp-2">
+                    {blog.excerpt || stripHtml(blog.content).substring(0, 100)}...
+                  </p>
+                </div>
               </Link>
             ))}
           </div>
-
-          {/* Blog Pagination Buttons */}
-          {blogTotalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '40px' }}>
-              <button
-                className="btn"
-                disabled={blogPage === 1}
-                onClick={() => setBlogPage(prev => Math.max(1, prev - 1))}
-                style={{ padding: '8px 20px', background: 'rgba(255,255,255,0.05)', opacity: blogPage === 1 ? 0.5 : 1 }}
-              >
-                Previous
-              </button>
-              <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.45)', fontSize: '0.9rem' }}>Page {blogPage} of {blogTotalPages}</span>
-              <button
-                className="btn"
-                disabled={blogPage === blogTotalPages}
-                onClick={() => setBlogPage(prev => Math.min(blogTotalPages, prev + 1))}
-                style={{ padding: '8px 20px', background: 'rgba(255,255,255,0.05)', opacity: blogPage === blogTotalPages ? 0.5 : 1 }}
-              >
-                Next
-              </button>
-            </div>
-          )}
         </section>
       )}
 
-      {/* Services Section */}
-      <section style={{ marginTop: '80px', marginBottom: '80px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '4px', color: '#00cec9', fontWeight: '800' }}>Grow with Us</span>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: '900', marginTop: '10px', background: 'linear-gradient(135deg, #00cec9, #81ecec)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Professional Services</h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '15px', fontSize: '1.1rem' }}>Take your business to the next level with our premium solutions.</p>
+      <section className="bg-bg-light rounded-3xl p-8 md:p-16 text-center space-y-12">
+        <div className="space-y-4">
+          <span className="text-xs font-bold uppercase tracking-[0.3em] text-brand">Grow with us</span>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-text-primary">Professional Services</h2>
+          <p className="text-text-secondary text-lg max-w-xl mx-auto">
+            Help your business reach the next level with our premium solutions.
+          </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', maxWidth: '1000px', margin: '0 auto' }}>
-          {/* Card 1: Promotion */}
-          <div className="service-card" style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '24px',
-            padding: '40px 30px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            transition: 'all 0.4s ease',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(253, 121, 168, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '25px', color: '#fd79a8', fontSize: '2rem' }}>
-              🚀
-            </div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>Business Promotion</h3>
-            <div style={{ fontSize: '2rem', fontWeight: '900', color: '#fd79a8', marginBottom: '15px' }}>10€ <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.4)', fontWeight: '500' }}>/ 7 days</span></div>
-            <p style={{ color: 'rgba(255,255,255,0.6)', lineHeight: '1.8', marginBottom: '30px', flex: 1 }}>
-              We will aggressively promote your business across our social media channels and feature you prominently on our website to drive traffic and sales.
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Promotion */}
+          <div className="bg-white p-10 rounded-3xl border border-border-light shadow-sm hover:shadow-airbnb transition-all flex flex-col items-center">
+            <span className="text-4xl mb-6">🚀</span>
+            <h3 className="text-2xl font-bold mb-2">Business Promotion</h3>
+            <div className="text-3xl font-black text-brand mb-4">10€ <span className="text-sm text-text-secondary font-medium">/ 7 days</span></div>
+            <p className="text-text-secondary text-sm mb-8 flex-1">
+              Aggressive promotion on our social networks and placement at the top of our page.
             </p>
-            <a href="https://wa.me/355676925765" target="_blank" rel="noopener noreferrer" style={{
-              background: 'linear-gradient(135deg, #fd79a8, #e84393)',
-              color: 'white',
-              textDecoration: 'none',
-              padding: '14px 30px',
-              borderRadius: '30px',
-              fontWeight: '700',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '10px',
-              width: '100%',
-              justifyContent: 'center',
-              boxShadow: '0 10px 20px rgba(253, 121, 168, 0.3)',
-              transition: 'transform 0.3s'
-            }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-            >
-              Contact on WhatsApp
+            <a href="https://wa.me/355676925765" target="_blank" className="w-full bg-brand text-white py-4 rounded-xl font-bold hover:bg-brand-hover transition-colors shadow-soft">
+              Contact us on WhatsApp
             </a>
           </div>
 
-          {/* Card 2: Digital Presence */}
-          <div className="service-card" style={{
-            background: 'linear-gradient(to bottom, rgba(162, 155, 254, 0.08), rgba(255,255,255,0.02))',
-            border: '1px solid rgba(162, 155, 254, 0.3)',
-            borderRadius: '24px',
-            padding: '40px 30px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            transition: 'all 0.4s ease',
-            position: 'relative'
-          }}>
-            <div style={{ position: 'absolute', top: '15px', right: '15px', background: '#a29bfe', color: '#000', fontSize: '0.7rem', fontWeight: '800', padding: '4px 12px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px' }}>Popular</div>
-            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(162, 155, 254, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '25px', color: '#a29bfe', fontSize: '2rem' }}>
-              💻
-            </div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px' }}>Digital Presence</h3>
-            <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#a29bfe', marginBottom: '15px', height: '39px', display: 'flex', alignItems: 'center' }}>Custom Quote</div>
-            <p style={{ color: 'rgba(255,255,255,0.6)', lineHeight: '1.8', marginBottom: '30px', flex: 1 }}>
-              Complete identity makeover. We build a modern website, design a stunning professional logo, and provide full-service social media management.
+          {/* Presence */}
+          <div className="bg-white p-10 rounded-3xl border border-brand/20 shadow-sm hover:shadow-airbnb transition-all flex flex-col items-center relative overflow-hidden">
+            <div className="absolute top-4 right-4 bg-brand text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Most Wanted</div>
+            <span className="text-4xl mb-6">💻</span>
+            <h3 className="text-2xl font-bold mb-2">Digital Presence</h3>
+            <div className="text-2xl font-bold text-brand mb-4 h-[44px] flex items-center">By agreement</div>
+            <p className="text-text-secondary text-sm mb-8 flex-1">
+              Modern website, professional logo, and full management of social networks.
             </p>
-            <a href="https://wa.me/355676925765" target="_blank" rel="noopener noreferrer" style={{
-              background: '#a29bfe',
-              color: '#000',
-              textDecoration: 'none',
-              padding: '14px 30px',
-              borderRadius: '30px',
-              fontWeight: '800',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '10px',
-              width: '100%',
-              justifyContent: 'center',
-              boxShadow: '0 10px 20px rgba(162, 155, 254, 0.3)',
-              transition: 'transform 0.3s'
-            }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-            >
-              Contact on WhatsApp
+            <a href="https://wa.me/355676925765" target="_blank" className="w-full bg-text-primary text-white py-4 rounded-xl font-bold hover:bg-black transition-colors shadow-soft">
+              Contact us on WhatsApp
             </a>
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

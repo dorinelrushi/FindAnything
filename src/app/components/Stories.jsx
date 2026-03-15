@@ -25,97 +25,35 @@ export default function Stories() {
     if (groups.length === 0) return null;
 
     return (
-        <div className="glass" style={{
-            padding: '20px',
-            borderRadius: '20px',
-            marginBottom: '40px',
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.1)'
-        }}>
-            <h2 style={{
-                margin: '0 0 15px 0',
-                fontSize: '1.2rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px'
-            }}>
-                <span style={{ fontSize: '1.5rem' }}>✨</span> Business Stories
+        <section className="space-y-4">
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-text-secondary pl-1">
+                Story-t nga Bizneset
             </h2>
 
-            <div className="stories-container" style={{
-                display: 'flex',
-                gap: '20px',
-                overflowX: 'auto',
-                padding: '5px 0',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                scrollBehavior: 'smooth',
-                WebkitOverflowScrolling: 'touch'
-            }}>
-                <style jsx>{`
-                    .stories-container::-webkit-scrollbar {
-                        display: none;
-                    }
-                    .story-circle {
-                        flex: 0 0 auto;
-                        width: 75px;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        cursor: pointer;
-                        transition: transform 0.2s;
-                    }
-                    .story-circle:active {
-                        transform: scale(0.95);
-                    }
-                    .avatar-ring {
-                        width: 70px;
-                        height: 70px;
-                        border-radius: 50%;
-                        padding: 3px;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    }
-                    .story-circle:hover .avatar-ring {
-                        transform: scale(1.05);
-                    }
-                    .avatar-ring.unseen {
-                        background: linear-gradient(45deg, #2ecc71, #27ae60, #1abc9c);
-                        box-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
-                    }
-                    .avatar-ring.seen {
-                        background: #333;
-                    }
-                    .avatar-img {
-                        width: 100%;
-                        height: 100%;
-                        border-radius: 50%;
-                        background: #111;
-                        object-fit: cover;
-                        border: 2px solid #000;
-                    }
-                    .business-name {
-                        font-size: 0.75rem;
-                        margin-top: 8px;
-                        color: #bbb;
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        width: 100%;
-                        text-align: center;
-                        font-weight: 500;
-                    }
-                `}</style>
-
+            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide px-1">
                 {groups.map((group, index) => (
-                    <div key={group.businessId} className="story-circle" onClick={() => setSelectedGroupIndex(index)}>
-                        <div className={`avatar-ring ${group.allSeen ? 'seen' : 'unseen'}`}>
-                            <img src={group.avatar} alt={group.name} className="avatar-img" />
+                    <button 
+                        key={group.businessId} 
+                        className="flex flex-col items-center gap-2 group transition-transform active:scale-95"
+                        onClick={() => setSelectedGroupIndex(index)}
+                    >
+                        <div className={`w-20 h-20 rounded-full p-1 border-2 transition-all group-hover:p-0.5 ${
+                            group.allSeen 
+                            ? 'border-border-light' 
+                            : 'border-brand shadow-[0_0_15px_rgba(255,56,92,0.3)]'
+                        }`}>
+                            <div className="w-full h-full rounded-full border-2 border-white overflow-hidden bg-bg-light">
+                                <img 
+                                    src={group.avatar || 'https://via.placeholder.com/100'} 
+                                    alt={group.name} 
+                                    className="w-full h-full object-cover" 
+                                />
+                            </div>
                         </div>
-                        <span className="business-name">{group.name}</span>
-                    </div>
+                        <span className="text-[10px] font-bold text-text-secondary group-hover:text-text-primary h-4 overflow-hidden text-ellipsis whitespace-nowrap w-20 text-center">
+                            {group.name}
+                        </span>
+                    </button>
                 ))}
 
                 {selectedGroupIndex !== null && (
@@ -129,6 +67,6 @@ export default function Stories() {
                     />
                 )}
             </div>
-        </div>
+        </section>
     );
 }
