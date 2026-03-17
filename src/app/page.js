@@ -4,6 +4,8 @@ import Link from 'next/link';
 import FeaturedAds from '@/app/components/FeaturedAds';
 import Stories from '@/app/components/Stories';
 import { useFavorites } from '@/context/FavoritesContext';
+import CommunityChatPopup from '@/app/components/CommunityChatPopup';
+import { MessageCircle } from 'lucide-react';
 
 const CATEGORIES = [
   { id: '', label: 'All', emoji: '🌟' },
@@ -21,6 +23,7 @@ export default function Home() {
   const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [blogs, setBlogs] = useState([]);
   const { toggleFavorite, isFavorite } = useFavorites();
   const [listingPage, setListingPage] = useState(1);
@@ -335,6 +338,20 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Floating Action Button for Community Chat */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 w-16 h-16 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-40 animate-bounce group"
+      >
+        <MessageCircle className="w-8 h-8 group-hover:animate-pulse" />
+      </button>
+
+      {/* The Chat Popup */}
+      <CommunityChatPopup 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+      />
     </main>
   );
 }

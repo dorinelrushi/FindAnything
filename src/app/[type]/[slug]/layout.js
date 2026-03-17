@@ -1,56 +1,26 @@
-// Dynamic SEO metadata for listing detail pages — direct DB query, no self-HTTP-fetch
-import dbConnect from '@/lib/db';
-import Listing from '@/models/Listing';
-
 export async function generateMetadata({ params }) {
-    const { slug, type } = await params;
-
+    const { slug } = await params;
     try {
-        await dbConnect();
-        const listing = await Listing.findOne({ slug }).lean();
-
-        if (!listing) {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/listings/${slug}`, { next: { revalidate: 3600 } });
+        const data = await res.json();
+        
+        if (data.listing) {
             return {
-                title: 'Listing - TryToFindEverything',
-                description: 'Discover amazing places on TryToFindEverything.',
+                title: `${data.listing.title} - TryToFindEverything`,
+                description: (data.listing.description?.substring(0, 160) || `Discover ${data.listing.title} in ${data.listing.city}.`) + ' Find hotels, restaurants and more.',
+                openGraph: {
+                    title: data.listing.title,
+                    description: data.listing.description?.substring(0, 160),
+                    images: data.listing.image ? [{ url: data.listing.image }] : [],
+                },
             };
         }
-
-        const cleanDesc = listing.description
-            ? listing.description.replace(/<[^>]+>/g, '').replace(/\*\*(.*?)\*\*/g, '$1').substring(0, 155) + '...'
-            : `Discover ${listing.title} on TryToFindEverything.`;
-
-        const typeLabel = {
-            hotel: 'Hotel',
-            restaurant: 'Restaurant',
-            bar: 'Bar',
-            bujtina: 'Guesthouse',
-            rentcar: 'Car Rental',
-            tour: 'Tour',
-            city: 'City',
-        }[type] || type;
-
-        const locationStr = [listing.city, listing.country].filter(Boolean).join(', ');
-
-        return {
-            title: `${listing.title} - ${typeLabel}${locationStr ? ` in ${locationStr}` : ''} | TryToFindEverything`,
-            description: cleanDesc,
-            keywords: `${listing.title}, ${typeLabel}, ${locationStr}, travel, discover`,
-            openGraph: {
-                title: listing.title,
-                description: cleanDesc,
-                images: listing.image ? [{ url: listing.image }] : [],
-                type: 'website',
-            },
-        };
-    } catch {
-        return {
-            title: 'Listing - TryToFindEverything',
-            description: 'Discover amazing places on TryToFindEverything.',
-        };
+    } catch (e) {
+        return { title: 'Discover - TryToFindEverything' };
     }
+    return { title: 'Discover - TryToFindEverything' };
 }
 
 export default function ListingLayout({ children }) {
-    return children;
+    return <>{children}</>;
 }
