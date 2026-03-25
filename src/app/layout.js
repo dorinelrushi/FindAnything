@@ -84,11 +84,16 @@ export default function RootLayout({ children }) {
             gtag('config', 'G-TMCLY9JCVR');
           `}
         </Script>
+        <Script src="https://pl28977517.profitablecpmratenetwork.com/35/ac/ab/35acab0d8e94bea1526b56bbf9a102e2.js" />
+        <Script async="async" data-cfasync="false" src="https://pl28977516.profitablecpmratenetwork.com/5712706d5bc1e6693569ed677b259f1e/invoke.js"/>
         <Providers>
           <DailyReminder />
           <Navbar />
           <main>
             {children}
+            <div className="flex justify-center my-4">
+           <div id="container-5712706d5bc1e6693569ed677b259f1e"></div>
+        </div>
           </main>
           <Footer />
         </Providers>
