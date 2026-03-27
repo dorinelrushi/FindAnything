@@ -47,7 +47,7 @@ export default function ExploreClient() {
         setCategoryFilter(initialCategory);
         setCityFilter(initialCity);
         setServiceFilters(initialServices);
-    }, [initialType, initialSearch, initialCategory, initialCity]);
+    }, [initialType, initialSearch, initialCategory, initialCity, initialServices.join(',')]);
 
     useEffect(() => {
         fetchListings();
@@ -110,6 +110,8 @@ export default function ExploreClient() {
         updateURL({ services: newServices });
     };
 
+    const toggleMobileFilters = () => setShowMobileFilters(!showMobileFilters);
+
     const stripHtml = (html) => {
         if (!html) return '';
         return html.replace(/<[^>]*>?/gm, '');
@@ -136,20 +138,33 @@ export default function ExploreClient() {
                             </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-6 md:gap-10 overflow-x-auto mt-[25px] pb-2 scrollbar-hide">
-                        {CATEGORIES.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => handleFilterChange(cat.id)}
-                                className={`flex flex-col items-center gap-1.5 min-w-fit pb-2 transition-all border-b-2 hover:opacity-100 ${filter === cat.id
-                                    ? 'border-text-primary text-text-primary opacity-100'
-                                    : 'border-transparent text-text-secondary opacity-60 hover:border-border-light'
-                                    }`}
+                    <div className="flex items-center gap-4 lg:gap-10 overflow-x-auto mt-[25px] pb-2 scrollbar-hide relative">
+                        <div className="flex items-center gap-6 lg:gap-10 pr-20 lg:pr-0">
+                            {CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => handleFilterChange(cat.id)}
+                                    className={`flex flex-col items-center gap-1.5 min-w-fit pb-2 transition-all border-b-2 hover:opacity-100 ${filter === cat.id
+                                        ? 'border-text-primary text-text-primary opacity-100'
+                                        : 'border-transparent text-text-secondary opacity-60 hover:border-border-light'
+                                        }`}
+                                >
+                                    <span className="text-xl md:text-2xl">{cat.emoji}</span>
+                                    <span className="text-[10px] md:text-xs font-bold whitespace-nowrap uppercase tracking-wider">{cat.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {/* Mobile Filter Toggle */}
+                        <div className="lg:hidden absolute right-0 top-0 bottom-2 flex items-center bg-gradient-to-l from-white via-white to-transparent pl-10">
+                            <button 
+                                onClick={toggleMobileFilters}
+                                className="bg-bg-light border border-border-light p-2.5 rounded-xl shadow-sm hover:border-text-primary transition-all flex items-center gap-2"
                             >
-                                <span className="text-xl md:text-2xl">{cat.emoji}</span>
-                                <span className="text-[10px] md:text-xs font-bold whitespace-nowrap uppercase tracking-wider">{cat.label}</span>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                                <span className="text-[13px] font-bold">Filters</span>
                             </button>
-                        ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -244,6 +259,70 @@ export default function ExploreClient() {
                     </div>
                 </div>
             </div>
+            {/* Mobile Filters Modal */}
+            {showMobileFilters && (
+                <div className="fixed inset-0 z-[100] bg-white overflow-y-auto lg:hidden">
+                    <div className="sticky top-0 bg-white border-b border-border-light p-5 flex items-center justify-between z-10">
+                        <h2 className="text-xl font-bold">Filters</h2>
+                        <button onClick={toggleMobileFilters} className="p-2 bg-bg-light rounded-full text-2xl leading-none">×</button>
+                    </div>
+                    
+                    <div className="p-6 space-y-10">
+                        {availableCities.length > 0 && (
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-text-primary">City</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => { setCityFilter(''); updateURL({ city: '' }); }}
+                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === '' ? 'bg-text-primary text-white border-text-primary' : 'bg-white text-text-secondary border-border-light'}`}
+                                    >
+                                        All
+                                    </button>
+                                    {availableCities.map(city => (
+                                        <button
+                                            key={city}
+                                            onClick={() => { setCityFilter(city); updateURL({ city }); }}
+                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === city ? 'bg-text-primary text-white border-text-primary' : 'bg-white text-text-secondary border-border-light'}`}
+                                        >
+                                            {city}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {availableServices.length > 0 && (
+                             <div className="space-y-4">
+                                 <h3 className="text-xs font-black uppercase tracking-widest text-text-primary">Amenities</h3>
+                                 <div className="grid grid-cols-2 gap-4">
+                                     {availableServices.map(service => (
+                                         <label key={service} className="flex items-center gap-3">
+                                             <input
+                                                 type="checkbox"
+                                                 checked={serviceFilters.includes(service)}
+                                                 onChange={() => toggleServiceFilter(service)}
+                                                 className="w-5 h-5 rounded border-border-light text-brand focus:ring-brand"
+                                             />
+                                             <span className="text-sm font-medium text-text-secondary">
+                                                 {service}
+                                             </span>
+                                         </label>
+                                     ))}
+                                 </div>
+                             </div>
+                        )}
+                    </div>
+
+                    <div className="sticky bottom-0 bg-white border-t border-border-light p-6">
+                        <button 
+                            onClick={toggleMobileFilters}
+                            className="w-full btn-primary py-4 text-base font-bold shadow-lg"
+                        >
+                            Show {listings.length} Results
+                        </button>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
