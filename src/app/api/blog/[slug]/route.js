@@ -37,7 +37,9 @@ export async function GET(req, { params }) {
         const lowerSlug = slug.toLowerCase();
         // If user is admin, they can see unpublished blogs
         const admin = await verifyAdmin(req);
-        const query = admin ? { slug: lowerSlug } : { slug: lowerSlug, published: true };
+        const query = admin 
+            ? { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } } 
+            : { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') }, published: true };
 
         const blog = await Blog.findOne(query).populate('author', 'name');
         if (!blog) return NextResponse.json({ error: 'Not found' }, { status: 404 });

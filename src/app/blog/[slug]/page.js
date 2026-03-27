@@ -29,7 +29,8 @@ async function getBlogData(slug) {
     try {
         await dbConnect();
         const lowerSlug = slug.toLowerCase();
-        const blog = await Blog.findOne({ slug: lowerSlug }).populate('author', 'name');
+        // Use regex for case-insensitive lookup in case slugs in DB are mixed case
+        const blog = await Blog.findOne({ slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } }).populate('author', 'name');
         return blog;
     } catch (e) {
         console.error('Error fetching blog data', e);
@@ -55,12 +56,12 @@ export async function generateMetadata({ params }) {
         title: `${title} - KorcaCity Blog`,
         description,
         alternates: {
-            canonical: `https://trytofindeverything.online/blog/${blog.slug}`,
+            canonical: `/blog/${blog.slug}`,
         },
         openGraph: {
             title,
             description,
-            url: `https://trytofindeverything.online/blog/${blog.slug}`,
+            url: `/blog/${blog.slug}`,
             images: [
                 {
                     url: blog.coverImage || '/og-image.jpg',
@@ -118,7 +119,7 @@ export default async function BlogDetailPage({ params }) {
         description: blog.excerpt,
         mainEntityOfPage: {
             '@type': 'WebPage',
-            '@id': `https://trytofindeverything.online/blog/${blog.slug}`,
+            '@id': `/blog/${blog.slug}`,
         },
     };
 

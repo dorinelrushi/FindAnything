@@ -33,9 +33,12 @@ const getListingData = cache(async (slug) => {
         
         const lowerSlug = slug.toLowerCase();
         
+        // Use regex for case-insensitive lookup in case slugs in DB are mixed case
+        const slugQuery = { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } };
+        
         // Try by slug first, then by ID
         let listing = await Listing.findOneAndUpdate(
-            { slug: lowerSlug },
+            slugQuery,
             { $inc: { views: 1 } },
             { new: true }
         ).populate('owner', 'name email phoneNumber phonePrefix');
@@ -88,12 +91,12 @@ export async function generateMetadata({ params }) {
         title,
         description,
         alternates: {
-            canonical: `https://trytofindeverything.online/${listing.type}/${listing.slug || listing._id}`,
+            canonical: `/${listing.type}/${listing.slug || listing._id}`,
         },
         openGraph: {
             title,
             description,
-            url: `https://trytofindeverything.online/${listing.type}/${listing.slug || listing._id}`,
+            url: `/${listing.type}/${listing.slug || listing._id}`,
             images: [
                 {
                     url: listing.image || '/og-image.jpg',
@@ -133,7 +136,7 @@ export default async function ListingPage({ params }) {
             addressLocality: data.listing.city,
             addressCountry: data.listing.country || 'AL',
         },
-        url: `https://trytofindeverything.online/${data.listing.type}/${data.listing.slug || data.listing._id}`,
+        url: `/${data.listing.type}/${data.listing.slug || data.listing._id}`,
         aggregateRating: {
             '@type': 'AggregateRating',
             ratingValue: '4.9',

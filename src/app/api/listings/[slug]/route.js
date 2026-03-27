@@ -38,7 +38,7 @@ export async function GET(req, { params }) {
     const { slug } = await params;
     const lowerSlug = slug.toLowerCase();
     let listing = await Listing.findOneAndUpdate(
-        { slug: lowerSlug },
+        { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
         { $inc: { views: 1 } },
         { new: true }
     ).populate('owner', 'name email phoneNumber phonePrefix');

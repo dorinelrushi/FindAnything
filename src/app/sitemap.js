@@ -3,7 +3,7 @@ import Listing from '@/models/Listing';
 import Blog from '@/models/Blog';
 
 export default async function sitemap() {
-  const baseUrl = 'https://trytofindeverything.online';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trytofindeverything.online';
 
   // Static routes
   const staticRoutes = ['', '/explore', '/blog', '/login', '/register', '/suggestions'].map((route) => ({
