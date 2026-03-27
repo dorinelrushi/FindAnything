@@ -37,11 +37,18 @@ export async function GET(req, { params }) {
     await dbConnect();
     const { slug } = await params;
     const lowerSlug = slug.toLowerCase();
-    let listing = await Listing.findOneAndUpdate(
-        { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
-        { $inc: { views: 1 } },
-        { new: true }
-    ).populate('owner', 'name email phoneNumber phonePrefix');
+    const titleFallback = slug.replace(/-/g, ' ');
+    
+    let listing = await Listing.findOne({
+        $or: [
+            { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
+            { title: { $regex: new RegExp(`^${titleFallback}$`, 'i') } }
+        ]
+    }).populate('owner', 'name email phoneNumber phonePrefix');
+    
+    if (listing) {
+        Listing.findByIdAndUpdate(listing._id, { $inc: { views: 1 } }).catch(() => {});
+    }
 
     if (!listing && slug.match(/^[0-9a-fA-F]{24}$/)) {
         listing = await Listing.findByIdAndUpdate(

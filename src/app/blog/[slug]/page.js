@@ -29,8 +29,15 @@ async function getBlogData(slug) {
     try {
         await dbConnect();
         const lowerSlug = slug.toLowerCase();
+        const titleFallback = slug.replace(/-/g, ' ');
+        
         // Use regex for case-insensitive lookup in case slugs in DB are mixed case
-        const blog = await Blog.findOne({ slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } }).populate('author', 'name');
+        const blog = await Blog.findOne({ 
+            $or: [
+                { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
+                { title: { $regex: new RegExp(`^${titleFallback}$`, 'i') } }
+            ]
+        }).populate('author', 'name');
         return blog;
     } catch (e) {
         console.error('Error fetching blog data', e);

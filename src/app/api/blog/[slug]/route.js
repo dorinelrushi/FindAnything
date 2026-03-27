@@ -35,13 +35,19 @@ export async function GET(req, { params }) {
         await dbConnect();
         const { slug } = await params;
         const lowerSlug = slug.toLowerCase();
+        const titleFallback = slug.replace(/-/g, ' ');
+
         // If user is admin, they can see unpublished blogs
         const admin = await verifyAdmin(req);
-        const query = admin 
-            ? { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } } 
-            : { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') }, published: true };
-
-        const blog = await Blog.findOne(query).populate('author', 'name');
+        const baseQuery = admin ? {} : { published: true };
+        
+        const blog = await Blog.findOne({
+            ...baseQuery,
+            $or: [
+                { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
+                { title: { $regex: new RegExp(`^${titleFallback}$`, 'i') } }
+            ]
+        }).populate('author', 'name');
         if (!blog) return NextResponse.json({ error: 'Not found' }, { status: 404 });
         return NextResponse.json({ blog });
     } catch (error) {

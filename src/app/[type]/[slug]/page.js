@@ -33,25 +33,27 @@ const getListingData = cache(async (slug) => {
         
         const lowerSlug = slug.toLowerCase();
         
-        // Use regex for case-insensitive lookup in case slugs in DB are mixed case
-        const slugQuery = { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } };
+        // Search by slug (case-insensitive) OR by ID OR by title-based fallback
+        // This is necessary if old listings don't have the slug field populated
+        const titleFallback = slug.replace(/-/g, ' ');
         
-        // Try by slug first, then by ID
-        let listing = await Listing.findOneAndUpdate(
-            slugQuery,
-            { $inc: { views: 1 } },
-            { new: true }
-        ).populate('owner', 'name email phoneNumber phonePrefix');
+        let listing = await Listing.findOne({
+            $or: [
+                { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
+                { title: { $regex: new RegExp(`^${titleFallback}$`, 'i') } }
+            ]
+        }).populate('owner', 'name email phoneNumber phonePrefix');
     
+        // If still not found and looks like an ID, try by ID
         if (!listing && slug.match(/^[0-9a-fA-F]{24}$/)) {
-            listing = await Listing.findByIdAndUpdate(
-                slug,
-                { $inc: { views: 1 } },
-                { new: true }
-            ).populate('owner', 'name email phoneNumber phonePrefix');
+            listing = await Listing.findById(slug).populate('owner', 'name email phoneNumber phonePrefix');
         }
     
         if (!listing) return null;
+        
+        // Asynchronously increment views if not in a build/render environment where possible
+        // but don't block the content return
+        Listing.findByIdAndUpdate(listing._id, { $inc: { views: 1 } }).catch(() => {});
     
         // Fetch reviews
         const reviews = await Review.find({ listing: listing._id })
