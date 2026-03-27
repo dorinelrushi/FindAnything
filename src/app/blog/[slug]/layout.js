@@ -1,7 +1,18 @@
-// Dynamic SEO metadata for blog detail pages
-// Uses direct DB query instead of HTTP self-fetch so it works in production
 import dbConnect from '@/lib/db';
 import Blog from '@/models/Blog';
+
+export async function generateStaticParams() {
+    try {
+        await dbConnect();
+        const blogs = await Blog.find({ published: true }, 'slug').lean();
+        return blogs.map((blog) => ({
+            slug: blog.slug,
+        }));
+    } catch (e) {
+        console.error('Failed to generate static params for blog', e);
+        return [];
+    }
+}
 
 export async function generateMetadata({ params }) {
     const { slug } = await params;
@@ -18,9 +29,13 @@ export async function generateMetadata({ params }) {
             title: blog.seoTitle || `${blog.title} | TryToFindEverything`,
             description: blog.seoDescription || blog.excerpt || '',
             keywords: (blog.tags || []).join(', '),
+            alternates: {
+                canonical: `https://trytofindeverything.online/blog/${blog.slug}`,
+            },
             openGraph: {
                 title: blog.seoTitle || blog.title,
                 description: blog.seoDescription || blog.excerpt || '',
+                url: `https://trytofindeverything.online/blog/${blog.slug}`,
                 images: blog.coverImage ? [{ url: blog.coverImage }] : [],
                 type: 'article',
             },

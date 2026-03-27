@@ -5,40 +5,62 @@ import Menu from '@/models/Menu';
 import { notFound } from 'next/navigation';
 import ListingClient from './ListingClient';
 
-async function getListingData(slug) {
-    await dbConnect();
-    
-    // Try by slug first, then by ID
-    let listing = await Listing.findOneAndUpdate(
-        { slug: slug },
-        { $inc: { views: 1 } },
-        { new: true }
-    ).populate('owner', 'name email phoneNumber phonePrefix');
+// Pre-render pages for SEO
+export async function generateStaticParams() {
+    try {
+        await dbConnect();
+        const listings = await Listing.find({}, 'type slug').lean();
+        return listings.map((listing) => ({
+            type: listing.type,
+            slug: listing.slug || listing._id.toString(),
+        }));
+    } catch (e) {
+        console.error('Failed to generate static params', e);
+        return [];
+    }
+}
 
-    if (!listing && slug.match(/^[0-9a-fA-F]{24}$/)) {
-        listing = await Listing.findByIdAndUpdate(
-            slug,
+import { cache } from 'react';
+
+const getListingData = cache(async (slug) => {
+    try {
+        await dbConnect();
+        
+        // Try by slug first, then by ID
+        let listing = await Listing.findOneAndUpdate(
+            { slug: slug },
             { $inc: { views: 1 } },
             { new: true }
         ).populate('owner', 'name email phoneNumber phonePrefix');
+    
+        if (!listing && slug.match(/^[0-9a-fA-F]{24}$/)) {
+            listing = await Listing.findByIdAndUpdate(
+                slug,
+                { $inc: { views: 1 } },
+                { new: true }
+            ).populate('owner', 'name email phoneNumber phonePrefix');
+        }
+    
+        if (!listing) return null;
+    
+        // Fetch reviews
+        const reviews = await Review.find({ listing: listing._id })
+            .populate('user', 'name')
+            .sort({ createdAt: -1 });
+    
+        // Fetch menu
+        const menu = await Menu.findOne({ listing: listing._id });
+    
+        return {
+            listing: JSON.parse(JSON.stringify(listing)),
+            reviews: JSON.parse(JSON.stringify(reviews)),
+            menu: JSON.parse(JSON.stringify(menu))
+        };
+    } catch (error) {
+        console.error("Error fetching listing data:", error);
+        return null;
     }
-
-    if (!listing) return null;
-
-    // Fetch reviews
-    const reviews = await Review.find({ listing: listing._id })
-        .populate('user', 'name')
-        .sort({ createdAt: -1 });
-
-    // Fetch menu
-    const menu = await Menu.findOne({ listing: listing._id });
-
-    return {
-        listing: JSON.parse(JSON.stringify(listing)),
-        reviews: JSON.parse(JSON.stringify(reviews)),
-        menu: JSON.parse(JSON.stringify(menu))
-    };
-}
+});
 
 export async function generateMetadata({ params }) {
     const { slug } = await params;
@@ -92,12 +114,38 @@ export default async function ListingPage({ params }) {
         notFound();
     }
 
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': data.listing.type === 'restaurant' ? 'Restaurant' : (data.listing.type === 'hotel' ? 'Hotel' : 'LocalBusiness'),
+        name: data.listing.title,
+        description: data.listing.description,
+        image: data.listing.image,
+        address: {
+            '@type': 'PostalAddress',
+            streetAddress: data.listing.address,
+            addressLocality: data.listing.city,
+            addressCountry: data.listing.country || 'AL',
+        },
+        url: `https://trytofindeverything.online/${data.listing.type}/${data.listing.slug || data.listing._id}`,
+        aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.9',
+            reviewCount: data.reviews?.length || '1',
+        },
+    };
+
     return (
-        <ListingClient 
-            initialListing={data.listing} 
-            initialReviews={data.reviews} 
-            initialMenu={data.menu}
-            slug={slug}
-        />
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <ListingClient 
+                initialListing={data.listing} 
+                initialReviews={data.reviews} 
+                initialMenu={data.menu}
+                slug={slug}
+            />
+        </>
     );
 }

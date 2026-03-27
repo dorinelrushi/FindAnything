@@ -4,8 +4,13 @@ export default function robots() {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/login', '/register'],
+        disallow: ['/api/', '/admin/', '/login', '/register', '/dashboard/', '/profile'],
       },
+      {
+        userAgent: 'Googlebot',
+        allow: '/',
+        disallow: ['/api/', '/admin/'],
+      }
     ],
     sitemap: 'https://trytofindeverything.online/sitemap.xml',
   }

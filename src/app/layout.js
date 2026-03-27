@@ -14,7 +14,7 @@ export const metadata = {
     template: '%s | TryToFindEverything'
   },
   description: 'Find the best hotels, restaurants, bars, guesthouses, car rentals, and tours around the world. Your global travel and business discovery platform.',
-  keywords: 'hotels, restaurants, tourism, travel, car rental, tours, guesthouses, discover, korca city, find anything',
+  keywords: 'hotels, restaurants, tourism, travel, car rental, tours, guesthouses, discover, korca city, find anything, worldwide directory',
   authors: [{ name: 'TryToFindEverything' }],
   creator: 'TryToFindEverything',
   publisher: 'TryToFindEverything',
@@ -25,7 +25,7 @@ export const metadata = {
   },
   metadataBase: new URL('https://trytofindeverything.online'),
   alternates: {
-    canonical: './',
+    canonical: '/',
   },
   openGraph: {
     title: 'TryToFindEverything - Discover the World',
@@ -37,6 +37,7 @@ export const metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
+        alt: 'TryToFindEverything'
       },
     ],
     locale: 'en_US',
@@ -51,9 +52,11 @@ export const metadata = {
   robots: {
     index: true,
     follow: true,
+    nocache: true,
     googleBot: {
       index: true,
       follow: true,
+      noimageindex: false,
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,
