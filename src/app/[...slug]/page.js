@@ -6,6 +6,7 @@ import Menu from '@/models/Menu';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ListingClient from '@/app/components/ListingClient';
+import MenuPageClient from '@/app/components/MenuPageClient';
 import BlogActions from '@/app/components/BlogActions';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
@@ -127,10 +128,14 @@ export default async function CatchAllPage({ params }) {
     const { slug } = await params;
     if (!slug || slug.length === 0) notFound();
 
-    const first = slug[0].toLowerCase();
+    const first = slug[0]?.toLowerCase();
     const second = slug[1];
+    const isMenu = slug[slug.length - 1]?.toLowerCase() === 'menu';
 
-    // --- BLOG LIST VIEW ---
+    // --- MENU VIEW (Catch /listing-type/slug/menu) ---
+    if (isMenu && slug.length >= 2) {
+        return <MenuPageClient params={Promise.resolve({ slug: slug })} />;
+    }
     if (first === 'blog' && !second) {
         await dbConnect();
         const blogs = await Blog.find({ published: true }).sort({ createdAt: -1 }).select('title slug excerpt coverImage tags createdAt author').lean();

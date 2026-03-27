@@ -3,20 +3,25 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-export default function MenuPage({ params }) {
+export default function MenuPageClient({ params }) {
     const { slug } = use(params);
     const [menu, setMenu] = useState(null);
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // slug should be an array like ['hotel', 'my-hotel', 'menu']
+    const listingSlug = Array.isArray(slug) ? slug[1] : slug;
+
     useEffect(() => {
-        fetchData();
-    }, [slug]);
+        if (listingSlug) {
+            fetchData();
+        }
+    }, [listingSlug]);
 
     const fetchData = async () => {
         try {
-            // 1. Get Listing ID from slug
-            const resListing = await fetch(`/api/listings/${slug}`);
+            // 1. Get Listing from slug
+            const resListing = await fetch(`/api/listings/${listingSlug}`);
             const dataListing = await resListing.json();
 
             if (!dataListing.listing) {
@@ -46,7 +51,7 @@ export default function MenuPage({ params }) {
             <style jsx>{`
                 .loader {
                     border: 5px solid #f3f3f3;
-                    border-top: 5px solid var(--primary);
+                    border-top: 5px solid #ff4d4d;
                     border-radius: 50%;
                     width: 50px;
                     height: 50px;
@@ -73,14 +78,14 @@ export default function MenuPage({ params }) {
                 <div className="header-content">
                     <h1>{listing.title}</h1>
                     <p className="subtitle">Menu</p>
-                    <Link href={`/${listing.type}/${slug}`} className="back-link">
+                    <Link href={`/${listing.type}/${listingSlug}`} className="back-link">
                         &larr; Back to {listing.title}
                     </Link>
                 </div>
             </header>
 
-            <div className="container" style={{ marginTop: '-50px', position: 'relative', zIndex: 10 }}>
-                <div className="menu-content glass card">
+            <div className="container" style={{ marginTop: '-50px', position: 'relative', zIndex: 10, padding: '0 20px' }}>
+                <div className="menu-content card" style={{ background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
                     {menu.categories.map((cat, i) => (
                         <div key={i} className="menu-category">
                             <h2 className="category-title">{cat.name}</h2>
@@ -109,6 +114,7 @@ export default function MenuPage({ params }) {
                 .menu-page {
                     min-height: 100vh;
                     padding-bottom: 50px;
+                    background: #f8f9fa;
                 }
                 .menu-header {
                     height: 300px;
@@ -148,7 +154,8 @@ export default function MenuPage({ params }) {
                 }
                 
                 .menu-content {
-                    padding: 40px;
+                    max-width: 900px;
+                    margin: 0 auto;
                 }
                 
                 .menu-category {
@@ -157,14 +164,10 @@ export default function MenuPage({ params }) {
                 
                 .category-title {
                     text-align: center;
-                    font-family: 'Playfair Display', serif; /* Assuming you might want a fancy font, default serif otherwise */
-                    font-size: 2.5rem;
-                    color: var(--primary);
+                    font-size: 2.2rem;
+                    color: #333;
                     margin-bottom: 30px;
                     position: relative;
-                    display: inline-block;
-                    left: 50%;
-                    transform: translateX(-50%);
                 }
                 
                 .category-title::after {
@@ -172,13 +175,13 @@ export default function MenuPage({ params }) {
                     display: block;
                     width: 60px;
                     height: 3px;
-                    background: var(--accent);
+                    background: #ff4d4d;
                     margin: 10px auto 0;
                 }
 
                 .items-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+                    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
                     gap: 30px;
                 }
 
@@ -187,58 +190,26 @@ export default function MenuPage({ params }) {
                         grid-template-columns: 1fr;
                         gap: 15px;
                     }
-                    .header-content h1 {
-                        font-size: 2rem;
-                    }
-                    .subtitle {
-                        font-size: 1.1rem;
-                    }
-                    .menu-header {
-                        height: 200px;
-                    }
-                    .menu-content {
-                        padding: 20px 15px;
-                    }
-                    .category-title {
-                        font-size: 1.8rem;
-                    }
-                    .category-title::after {
-                        width: 40px;
-                    }
                 }
 
                 .menu-item {
                     display: flex;
                     gap: 15px;
-                    background: rgba(255,255,255,0.03);
-                    padding: 15px;
-                    border-radius: 12px;
-                    transition: transform 0.2s, box-shadow 0.2s;
-                    border: 1px solid transparent;
-                }
-
-                .menu-item:hover {
-                    transform: translateY(-3px);
-                    background: rgba(255,255,255,0.07);
-                    border-color: rgba(255,255,255,0.1);
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    padding: 10px;
+                    border-bottom: 1px solid #eee;
                 }
 
                 .item-image {
-                    width: 90px;
-                    height: 90px;
-                    border-radius: 50%;
+                    width: 70px;
+                    height: 70px;
+                    border-radius: 10px;
                     background-size: cover;
                     background-position: center;
                     flex-shrink: 0;
-                    border: 2px solid var(--accent);
                 }
 
                 .item-details {
                     flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
                 }
 
                 .item-header {
@@ -246,29 +217,25 @@ export default function MenuPage({ params }) {
                     justify-content: space-between;
                     align-items: baseline;
                     margin-bottom: 5px;
-                    border-bottom: 1px dashed rgba(255,255,255,0.2);
-                    padding-bottom: 5px;
                 }
 
                 .item-header h3 {
                     margin: 0;
-                    font-size: 1.2rem;
+                    font-size: 1.1rem;
                     font-weight: 600;
                 }
 
                 .price {
-                    font-size: 1.1rem;
-                    color: var(--accent);
+                    font-size: 1rem;
+                    color: #ff4d4d;
                     font-weight: bold;
-                    white-space: nowrap;
                 }
 
                 .description {
                     margin: 0;
-                    font-size: 0.9rem;
-                    color: #ccc;
+                    font-size: 0.85rem;
+                    color: #666;
                     line-height: 1.4;
-                    font-style: italic;
                 }
             `}</style>
         </div>
