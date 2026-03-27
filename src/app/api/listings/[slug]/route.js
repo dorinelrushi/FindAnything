@@ -37,12 +37,12 @@ export async function GET(req, { params }) {
     await dbConnect();
     const { slug } = await params;
     const lowerSlug = slug.toLowerCase();
-    const titleFallback = slug.replace(/-/g, ' ');
+    const permissiveTitleRegex = new RegExp(`^${slug.split('-').join('.*')}$`, 'i');
     
     let listing = await Listing.findOne({
         $or: [
             { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
-            { title: { $regex: new RegExp(`^${titleFallback}$`, 'i') } }
+            { title: { $regex: permissiveTitleRegex } }
         ]
     }).populate('owner', 'name email phoneNumber phonePrefix');
     

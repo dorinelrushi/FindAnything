@@ -35,7 +35,9 @@ export async function GET(req, { params }) {
         await dbConnect();
         const { slug } = await params;
         const lowerSlug = slug.toLowerCase();
-        const titleFallback = slug.replace(/-/g, ' ');
+        
+        // Use regex for case-insensitive lookup and handle accented chars in titles
+        const permissiveTitleRegex = new RegExp(`^${slug.split('-').join('.*')}$`, 'i');
 
         // If user is admin, they can see unpublished blogs
         const admin = await verifyAdmin(req);
@@ -45,7 +47,7 @@ export async function GET(req, { params }) {
             ...baseQuery,
             $or: [
                 { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
-                { title: { $regex: new RegExp(`^${titleFallback}$`, 'i') } }
+                { title: { $regex: permissiveTitleRegex } }
             ]
         }).populate('author', 'name');
         if (!blog) return NextResponse.json({ error: 'Not found' }, { status: 404 });

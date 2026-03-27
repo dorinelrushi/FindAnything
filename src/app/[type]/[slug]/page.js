@@ -33,14 +33,14 @@ const getListingData = cache(async (slug) => {
         
         const lowerSlug = slug.toLowerCase();
         
-        // Search by slug (case-insensitive) OR by ID OR by title-based fallback
-        // This is necessary if old listings don't have the slug field populated
-        const titleFallback = slug.replace(/-/g, ' ');
+        // Safety: Escape any regex special characters in the slug parts
+        const escapedParts = slug.split('-').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const permissiveTitleRegex = new RegExp(`^${escapedParts.join('.*')}$`, 'i');
         
         let listing = await Listing.findOne({
             $or: [
-                { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
-                { title: { $regex: new RegExp(`^${titleFallback}$`, 'i') } }
+                { slug: { $regex: new RegExp(`^${lowerSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+                { title: { $regex: permissiveTitleRegex } }
             ]
         }).populate('owner', 'name email phoneNumber phonePrefix');
     
