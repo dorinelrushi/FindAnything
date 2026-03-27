@@ -5,7 +5,12 @@ import Menu from '@/models/Menu';
 import { notFound } from 'next/navigation';
 import ListingClient from './ListingClient';
 
-// Pre-render pages for SEO
+// Allow new slugs added after build to render on demand (not 404)
+export const dynamicParams = true;
+// Revalidate pages every hour (ISR)
+export const revalidate = 3600;
+
+// Pre-render the most popular pages at build time
 export async function generateStaticParams() {
     try {
         await dbConnect();

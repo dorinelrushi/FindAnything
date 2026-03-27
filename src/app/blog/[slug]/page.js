@@ -6,7 +6,12 @@ import BlogActions from './BlogActions';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
-// Pre-render blog pages for SEO
+// Allow slugs added after build to render on demand (not 404)
+export const dynamicParams = true;
+// Revalidate blog pages every hour
+export const revalidate = 3600;
+
+// Pre-render published blog pages at build time
 export async function generateStaticParams() {
     try {
         await dbConnect();
