@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation';
 import ListingClient from '@/app/components/ListingClient';
 import MenuPageClient from '@/app/components/MenuPageClient';
 import BlogActions from '@/app/components/BlogActions';
+import HomePageClient from '@/app/components/HomePageClient';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { cache } from 'react';
@@ -126,7 +127,9 @@ const getBlogData = cache(async (slugStr) => {
 // Unified Page Component
 export default async function CatchAllPage({ params }) {
     const { slug } = await params;
-    if (!slug || slug.length === 0) notFound();
+    if (!slug || slug.length === 0) {
+        return <HomePageClient />;
+    }
 
     const first = slug[0]?.toLowerCase();
     const second = slug[1];
