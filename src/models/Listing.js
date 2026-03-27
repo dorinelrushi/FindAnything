@@ -19,6 +19,7 @@ const ListingSchema = new mongoose.Schema({
         type: String,
         required: false,
         unique: true,
+        lowercase: true,
     },
     description: {
         type: String, // Now supports HTML from rich text editor

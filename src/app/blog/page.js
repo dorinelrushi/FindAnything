@@ -1,39 +1,55 @@
-'use client';
-import { useState, useEffect } from 'react';
+import dbConnect from '@/lib/db';
+import Blog from '@/models/Blog';
 import Link from 'next/link';
 
-export default function BlogListPage() {
-    const [blogs, setBlogs] = useState([]);
-    const [loading, setLoading] = useState(true);
+export const metadata = {
+    title: 'Blog & Stories - KorcaCity',
+    description: 'Discover travel tips, local stories, and guides to the best places in Korce and around. Real stories by locals.',
+    openGraph: {
+        title: 'Blog & Stories - KorcaCity',
+        description: 'Discover travel tips, local stories, and guides to the best places in Korce and around.',
+        url: 'https://trytofindeverything.online/blog',
+        type: 'website',
+    },
+};
 
-    useEffect(() => {
-        fetch('/api/blog')
-            .then(r => r.json())
-            .then(d => { setBlogs(d.blogs || []); setLoading(false); })
-            .catch(() => setLoading(false));
-    }, []);
+export default async function BlogListPage() {
+    let blogs = [];
+    try {
+        await dbConnect();
+        blogs = await Blog.find({ published: true })
+            .sort({ createdAt: -1 })
+            .select('title slug excerpt coverImage tags createdAt')
+            .lean();
+    } catch (e) {
+        console.error('Error fetching blogs on server', e);
+    }
 
     return (
-        <div className="min-h-screen bg-white text-text-primary py-16 px-6">
-            <div className="max-w-[1100px] mx-auto">
-                <div className="text-center mb-16">
-                    <span className="text-xs uppercase tracking-widest text-brand font-bold">Our Journal</span>
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mt-3 text-text-primary">
-                        Blog & Stories
+        <div className="min-h-screen bg-bg-light/40 py-20 px-6">
+            <div className="max-w-[1200px] mx-auto">
+                <div className="text-center mb-20">
+                    <span className="inline-block px-4 py-1.5 bg-brand/10 text-brand text-[10px] uppercase tracking-[0.2em] font-black rounded-full mb-6">
+                        The KorcaCity Journal
+                    </span>
+                    <h1 className="text-5xl md:text-7xl font-black text-text-primary tracking-tight mb-8">
+                        Our <span className="text-brand">Stories</span>
                     </h1>
-                    <p className="text-text-secondary text-lg max-w-[500px] mx-auto mt-4">
-                        Discover travel tips, local stories, and guides to the best places around the world.
+                    <p className="text-text-secondary text-xl max-w-[600px] mx-auto leading-relaxed">
+                        Discover hidden gems, local traditions, and the best experiences Korçe has to offer through our curated stories.
                     </p>
                 </div>
 
-                {loading ? (
-                    <div className="text-center py-20 text-text-secondary">Loading articles...</div>
-                ) : blogs.length === 0 ? (
-                    <div className="text-center py-20 text-text-secondary">No blog posts yet. Check back soon! ✍️</div>
+                {blogs.length === 0 ? (
+                    <div className="text-center py-32 bg-white rounded-[3rem] shadow-soft border border-border-light">
+                        <div className="text-6xl mb-6">✍️</div>
+                        <h3 className="text-2xl font-bold text-text-primary mb-2">No Stories Yet</h3>
+                        <p className="text-text-secondary">We are currently writing amazing content. Check back soon!</p>
+                    </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                         {blogs.map(blog => (
-                            <BlogCard key={blog._id} blog={blog} />
+                            <BlogCard key={blog._id.toString()} blog={blog} />
                         ))}
                     </div>
                 )}
@@ -44,40 +60,45 @@ export default function BlogListPage() {
 
 function BlogCard({ blog }) {
     return (
-        <Link href={`/blog/${blog.slug}`} className="group no-underline outline-none">
-            <article className="bg-white border border-border-light rounded-2xl overflow-hidden transition-all duration-300 h-full flex flex-col hover:-translate-y-2 hover:shadow-airbnb hover:border-brand/30">
-                {blog.coverImage && (
-                    <div className="h-[200px] overflow-hidden">
+        <Link href={`/blog/${blog.slug}`} className="group block">
+            <article className="bg-white rounded-[2.5rem] overflow-hidden transition-all duration-500 h-full flex flex-col hover:-translate-y-3 hover:shadow-2xl border border-transparent hover:border-brand/10">
+                <div className="relative h-[250px] overflow-hidden">
+                    {blog.coverImage ? (
                         <img 
                             src={blog.coverImage} 
                             alt={blog.title} 
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
                         />
-                    </div>
-                )}
-                <div className="p-6 flex flex-col flex-1">
-                    {(blog.tags || []).length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                            {blog.tags.slice(0, 3).map(tag => (
-                                <span key={tag} className="text-[11px] bg-brand/10 text-brand px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
+                    ) : (
+                        <div className="w-full h-full bg-brand/5 flex items-center justify-center text-brand/20 text-6xl">✏️</div>
                     )}
-                    <h2 className="text-xl font-bold mb-3 leading-tight text-text-primary group-hover:text-brand transition-colors">
+                    <div className="absolute top-6 left-6 flex flex-wrap gap-2">
+                        {(blog.tags || []).slice(0, 2).map(tag => (
+                            <span key={tag} className="bg-white/90 backdrop-blur-md text-text-primary px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+                
+                <div className="p-8 flex flex-col flex-1">
+                    <div className="flex items-center gap-3 text-[11px] font-black text-brand uppercase tracking-widest mb-4">
+                        <span>{new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand/30" />
+                        <span>By KorcaCity</span>
+                    </div>
+                    
+                    <h2 className="text-2xl font-black mb-4 leading-tight text-text-primary group-hover:text-brand transition-colors duration-300">
                         {blog.title}
                     </h2>
-                    <p className="text-text-secondary text-sm leading-relaxed mb-5 flex-1 line-clamp-3">
-                        {blog.excerpt?.substring(0, 120)}...
+                    
+                    <p className="text-text-secondary text-sm leading-relaxed mb-8 flex-1 line-clamp-3">
+                        {blog.excerpt || (blog.content ? blog.content.replace(/<[^>]+>/g, '').substring(0, 120) + '...' : '')}
                     </p>
-                    <div className="flex justify-between items-center border-t border-border-light pt-4 mt-auto">
-                        <span className="text-xs text-text-secondary font-medium">
-                            {new Date(blog.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                        </span>
-                        <span className="text-brand text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
-                            Read more <span aria-hidden="true">&rarr;</span>
-                        </span>
+                    
+                    <div className="flex items-center gap-2 text-text-primary font-black text-xs uppercase tracking-widest group-hover:gap-4 transition-all duration-300">
+                        Read Full Story 
+                        <span className="text-lg leading-none">→</span>
                     </div>
                 </div>
             </article>

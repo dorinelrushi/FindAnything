@@ -20,17 +20,20 @@ export default async function sitemap() {
     
     // Fetch all listings
     const listings = await Listing.find({}, 'type slug createdAt').lean();
-    const listingRoutes = listings.map(listing => ({
-      url: `${baseUrl}/${listing.type}/${listing.slug || listing._id}`,
-      lastModified: listing.updatedAt || listing.createdAt || new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    }));
+    const listingRoutes = listings.map(listing => {
+      const slugPart = (listing.slug || listing._id.toString()).toLowerCase();
+      return {
+        url: `${baseUrl}/${listing.type.toLowerCase()}/${slugPart}`,
+        lastModified: listing.updatedAt || listing.createdAt || new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      };
+    });
 
     // Fetch all blog posts
     const blogs = await Blog.find({ published: true }, 'slug updatedAt createdAt').lean();
     const blogRoutes = blogs.map(blog => ({
-      url: `${baseUrl}/blog/${blog.slug}`,
+      url: `${baseUrl}/blog/${blog.slug.toLowerCase()}`,
       lastModified: blog.updatedAt || blog.createdAt || new Date(),
       changeFrequency: 'weekly',
       priority: 0.6,

@@ -26,9 +26,11 @@ const getListingData = cache(async (slug) => {
     try {
         await dbConnect();
         
+        const lowerSlug = slug.toLowerCase();
+        
         // Try by slug first, then by ID
         let listing = await Listing.findOneAndUpdate(
-            { slug: slug },
+            { slug: lowerSlug },
             { $inc: { views: 1 } },
             { new: true }
         ).populate('owner', 'name email phoneNumber phonePrefix');

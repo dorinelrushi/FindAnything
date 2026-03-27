@@ -36,9 +36,9 @@ const verifyToken = (req) => {
 export async function GET(req, { params }) {
     await dbConnect();
     const { slug } = await params;
-
+    const lowerSlug = slug.toLowerCase();
     let listing = await Listing.findOneAndUpdate(
-        { slug: slug },
+        { slug: lowerSlug },
         { $inc: { views: 1 } },
         { new: true }
     ).populate('owner', 'name email phoneNumber phonePrefix');
