@@ -9,18 +9,16 @@ export default function MenuPageClient({ params }) {
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // slug should be an array like ['hotel', 'my-hotel', 'menu']
-    const listingSlug = Array.isArray(slug) ? slug[1] : slug;
+    // slug is an array like ['hotel', 'my-hotel']
+    const listingSlug = Array.isArray(slug) ? slug[slug.length - 2] : slug;
 
     useEffect(() => {
-        if (listingSlug) {
-            fetchData();
-        }
+        fetchData();
     }, [listingSlug]);
 
     const fetchData = async () => {
         try {
-            // 1. Get Listing from slug
+            // 1. Get Listing ID from slug
             const resListing = await fetch(`/api/listings/${listingSlug}`);
             const dataListing = await resListing.json();
 
@@ -51,7 +49,7 @@ export default function MenuPageClient({ params }) {
             <style jsx>{`
                 .loader {
                     border: 5px solid #f3f3f3;
-                    border-top: 5px solid #ff4d4d;
+                    border-top: 5px solid var(--primary);
                     border-radius: 50%;
                     width: 50px;
                     height: 50px;
@@ -84,8 +82,8 @@ export default function MenuPageClient({ params }) {
                 </div>
             </header>
 
-            <div className="container" style={{ marginTop: '-50px', position: 'relative', zIndex: 10, padding: '0 20px' }}>
-                <div className="menu-content card" style={{ background: 'white', borderRadius: '20px', padding: '40px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+            <div className="container" style={{ marginTop: '-50px', position: 'relative', zIndex: 10 }}>
+                <div className="menu-content glass card">
                     {menu.categories.map((cat, i) => (
                         <div key={i} className="menu-category">
                             <h2 className="category-title">{cat.name}</h2>
@@ -114,7 +112,6 @@ export default function MenuPageClient({ params }) {
                 .menu-page {
                     min-height: 100vh;
                     padding-bottom: 50px;
-                    background: #f8f9fa;
                 }
                 .menu-header {
                     height: 300px;
@@ -154,8 +151,7 @@ export default function MenuPageClient({ params }) {
                 }
                 
                 .menu-content {
-                    max-width: 900px;
-                    margin: 0 auto;
+                    padding: 40px;
                 }
                 
                 .menu-category {
@@ -164,10 +160,14 @@ export default function MenuPageClient({ params }) {
                 
                 .category-title {
                     text-align: center;
-                    font-size: 2.2rem;
-                    color: #333;
+                    font-family: 'Playfair Display', serif; /* Assuming you might want a fancy font, default serif otherwise */
+                    font-size: 2.5rem;
+                    color: var(--primary);
                     margin-bottom: 30px;
                     position: relative;
+                    display: inline-block;
+                    left: 50%;
+                    transform: translateX(-50%);
                 }
                 
                 .category-title::after {
@@ -175,13 +175,13 @@ export default function MenuPageClient({ params }) {
                     display: block;
                     width: 60px;
                     height: 3px;
-                    background: #ff4d4d;
+                    background: var(--accent);
                     margin: 10px auto 0;
                 }
 
                 .items-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
                     gap: 30px;
                 }
 
@@ -190,26 +190,58 @@ export default function MenuPageClient({ params }) {
                         grid-template-columns: 1fr;
                         gap: 15px;
                     }
+                    .header-content h1 {
+                        font-size: 2rem;
+                    }
+                    .subtitle {
+                        font-size: 1.1rem;
+                    }
+                    .menu-header {
+                        height: 200px;
+                    }
+                    .menu-content {
+                        padding: 20px 15px;
+                    }
+                    .category-title {
+                        font-size: 1.8rem;
+                    }
+                    .category-title::after {
+                        width: 40px;
+                    }
                 }
 
                 .menu-item {
                     display: flex;
                     gap: 15px;
-                    padding: 10px;
-                    border-bottom: 1px solid #eee;
+                    background: rgba(255,255,255,0.03);
+                    padding: 15px;
+                    border-radius: 12px;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    border: 1px solid transparent;
+                }
+
+                .menu-item:hover {
+                    transform: translateY(-3px);
+                    background: rgba(255,255,255,0.07);
+                    border-color: rgba(255,255,255,0.1);
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
                 }
 
                 .item-image {
-                    width: 70px;
-                    height: 70px;
-                    border-radius: 10px;
+                    width: 90px;
+                    height: 90px;
+                    border-radius: 50%;
                     background-size: cover;
                     background-position: center;
                     flex-shrink: 0;
+                    border: 2px solid var(--accent);
                 }
 
                 .item-details {
                     flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
                 }
 
                 .item-header {
@@ -217,25 +249,29 @@ export default function MenuPageClient({ params }) {
                     justify-content: space-between;
                     align-items: baseline;
                     margin-bottom: 5px;
+                    border-bottom: 1px dashed rgba(255,255,255,0.2);
+                    padding-bottom: 5px;
                 }
 
                 .item-header h3 {
                     margin: 0;
-                    font-size: 1.1rem;
+                    font-size: 1.2rem;
                     font-weight: 600;
                 }
 
                 .price {
-                    font-size: 1rem;
-                    color: #ff4d4d;
+                    font-size: 1.1rem;
+                    color: var(--accent);
                     font-weight: bold;
+                    white-space: nowrap;
                 }
 
                 .description {
                     margin: 0;
-                    font-size: 0.85rem;
-                    color: #666;
+                    font-size: 0.9rem;
+                    color: #ccc;
                     line-height: 1.4;
+                    font-style: italic;
                 }
             `}</style>
         </div>
