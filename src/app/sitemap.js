@@ -1,5 +1,5 @@
 export default async function sitemap() {
-  const baseUrl = 'https://korcacity.com';
+  const baseUrl = 'https://trytofindeverything.online';
 
   // Static routes
   const routes = ['', '/explore', '/blog', '/login', '/register'].map((route) => ({

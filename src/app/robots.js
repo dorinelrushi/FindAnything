@@ -7,6 +7,6 @@ export default function robots() {
         disallow: ['/api/', '/admin/', '/login', '/register'],
       },
     ],
-    sitemap: 'https://korcacity.com/sitemap.xml', // Update to actual domain if known
+    sitemap: 'https://trytofindeverything.online/sitemap.xml',
   }
 }

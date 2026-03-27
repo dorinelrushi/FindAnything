@@ -9,7 +9,10 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'TryToFindEverything - Discover Hotels, Restaurants & More Worldwide',
+  title: {
+    default: 'TryToFindEverything - Discover Hotels, Restaurants & More Worldwide',
+    template: '%s | TryToFindEverything'
+  },
   description: 'Find the best hotels, restaurants, bars, guesthouses, car rentals, and tours around the world. Your global travel and business discovery platform.',
   keywords: 'hotels, restaurants, tourism, travel, car rental, tours, guesthouses, discover, korca city, find anything',
   authors: [{ name: 'TryToFindEverything' }],
@@ -20,18 +23,18 @@ export const metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://korcacity.com'),
+  metadataBase: new URL('https://trytofindeverything.online'),
   alternates: {
-    canonical: '/',
+    canonical: './',
   },
   openGraph: {
     title: 'TryToFindEverything - Discover the World',
     description: 'Find the best hotels, restaurants, bars, guesthouses, car rentals, and tours around the world.',
-    url: 'https://korcacity.com',
+    url: 'https://trytofindeverything.online',
     siteName: 'TryToFindEverything',
     images: [
       {
-        url: '/og-image.jpg', // Ensure this exists or use a tool to generate it
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
       },
@@ -84,7 +87,7 @@ export default function RootLayout({ children }) {
             gtag('config', 'G-TMCLY9JCVR');
           `}
         </Script>
-        <Script src="https://pl28977517.profitablecpmratenetwork.com/35/ac/ab/35acab0d8e94bea1526b56bbf9a102e2.js" />
+      <Script src="https://pl28977517.profitablecpmratenetwork.com/35/ac/ab/35acab0d8e94bea1526b56bbf9a102e2.js" />
         <Script async="async" data-cfasync="false" src="https://pl28977516.profitablecpmratenetwork.com/5712706d5bc1e6693569ed677b259f1e/invoke.js"/>
         <Providers>
           <DailyReminder />
