@@ -53,7 +53,7 @@ export async function GET(req) {
         if (owner) query.owner = owner;
         if (category) query.category = category;
         if (city) {
-            query.city = { $regex: new RegExp(`^${city.trim()}$`, 'i') };
+            query.city = { $regex: new RegExp(`^\\s*${city.trim()}\\s*$`, 'i') };
         }
 
         // Filter by services - listing must have ALL selected services

@@ -601,9 +601,15 @@ function AddListingForm() {
                                     </label>
                                 ))}
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                                <input placeholder="Write something included..." className="input" value={tourData.customInclusion} onChange={e => setTourData({ ...tourData, customInclusion: e.target.value })} style={{ margin: 0 }} />
-                                <button type="button" onClick={addCustomTourInclusion} className="btn" style={{ whiteSpace: 'nowrap', background: '#2ecc71', color: '#fff' }}>+ Add</button>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <input
+                                    placeholder="Transport"
+                                    className="input"
+                                    value={tourData.customInclusion}
+                                    onChange={(e) => setTourData({ ...tourData, customInclusion: e.target.value })}
+                                    style={{ margin: 0 }}
+                                />
+                                <button type="button" onClick={addCustomTourInclusion} className="btn-inline-add">+ Add</button>
                             </div>
                             {tourData.inclusions.filter(inc => !TOUR_INCLUSIONS.includes(inc)).length > 0 && (
                                 <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -620,13 +626,17 @@ function AddListingForm() {
                         {/* Exclusions */}
                         <div style={{ marginTop: '25px' }}>
                             <label style={{ display: 'block', marginBottom: '12px', color: '#fff', fontSize: '1.1rem', fontWeight: '600' }}>❌ What is Excluded?</label>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <input placeholder="Write something excluded (e.g. Flights)" className="input" value={tourData.customExclusion} onChange={e => setTourData({ ...tourData, customExclusion: e.target.value })} style={{ margin: 0 }} />
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <input placeholder="Add custom exclusion..." className="input" value={tourData.customExclusion} onChange={(e) => setTourData({ ...tourData, customExclusion: e.target.value })} style={{ margin: 0 }} />
                                 <button type="button" onClick={() => {
-                                    if (tourData.customExclusion?.trim()) {
-                                        setTourData({ ...tourData, exclusions: [...(tourData.exclusions || []), tourData.customExclusion.trim()], customExclusion: '' });
+                                    if (tourData.customExclusion.trim()) {
+                                        setTourData({
+                                            ...tourData,
+                                            exclusions: [...tourData.exclusions, tourData.customExclusion.trim()],
+                                            customExclusion: ''
+                                        });
                                     }
-                                }} className="btn" style={{ whiteSpace: 'nowrap', background: '#e74c3c', color: '#fff' }}>+ Add</button>
+                                }} className="btn-inline-add">+ Add</button>
                             </div>
                             {tourData.exclusions?.length > 0 && (
                                 <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -769,7 +779,7 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
                                         placeholder="Add custom room type..."
                                         className="input"
@@ -780,8 +790,7 @@ function AddListingForm() {
                                     <button
                                         type="button"
                                         onClick={() => addCustomHotelItem('roomTypes', 'customRoomType')}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap' }}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -815,7 +824,7 @@ function AddListingForm() {
                                     </label>
                                 ))}
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                 <input
                                     placeholder="Add custom amenity..."
                                     className="input"
@@ -826,8 +835,7 @@ function AddListingForm() {
                                 <button
                                     type="button"
                                     onClick={() => addCustomHotelItem('roomAmenities', 'customRoomAmenity')}
-                                    className="btn"
-                                    style={{ whiteSpace: 'nowrap' }}
+                                    className="btn-inline-add"
                                 >
                                     + Add
                                 </button>
@@ -863,7 +871,7 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
                                         placeholder="Add custom service..."
                                         className="input"
@@ -874,8 +882,7 @@ function AddListingForm() {
                                     <button
                                         type="button"
                                         onClick={() => addCustomHotelItem('generalServices', 'customGeneralService')}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap' }}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -907,7 +914,7 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
                                         placeholder="Add custom additional service..."
                                         className="input"
@@ -918,8 +925,7 @@ function AddListingForm() {
                                     <button
                                         type="button"
                                         onClick={() => addCustomHotelItem('additionalServices', 'customAdditionalService')}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap' }}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -1007,7 +1013,7 @@ function AddListingForm() {
                                     </label>
                                 ))}
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                 <input
                                     placeholder="Add custom atmosphere..."
                                     className="input"
@@ -1018,8 +1024,7 @@ function AddListingForm() {
                                 <button
                                     type="button"
                                     onClick={() => addCustomBarItem('atmosphere', 'customAtmosphere')}
-                                    className="btn"
-                                    style={{ whiteSpace: 'nowrap', background: '#00d2d3' }}
+                                    className="btn-inline-add"
                                 >
                                     + Add
                                 </button>
@@ -1052,7 +1057,7 @@ function AddListingForm() {
                                     </label>
                                 ))}
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                 <input
                                     placeholder="Add custom service..."
                                     className="input"
@@ -1063,8 +1068,7 @@ function AddListingForm() {
                                 <button
                                     type="button"
                                     onClick={() => addCustomBarItem('services', 'customService')}
-                                    className="btn"
-                                    style={{ whiteSpace: 'nowrap', background: '#00d2d3' }}
+                                    className="btn-inline-add"
                                 >
                                     + Add
                                 </button>
@@ -1233,7 +1237,7 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
                                         placeholder="Add custom style..."
                                         className="input"
@@ -1244,8 +1248,7 @@ function AddListingForm() {
                                     <button
                                         type="button"
                                         onClick={() => addCustomBujtinaItem('style', 'customStyle')}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap', background: '#6ab04c' }}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -1292,7 +1295,7 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
                                         placeholder="Add custom room type..."
                                         className="input"
@@ -1303,8 +1306,7 @@ function AddListingForm() {
                                     <button
                                         type="button"
                                         onClick={() => addCustomBujtinaItem('roomTypes', 'customRoomType')}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap', background: '#6ab04c' }}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -1336,7 +1338,7 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
                                         placeholder="Add custom amenity..."
                                         className="input"
@@ -1347,8 +1349,7 @@ function AddListingForm() {
                                     <button
                                         type="button"
                                         onClick={() => addCustomBujtinaItem('roomAmenities', 'customAmenity')}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap', background: '#6ab04c' }}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -1382,7 +1383,7 @@ function AddListingForm() {
                                     </label>
                                 ))}
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                 <input
                                     placeholder="Add custom facility..."
                                     className="input"
@@ -1393,8 +1394,7 @@ function AddListingForm() {
                                 <button
                                     type="button"
                                     onClick={() => addCustomBujtinaItem('facilities', 'customFacility')}
-                                    className="btn"
-                                    style={{ whiteSpace: 'nowrap', background: '#6ab04c' }}
+                                    className="btn-inline-add"
                                 >
                                     + Add
                                 </button>
@@ -1448,7 +1448,7 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
                                         placeholder="Add custom bio product..."
                                         className="input"
@@ -1459,8 +1459,7 @@ function AddListingForm() {
                                     <button
                                         type="button"
                                         onClick={addCustomBujtinaBio}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap', background: '#6ab04c' }}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -1525,7 +1524,7 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
                                         placeholder="Add custom category..."
                                         className="input"
@@ -1536,8 +1535,7 @@ function AddListingForm() {
                                     <button
                                         type="button"
                                         onClick={() => addCustomRentCarItem('category', 'customCategory')}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap', background: '#ff9f43' }}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -1728,19 +1726,18 @@ function AddListingForm() {
                                         </label>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                     <input
-                                        placeholder="Add custom document..."
+                                        placeholder="Add custom required document..."
                                         className="input"
-                                        value={rentCarData.customDocument}
-                                        onChange={(e) => setRentCarData({ ...rentCarData, customDocument: e.target.value })}
+                                        value={rentCarData.customRequiredDocument}
+                                        onChange={(e) => setRentCarData({ ...rentCarData, customRequiredDocument: e.target.value })}
                                         style={{ margin: 0 }}
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => addCustomRentCarNestedItem('conditions', 'requiredDocuments', 'customDocument')}
-                                        className="btn"
-                                        style={{ whiteSpace: 'nowrap', background: '#ff9f43' }}
+                                        onClick={() => addCustomRentCarItem('conditions.requiredDocuments', 'customRequiredDocument')}
+                                        className="btn-inline-add"
                                     >
                                         + Add
                                     </button>
@@ -1802,9 +1799,9 @@ function AddListingForm() {
                                     </label>
                                 ))}
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                                 <input
-                                    placeholder="Add custom extra service..."
+                                    placeholder="Add custom service..."
                                     className="input"
                                     value={rentCarData.customExtraService}
                                     onChange={(e) => setRentCarData({ ...rentCarData, customExtraService: e.target.value })}
@@ -1813,8 +1810,7 @@ function AddListingForm() {
                                 <button
                                     type="button"
                                     onClick={() => addCustomRentCarItem('extraServices', 'customExtraService')}
-                                    className="btn"
-                                    style={{ whiteSpace: 'nowrap', background: '#ff9f43' }}
+                                    className="btn-inline-add"
                                 >
                                     + Add
                                 </button>
@@ -1851,7 +1847,7 @@ function AddListingForm() {
                             ))}
                         </div>
 
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
                             <input
                                 placeholder="Add custom service..."
                                 className="input"
@@ -1862,8 +1858,7 @@ function AddListingForm() {
                             <button
                                 type="button"
                                 onClick={addCustomService}
-                                className="btn"
-                                style={{ whiteSpace: 'nowrap' }}
+                                className="btn-inline-add"
                             >
                                 + Add
                             </button>

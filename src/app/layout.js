@@ -13,6 +13,11 @@ export const metadata = {
     default: 'TryToFindEverything - Discover Hotels, Restaurants & More Worldwide',
     template: '%s | TryToFindEverything'
   },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
   description: 'Find the best hotels, restaurants, bars, guesthouses, car rentals, and tours around the world. Your global travel and business discovery platform.',
   keywords: 'hotels, restaurants, tourism, travel, car rental, tours, guesthouses, discover, korca city, find anything, worldwide directory',
   authors: [{ name: 'TryToFindEverything' }],
@@ -71,6 +76,8 @@ export default function RootLayout({ children }) {
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin="" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
         <Script
           src="https://emrldtp.cc/NTA0MTA5.js?t=504109"
           strategy="afterInteractive"

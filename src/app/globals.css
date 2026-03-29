@@ -52,6 +52,10 @@
   .input {
     @apply w-full px-4 py-3 border border-border-light rounded-lg bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all shadow-sm;
   }
+
+  .btn-inline-add {
+    @apply px-6 py-3 bg-brand text-white rounded-lg font-bold hover:bg-brand-hover transition-all active:scale-95 whitespace-nowrap flex items-center justify-center;
+  }
 }
 
 /* Maintain some compatibility for Leaflet if needed, but styled for light theme */
