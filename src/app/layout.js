@@ -78,13 +78,7 @@ export default function RootLayout({ children }) {
           crossOrigin="" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
-        <Script
-          src="https://emrldtp.cc/NTA0MTA5.js?t=504109"
-          strategy="afterInteractive"
-          data-noptimize="1"
-          data-cfasync="false"
-          data-wpfc-render="false"
-        />
+   
       </head>
       <body suppressHydrationWarning={true} className={inter.className}>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-TMCLY9JCVR" strategy="afterInteractive" />
@@ -97,16 +91,14 @@ export default function RootLayout({ children }) {
             gtag('config', 'G-TMCLY9JCVR');
           `}
         </Script>
-      <Script src="https://pl28977517.profitablecpmratenetwork.com/35/ac/ab/35acab0d8e94bea1526b56bbf9a102e2.js" />
-        <Script async="async" data-cfasync="false" src="https://pl28977516.profitablecpmratenetwork.com/5712706d5bc1e6693569ed677b259f1e/invoke.js"/>
+      <Script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7525157885187689"
+     crossorigin="anonymous" />
         <Providers>
           <DailyReminder />
           <Navbar />
           <main>
             {children}
-            <div className="flex justify-center my-4">
-           <div id="container-5712706d5bc1e6693569ed677b259f1e"></div>
-        </div>
+            
           </main>
           <Footer />
         </Providers>
