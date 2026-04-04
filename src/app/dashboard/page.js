@@ -4,12 +4,15 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import StoryUpload from '@/app/components/StoryUpload';
+import QRDashboard from '@/app/components/QRDashboard';
 
 export default function Dashboard() {
     const { user, loading } = useAuth();
     const router = useRouter();
     const [myListings, setMyListings] = useState([]);
     const [myAds, setMyAds] = useState([]);
+    const [pointsData, setPointsData] = useState({ points: 0, scanCount: 0 });
+    const [selectedListingForQR, setSelectedListingForQR] = useState(null);
 
     useEffect(() => {
         if (!loading && (!user || (user.role !== 'business' && user.role !== 'admin'))) {
@@ -19,14 +22,35 @@ export default function Dashboard() {
 
     useEffect(() => {
         if (user && (user.role === 'business' || user.role === 'admin')) {
+            console.log('Dashboard loading for user ID:', user._id);
             fetchMyListings();
             fetchMyAds();
+            fetchPoints();
         }
     }, [user]);
 
-    const fetchMyListings = async () => {
-        const res = await fetch(`/api/listings?owner=${user._id}`);
+    const fetchPoints = async () => {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/business/scans', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         const data = await res.json();
+        if (data.success) {
+            setPointsData({ points: data.points, scanCount: data.scanCount });
+        }
+    };
+
+    const fetchMyListings = async () => {
+        const token = localStorage.getItem('token');
+        const userId = user._id || user.userId || user.id;
+        console.log('Fetching listings for user:', userId);
+        
+        // Fetch all listings for owner, bypass pagination and status filters
+        const res = await fetch(`/api/listings?owner=${userId}&limit=1000`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        console.log('Listings received:', data.listings?.length || 0);
         if (data.listings) setMyListings(data.listings);
     };
 
@@ -72,7 +96,10 @@ export default function Dashboard() {
                         <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">Business Dashboard</h1>
                         <p className="text-text-secondary font-medium italic">Welcome back, {user.name}!</p>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4">
+                        <div className="px-5 py-3 bg-brand/10 text-brand rounded-xl font-black text-sm border border-brand/20 shadow-sm flex items-center gap-2">
+                           💎 {pointsData.points.toLocaleString()} Points
+                        </div>
                         <Link href="/dashboard/ads/manage" className="px-6 py-3 bg-text-primary text-white rounded-xl font-bold text-sm shadow-soft hover:bg-black transition-colors">
                             📊 Manage Ads
                         </Link>
@@ -103,6 +130,35 @@ export default function Dashboard() {
                         ))}
                     </div>
                 </section>
+
+                {/* QR Rewards Section */}
+                {selectedListingForQR ? (
+                    <section className="space-y-8 animate-in fade-in zoom-in-95 duration-500 p-8 bg-white rounded-[40px] border border-brand/20 shadow-xl relative">
+                        <button 
+                            onClick={() => setSelectedListingForQR(null)}
+                            className="absolute top-6 right-6 bg-bg-light hover:bg-border-light p-3 rounded-full transition-colors font-bold"
+                        >
+                            ✕ Close
+                        </button>
+                        <div className="space-y-1">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-text-primary">Business QR & Analytics</h2>
+                            <p className="text-brand font-bold text-sm">Managing QR for: {selectedListingForQR.title}</p>
+                        </div>
+                        <QRDashboard 
+                            listingId={selectedListingForQR._id} 
+                            listingTitle={selectedListingForQR.title}
+                            initialPoints={pointsData.points} 
+                        />
+                    </section>
+                ) : (
+                    <section className="space-y-6 p-8 bg-bg-light rounded-[40px] border border-border-light border-dashed">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-text-primary">Rewards Overview</h2>
+                            <div className="text-2xl">💎 {pointsData.points.toLocaleString()} / 100k</div>
+                        </div>
+                        <p className="text-text-secondary text-sm font-medium">Select a listing below and click <span className="font-bold text-brand">"Analyze & QR"</span> to generate its unique codes and earn points from scans!</p>
+                    </section>
+                )}
 
                 {/* My Listings Section */}
                 <section className="space-y-6 pt-10 border-t">
@@ -162,6 +218,15 @@ export default function Dashboard() {
                                                     Promote 🚀
                                                 </Link>
                                             )}
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedListingForQR(listing);
+                                                    window.scrollTo({ top: 400, behavior: 'smooth' });
+                                                }}
+                                                className="w-full col-span-2 bg-text-primary hover:bg-black text-white py-3 rounded-lg text-xs font-bold text-center transition-colors shadow-soft mt-1"
+                                            >
+                                                Analyze & QR Code 📈
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

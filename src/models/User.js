@@ -45,6 +45,14 @@ const UserSchema = new mongoose.Schema({
         tour: { type: Number, default: 0 },
         city: { type: Number, default: 0 },
     },
+    points: {
+        type: Number,
+        default: 0,
+    },
+    scanCount: {
+        type: Number,
+        default: 0,
+    },
 });
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);

@@ -11,6 +11,7 @@ export default function AdminDashboard() {
     const [allUsers, setAllUsers] = useState([]);
     const [stats, setStats] = useState({ pending: 0, total: 0 });
     const [blogs, setBlogs] = useState([]);
+    const [listings, setListings] = useState([]);
     const [blogsLoaded, setBlogsLoaded] = useState(false);
 
     useEffect(() => {
@@ -23,8 +24,19 @@ export default function AdminDashboard() {
         if (user && user.role === 'admin') {
             fetchData();
             fetchBlogs();
+            fetchListings();
         }
     }, [user]);
+
+    const fetchListings = async () => {
+        try {
+            const res = await fetch('/api/admin/listings');
+            const data = await res.json();
+            if (data.listings) setListings(data.listings);
+        } catch (error) {
+            console.error('Failed to fetch listings', error);
+        }
+    };
 
     const fetchData = async () => {
         try {
@@ -67,6 +79,20 @@ export default function AdminDashboard() {
         });
         if (res.ok) {
             setBlogs(prev => prev.filter(b => b.slug !== slug));
+        } else {
+            alert('Delete failed');
+        }
+    };
+
+    const deleteListing = async (id) => {
+        if (!confirm('Delete this listing permanently?')) return;
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/admin/listings?id=${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            setListings(prev => prev.filter(l => l._id !== id));
         } else {
             alert('Delete failed');
         }
@@ -205,7 +231,62 @@ export default function AdminDashboard() {
                     </div>
                 </section>
 
-                {/* 4. User List Table Section */}
+                {/* 4. Business Listings Management Section */}
+                <section className="space-y-6 pt-10 border-t">
+                    <h2 className="text-xl font-bold text-text-primary">Business Listings</h2>
+                    <div className="overflow-x-auto rounded-[24px] border border-border-light shadow-soft">
+                        <table className="w-full text-left">
+                            <thead className="bg-bg-light border-b border-border-light">
+                                <tr>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Listing</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Owner</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Type</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Location</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-text-secondary tracking-widest">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border-light">
+                                {listings.map((l) => (
+                                    <tr key={l._id} className="hover:bg-bg-light/30 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-bg-light flex-shrink-0">
+                                                    <img src={l.image || 'https://via.placeholder.com/100'} className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="font-bold text-text-primary truncate max-w-[200px]">{l.title}</div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm font-medium text-text-primary">{l.owner?.name || 'Deleted User'}</div>
+                                            <div className="text-[10px] text-text-secondary">{l.owner?.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="bg-brand/10 text-brand px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider">{l.type}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-text-secondary">📍 {l.city}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-2">
+                                                <Link href={`/${l.type}/${l.slug || l._id}`} target="_blank" className="p-2 hover:bg-bg-light rounded-lg text-text-secondary">
+                                                    👁️
+                                                </Link>
+                                                <button onClick={() => deleteListing(l._id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500">
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {listings.length === 0 && (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-10 text-center text-text-secondary italic">No listings created yet.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {/* 5. User List Table Section */}
                 <section className="space-y-6 pt-10 border-t">
                     <h2 className="text-xl font-bold text-text-primary">All Users</h2>
                     <div className="overflow-x-auto rounded-[24px] border border-border-light shadow-soft">

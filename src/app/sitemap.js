@@ -19,7 +19,9 @@ export default async function sitemap() {
     await dbConnect();
     
     // Fetch all listings
-    const listings = await Listing.find({}, 'type slug createdAt').lean();
+    const listings = await Listing.find({}, 'type slug city createdAt').lean();
+    
+    // Listing detail routes
     const listingRoutes = listings.map(listing => {
       const slugPart = (listing.slug || listing._id.toString()).toLowerCase();
       return {
@@ -30,6 +32,15 @@ export default async function sitemap() {
       };
     });
 
+    // Unique cities from listings for city-specific landing pages
+    const cities = [...new Set(listings.filter(l => l.city).map(l => l.city.toLowerCase()))];
+    const cityRoutes = cities.map(city => ({
+      url: `${baseUrl}/${city}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    }));
+
     // Fetch all blog posts
     const blogs = await Blog.find({ published: true }, 'slug updatedAt createdAt').lean();
     const blogRoutes = blogs.map(blog => ({
@@ -39,7 +50,7 @@ export default async function sitemap() {
       priority: 0.6,
     }));
 
-    dynamicRoutes = [...listingRoutes, ...blogRoutes];
+    dynamicRoutes = [...listingRoutes, ...cityRoutes, ...blogRoutes];
   } catch (e) {
     console.error('Sitemap dynamic generation failed', e);
   }

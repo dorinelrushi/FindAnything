@@ -49,8 +49,12 @@ export async function GET(req) {
         const services = searchParams.get('services'); // comma-separated
 
         let query = {};
+        if (owner) {
+            query.owner = owner;
+        }
+
+        // Apply normal filters - merged with owner if present
         if (type) query.type = type;
-        if (owner) query.owner = owner;
         if (category) query.category = category;
         if (city) {
             query.city = { $regex: new RegExp(`^\\s*${city.trim()}\\s*$`, 'i') };
@@ -272,9 +276,10 @@ export async function POST(req) {
             tourData
         });
 
+        console.log('Listing created successfully:', listing._id, 'for owner:', user.userId);
         return NextResponse.json({ success: true, listing }, { status: 201 });
     } catch (error) {
-        console.error(error);
+        console.error('Error creating listing:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

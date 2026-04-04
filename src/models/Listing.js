@@ -70,6 +70,10 @@ const ListingSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    scanCount: {
+        type: Number,
+        default: 0,
+    },
     // Hotel-specific fields
     hotelData: {
         totalRooms: { type: Number },

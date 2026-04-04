@@ -144,6 +144,7 @@ const getBlogData = cache(async (slugStr: string) => {
 
         const blog = await (Blog as any).findOne({
             $or: [
+                { slug: lowerSlug },
                 { slug: { $regex: new RegExp(`^${escaped}$`, 'i') } },
                 { title: { $regex: permissiveRegex } }
             ]
@@ -171,8 +172,14 @@ export default async function CatchAllPage({ params }: PageProps) {
 
     // 1. Menu view (/type/listing-slug/menu)
     if (isMenu && slug.length >= 2) {
-        // Next.js components might need awaited params passed down
         return <MenuPageClient params={Promise.resolve({ slug: slug })} />;
+    }
+
+    // Redirect to lowercase if needed to prevent "Page with redirect" SEO issues
+    if (slug.some(s => s !== s.toLowerCase())) {
+        const lowerSlug = slug.map(s => s.toLowerCase()).join('/');
+        const { redirect } = require('next/navigation');
+        redirect(`/${lowerSlug}`);
     }
 
     // 2. Blog List handler (/blog)
@@ -203,16 +210,24 @@ export default async function CatchAllPage({ params }: PageProps) {
         return <BlogDetailPage blog={blog} userRole={userRole} />;
     }
 
-    // 4. Listing List handler (/bujtina, /restaurant...)
+    // 4. Listing List handler (/bujtina, /restaurant...) OR City handler (/korca...)
     if (first && !second) {
         await dbConnect();
+        
+        // Handle city/category routes
         const listings = await (Listing as any).find({ 
-            type: { $regex: new RegExp(`^${first}$`, 'i') } 
+            $or: [
+                { type: { $regex: new RegExp(`^${first}$`, 'i') } },
+                { city: { $regex: new RegExp(`^${first}$`, 'i') } }
+            ]
         }).sort({ createdAt: -1 }).lean();
         
-        // Categories to avoid catching random routes
         const validCategories = ['hotel', 'restaurant', 'bar', 'bujtina', 'rentcar', 'tour', 'city'];
-        if (listings.length === 0 && !validCategories.includes(first)) {
+        
+        // Check if this is a known city from the DB even if no active listings
+        const isKnownCity = listings.length > 0 || (await (Listing as any).exists({ city: { $regex: new RegExp(`^${first}$`, 'i') } }));
+
+        if (!isKnownCity && !validCategories.includes(first)) {
             notFound();
         }
         return <ListingListPage type={first} listings={JSON.parse(JSON.stringify(listings))} />;
@@ -222,6 +237,17 @@ export default async function CatchAllPage({ params }: PageProps) {
     if (first && second) {
         const data = await getListingData(second);
         if (!data) notFound();
+
+        // SEO: If the type in URL doesn't match the listing's actual type, redirect to its canonical URL
+        // BUT only if 'first' is a valid category type, not a city name.
+        const validTypes = ['hotel', 'restaurant', 'bar', 'bujtina', 'rentcar', 'tour', 'city'];
+        const actualType = data.listing.type.toLowerCase();
+        
+        if (validTypes.includes(first) && actualType !== first) {
+            const { redirect } = require('next/navigation');
+            redirect(`/${actualType}/${second}`);
+        }
+
         return (
             <ListingClient 
                 initialListing={data.listing} 
