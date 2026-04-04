@@ -78,9 +78,15 @@ export default function RootLayout({ children }) {
           crossOrigin="" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
-   
+
       </head>
       <body suppressHydrationWarning={true} className={inter.className}>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7525157885187689"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-TMCLY9JCVR" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
@@ -91,14 +97,13 @@ export default function RootLayout({ children }) {
             gtag('config', 'G-TMCLY9JCVR');
           `}
         </Script>
-      <Script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7525157885187689"
-     crossorigin="anonymous" />
+
         <Providers>
           <DailyReminder />
           <Navbar />
           <main>
             {children}
-            
+
           </main>
           <Footer />
         </Providers>
