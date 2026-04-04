@@ -101,7 +101,7 @@ const getListingData = cache(async (slugStr: string) => {
         const escapedParts = lowerSlug.split('-').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
         const permissiveRegex = new RegExp(`^${escapedParts.join('.*')}$`, 'i');
 
-        let listing = await Listing.findOne({
+        let listing = await (Listing as any).findOne({
             $or: [
                 { slug: { $regex: new RegExp(`^${escaped}$`, 'i') } },
                 { title: { $regex: permissiveRegex } }
@@ -109,16 +109,16 @@ const getListingData = cache(async (slugStr: string) => {
         }).populate('owner', 'name email phoneNumber phonePrefix');
     
         if (!listing && slugStr.match(/^[0-9a-fA-F]{24}$/)) {
-            listing = await Listing.findById(slugStr).populate('owner', 'name email phoneNumber phonePrefix');
+            listing = await (Listing as any).findById(slugStr).populate('owner', 'name email phoneNumber phonePrefix');
         }
         
         if (!listing) return null;
 
         // Trace views non-blockingly
-        Listing.findByIdAndUpdate(listing._id, { $inc: { views: 1 } }).catch(() => {});
+        (Listing as any).findByIdAndUpdate(listing._id, { $inc: { views: 1 } }).catch(() => {});
 
-        const reviews = await Review.find({ listing: listing._id }).populate('user', 'name').sort({ createdAt: -1 });
-        const menu = await Menu.findOne({ listing: listing._id });
+        const reviews = await (Review as any).find({ listing: listing._id }).populate('user', 'name').sort({ createdAt: -1 });
+        const menu = await (Menu as any).findOne({ listing: listing._id });
 
         return {
             listing: JSON.parse(JSON.stringify(listing)),
@@ -142,7 +142,7 @@ const getBlogData = cache(async (slugStr: string) => {
         const escapedParts = lowerSlug.split('-').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
         const permissiveRegex = new RegExp(`^${escapedParts.join('.*')}$`, 'i');
 
-        const blog = await Blog.findOne({
+        const blog = await (Blog as any).findOne({
             $or: [
                 { slug: { $regex: new RegExp(`^${escaped}$`, 'i') } },
                 { title: { $regex: permissiveRegex } }
@@ -178,7 +178,7 @@ export default async function CatchAllPage({ params }: PageProps) {
     // 2. Blog List handler (/blog)
     if (first === 'blog' && !second) {
         await dbConnect();
-        const blogs = await Blog.find({ published: true })
+        const blogs = await (Blog as any).find({ published: true })
             .sort({ createdAt: -1 })
             .select('title slug excerpt coverImage tags createdAt author')
             .lean();
@@ -206,7 +206,7 @@ export default async function CatchAllPage({ params }: PageProps) {
     // 4. Listing List handler (/bujtina, /restaurant...)
     if (first && !second) {
         await dbConnect();
-        const listings = await Listing.find({ 
+        const listings = await (Listing as any).find({ 
             type: { $regex: new RegExp(`^${first}$`, 'i') } 
         }).sort({ createdAt: -1 }).lean();
         
