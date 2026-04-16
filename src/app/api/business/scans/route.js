@@ -62,7 +62,8 @@ export async function POST(req) {
             listingId,
             scanCount: updatedListing.scanCount,
             pointsAdded,
-            totalPoints: owner?.points || 0
+            totalPoints: owner?.points || 0,
+            listingUrl: `/${updatedListing.type.toLowerCase()}/${updatedListing.slug || updatedListing._id}`
         });
 
     } catch (error) {

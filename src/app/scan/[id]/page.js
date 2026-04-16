@@ -7,6 +7,7 @@ export default function QRScannerPage({ params }) {
     const [status, setStatus] = useState('Verifying scan...');
     const [pointsEarned, setPointsEarned] = useState(0);
     const [done, setDone] = useState(false);
+    const [listingUrl, setListingUrl] = useState('/');
 
     useEffect(() => {
         const fetchParams = async () => {
@@ -27,11 +28,16 @@ export default function QRScannerPage({ params }) {
 
             if (data.success) {
                 setPointsEarned(data.pointsAdded || 0);
+                if (data.listingUrl) setListingUrl(data.listingUrl);
                 setStatus(
                     data.pointsAdded > 0
-                        ? `🎉 Milestone! This business just earned ${data.pointsAdded} points!`
-                        : `✅ Scan recorded! (${data.scanCount} total scans)`
+                        ? `🎉 Milestone! This business just earned ${data.pointsAdded} points! Redirecting...`
+                        : `✅ Scan recorded! Redirecting... (${data.scanCount} total scans)`
                 );
+                
+                setTimeout(() => {
+                    if (data.listingUrl) router.push(data.listingUrl);
+                }, 2500);
             } else {
                 setStatus('⚠️ Scan failed or invalid QR code.');
             }
@@ -63,10 +69,10 @@ export default function QRScannerPage({ params }) {
                 </div>
                 <div className="pt-6">
                     <button
-                        onClick={() => router.push('/')}
+                        onClick={() => router.push(listingUrl)}
                         className="w-full bg-brand text-white py-4 rounded-2xl font-bold hover:bg-brand-hover transition-all shadow-soft active:scale-95"
                     >
-                        Back to Homepage
+                        {listingUrl !== '/' ? 'Go to Business Page' : 'Back to Homepage'}
                     </button>
                 </div>
             </div>

@@ -35,13 +35,8 @@ export async function generateMetadata({ params }: PageProps) {
     // 1. Safe Root (Home) Check
     if (!slug || slug.length === 0) {
         return {
-            title: 'TryToFindEverything - Home',
+            title: 'TryToFindEverything - Discover Hotels, Restaurants & More Worldwide',
             description: 'Explore the best places, restaurants, and tours around the world. Hotels, Restaurants, Bars, Tours, Car Rentals and more.',
-            icons: {
-                icon: '/favicon.ico',
-                shortcut: '/favicon.ico',
-                apple: '/favicon.ico',
-            },
             alternates: { canonical: '/' },
         };
     }
@@ -57,6 +52,7 @@ export async function generateMetadata({ params }: PageProps) {
             return {
                 title: 'Blog & Stories - TryToFindEverything',
                 description: 'Read our latest blog posts and travel stories.',
+                alternates: { canonical: '/blog' },
             };
         }
         const blog = await getBlogData(second);
@@ -68,12 +64,12 @@ export async function generateMetadata({ params }: PageProps) {
         };
     }
 
-    // 3. Simple Category Logic
+    // 3. Simple Category/City Logic
     if (!second) {
         const displayType = first.charAt(0).toUpperCase() + first.slice(1);
         return {
             title: `${displayType}s - TryToFindEverything`,
-            description: `Browse all ${displayType}s.`,
+            description: `Browse all ${displayType}s and places in this category.`,
             alternates: { canonical: `/${first}` },
         };
     }
@@ -85,7 +81,7 @@ export async function generateMetadata({ params }: PageProps) {
     const { listing } = data;
     return {
         title: `${listing.title} - ${listing.city}`,
-        description: listing.description?.substring(0, 160),
+        description: (listing.description || '').replace(/<[^>]*>/g, '').substring(0, 160),
         alternates: { canonical: `/${listing.type}/${listing.slug || listing._id}` },
     };
 }
@@ -96,17 +92,24 @@ export async function generateMetadata({ params }: PageProps) {
 const getListingData = cache(async (slugStr: string) => {
     try {
         await dbConnect();
-        const lowerSlug = slugStr.toLowerCase();
-        const escaped = lowerSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedParts = lowerSlug.split('-').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-        const permissiveRegex = new RegExp(`^${escapedParts.join('.*')}$`, 'i');
+        const lowerSlug = decodeURIComponent(slugStr).toLowerCase().trim();
+        
+        // Try strict slug first for performance
+        let listing = await (Listing as any).findOne({ slug: lowerSlug }).populate('owner', 'name email phoneNumber phonePrefix');
+        
+        if (!listing) {
+            // Fallback to permissive regex if not found by strict slug
+            const escaped = lowerSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escapedParts = lowerSlug.split('-').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const permissiveRegex = new RegExp(`^${escapedParts.join('.*')}$`, 'i');
 
-        let listing = await (Listing as any).findOne({
-            $or: [
-                { slug: { $regex: new RegExp(`^${escaped}$`, 'i') } },
-                { title: { $regex: permissiveRegex } }
-            ]
-        }).populate('owner', 'name email phoneNumber phonePrefix');
+            listing = await (Listing as any).findOne({
+                $or: [
+                    { slug: { $regex: new RegExp(`^${escaped}$`, 'i') } },
+                    { title: { $regex: permissiveRegex } }
+                ]
+            }).populate('owner', 'name email phoneNumber phonePrefix');
+        }
     
         if (!listing && slugStr.match(/^[0-9a-fA-F]{24}$/)) {
             listing = await (Listing as any).findById(slugStr).populate('owner', 'name email phoneNumber phonePrefix');
@@ -137,18 +140,23 @@ const getListingData = cache(async (slugStr: string) => {
 const getBlogData = cache(async (slugStr: string) => {
     try {
         await dbConnect();
-        const lowerSlug = slugStr.toLowerCase();
-        const escaped = lowerSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedParts = lowerSlug.split('-').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-        const permissiveRegex = new RegExp(`^${escapedParts.join('.*')}$`, 'i');
+        const lowerSlug = decodeURIComponent(slugStr).toLowerCase().trim();
+        
+        // Strict slug first
+        let blog = await (Blog as any).findOne({ slug: lowerSlug }).populate('author', 'name');
+        
+        if (!blog) {
+            const escaped = lowerSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escapedParts = lowerSlug.split('-').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const permissiveRegex = new RegExp(`^${escapedParts.join('.*')}$`, 'i');
 
-        const blog = await (Blog as any).findOne({
-            $or: [
-                { slug: lowerSlug },
-                { slug: { $regex: new RegExp(`^${escaped}$`, 'i') } },
-                { title: { $regex: permissiveRegex } }
-            ]
-        }).populate('author', 'name');
+            blog = await (Blog as any).findOne({
+                $or: [
+                    { slug: { $regex: new RegExp(`^${escaped}$`, 'i') } },
+                    { title: { $regex: permissiveRegex } }
+                ]
+            }).populate('author', 'name');
+        }
         return blog ? JSON.parse(JSON.stringify(blog)) : null;
     } catch (e) {
         return null;
@@ -166,23 +174,24 @@ export default async function CatchAllPage({ params }: PageProps) {
         return <HomePageClient />;
     }
 
-    const first = slug[0]?.toLowerCase();
+    // 1. Lowercase Enforcement Redirect
+    // This prevents "Page with redirect" errors by ensuring only lowercase URLs are indexed.
+    if (slug.some(s => s !== s.toLowerCase())) {
+        const { redirect } = require('next/navigation');
+        const lowerSlug = slug.map(s => encodeURIComponent(decodeURIComponent(s).toLowerCase().trim())).join('/');
+        redirect(`/${lowerSlug}`);
+    }
+
+    const first = slug[0].toLowerCase();
     const second = slug[1];
     const isMenu = slug[slug.length - 1]?.toLowerCase() === 'menu';
 
-    // 1. Menu view (/type/listing-slug/menu)
+    // 2. Menu view (/type/listing-slug/menu)
     if (isMenu && slug.length >= 2) {
         return <MenuPageClient params={Promise.resolve({ slug: slug })} />;
     }
 
-    // Redirect to lowercase if needed to prevent "Page with redirect" SEO issues
-    if (slug.some(s => s !== s.toLowerCase())) {
-        const lowerSlug = slug.map(s => s.toLowerCase()).join('/');
-        const { redirect } = require('next/navigation');
-        redirect(`/${lowerSlug}`);
-    }
-
-    // 2. Blog List handler (/blog)
+    // 3. Blog List handler (/blog)
     if (first === 'blog' && !second) {
         await dbConnect();
         const blogs = await (Blog as any).find({ published: true })
@@ -192,7 +201,7 @@ export default async function CatchAllPage({ params }: PageProps) {
         return <BlogListPage blogs={JSON.parse(JSON.stringify(blogs))} />;
     }
 
-    // 3. Blog Detail handler (/blog/test-article)
+    // 4. Blog Detail handler (/blog/test-article)
     if (first === 'blog' && second) {
         const blog = await getBlogData(second);
         if (!blog) notFound();
@@ -210,7 +219,7 @@ export default async function CatchAllPage({ params }: PageProps) {
         return <BlogDetailPage blog={blog} userRole={userRole} />;
     }
 
-    // 4. Listing List handler (/bujtina, /restaurant...) OR City handler (/korca...)
+    // 5. Listing List handler (/bujtina, /restaurant...) OR City handler (/korca...)
     if (first && !second) {
         await dbConnect();
         
@@ -233,13 +242,13 @@ export default async function CatchAllPage({ params }: PageProps) {
         return <ListingListPage type={first} listings={JSON.parse(JSON.stringify(listings))} />;
     }
 
-    // 5. Listing Detail handler (/type/slug)
+    // 6. Listing Detail handler (/type/slug)
     if (first && second) {
         const data = await getListingData(second);
         if (!data) notFound();
 
-        // SEO: If the type in URL doesn't match the listing's actual type, redirect to its canonical URL
-        // BUT only if 'first' is a valid category type, not a city name.
+        // SEO Redirect: If the type in URL doesn't match the listing's actual type, redirect to its canonical URL
+        // Example: /restaurant/my-hotel-slug -> /hotel/my-hotel-slug
         const validTypes = ['hotel', 'restaurant', 'bar', 'bujtina', 'rentcar', 'tour', 'city'];
         const actualType = data.listing.type.toLowerCase();
         
@@ -272,7 +281,7 @@ function BlogListPage({ blogs }: { blogs: any[] }) {
                     <p className="text-text-secondary mt-4 max-w-lg mx-auto">Discover guides and travel news from around the world.</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {blogs.map(blog => (
+                    {blogs.map((blog: any) => (
                         <Link key={blog._id} href={`/blog/${blog.slug}`} className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-border-light">
                             <div className="aspect-video relative overflow-hidden bg-bg-light">
                                 <img src={blog.coverImage || '/placeholder.jpg'} alt={blog.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -326,10 +335,10 @@ function ListingListPage({ type, listings }: { type: string, listings: any[] }) 
                     <p className="text-text-secondary mt-3">Showing {listings.length} results in this category.</p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {listings.map(listing => (
+                    {listings.map((listing: any) => (
                         <Link key={listing._id} href={`/${listing.type}/${listing.slug || listing._id}`} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-border-light">
                              <div className="aspect-[4/3] bg-bg-light relative overflow-hidden">
-                                <img src={listing.image || '/placeholder.jpg'} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                <img src={listing.image || '/placeholder.jpg'} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={listing.title} />
                              </div>
                              <div className="p-5">
                                 <h3 className="font-bold truncate group-hover:text-brand transition-colors">{listing.title}</h3>

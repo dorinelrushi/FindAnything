@@ -29,9 +29,7 @@ export const metadata = {
     telephone: false,
   },
   metadataBase: new URL('https://trytofindeverything.online'),
-  alternates: {
-    canonical: '/',
-  },
+  alternates: {},
   openGraph: {
     title: 'TryToFindEverything - Discover the World',
     description: 'Find the best hotels, restaurants, bars, guesthouses, car rentals, and tours around the world.',
