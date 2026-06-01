@@ -140,7 +140,7 @@ export default function ListingClient({ initialListing, initialReviews, initialM
     const prevLightboxSlide = () => setCurrentLightboxSlide(prev => (prev - 1 + allImages.length) % allImages.length);
 
     return (
-        <main className="bg-white min-h-screen">
+        <main className="bg-white min-h-screen pb-24 md:pb-0">
             <div className="container-wide py-6 md:py-10 space-y-6 md:space-y-8">
                 {/* Header Section */}
                 <div className="space-y-4">
@@ -415,6 +415,31 @@ export default function ListingClient({ initialListing, initialReviews, initialM
                             </div>
                         </div>
                     </aside>
+                </div>
+            </div>
+
+            {/* Mobile Sticky Footer Contact Bar */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-border-light p-4 shadow-airbnb flex items-center justify-between gap-4">
+                <div className="flex flex-col">
+                    <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">Price</span>
+                    <span className="text-base font-black text-text-primary">
+                        {listing.price ? (typeof listing.price === 'string' && listing.price.includes('€') ? listing.price : `€${listing.price}`) : 'Price on request'}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2 flex-1 justify-end">
+                    <a 
+                        href={`tel:${cleanPhoneNumber(listing.whatsappNumber || (listing.owner?.phonePrefix + listing.owner?.phoneNumber))}`} 
+                        className="px-4 py-3 bg-brand text-white font-bold rounded-xl text-center text-sm transition-all hover:bg-brand-hover active:scale-95 flex-1 max-w-[130px] flex items-center justify-center gap-1 shadow-soft"
+                    >
+                        📞 Call Host
+                    </a>
+                    <a 
+                        href={`https://wa.me/${cleanPhoneNumber(listing.whatsappNumber || (listing.owner?.phonePrefix + listing.owner?.phoneNumber))}`} 
+                        target="_blank" 
+                        className="px-4 py-3 bg-[#25D366] text-white font-bold rounded-xl text-center text-sm transition-all active:scale-95 flex-1 max-w-[140px] flex items-center justify-center gap-1 shadow-soft"
+                    >
+                        💬 WhatsApp
+                    </a>
                 </div>
             </div>
 

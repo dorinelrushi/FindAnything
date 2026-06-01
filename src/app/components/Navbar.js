@@ -65,6 +65,7 @@ export default function Navbar() {
                     <Link href="/explore" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/explore' ? 'text-brand' : 'text-text-primary'}`}>Explore</Link>
                     <Link href="/suggestions" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/suggestions' ? 'text-brand' : 'text-text-primary'}`}>Suggestions</Link>
                     <Link href="/blog" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/blog' ? 'text-brand' : 'text-text-primary'}`}>Blog</Link>
+                    <Link href="/budgets" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/budgets' ? 'text-brand' : 'text-text-primary'}`}>Budgets</Link>
 
                     <div className="flex items-center gap-6 pl-4 border-l border-border-light">
                         {/* Favorites Icon */}
@@ -176,6 +177,10 @@ export default function Navbar() {
                         </Link>
                         <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="text-[18px] flex items-center justify-between border-b pb-4">
                             Blog
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+                        </Link>
+                        <Link href="/budgets" onClick={() => setIsMenuOpen(false)} className="text-[18px] flex items-center justify-between border-b pb-4">
+                            Budgets
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
                         </Link>
 

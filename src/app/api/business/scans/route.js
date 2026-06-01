@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Listing from '@/models/Listing';
 import User from '@/models/User';
+import Scan from '@/models/Scan';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -21,7 +22,7 @@ const verifyToken = (req) => {
 };
 
 // POST /api/business/scans
-// Body: { listingId }
+// Body: { listingId, deviceId, deviceFingerprint }
 // Increments the listing's own scanCount, then awards points to the owner every 10 scans.
 export async function POST(req) {
     try {
@@ -29,6 +30,8 @@ export async function POST(req) {
         const body = await req.json();
         // Support both old key (businessId) and new key (listingId) for backwards compat
         const listingId = body.listingId || body.businessId;
+        const deviceId = body.deviceId;
+        const deviceFingerprint = body.deviceFingerprint;
 
         if (!listingId) {
             return NextResponse.json({ error: 'Listing ID is required' }, { status: 400 });
@@ -38,6 +41,35 @@ export async function POST(req) {
         const listing = await Listing.findById(listingId);
         if (!listing) {
             return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
+        }
+
+        const listingUrl = `/${listing.type.toLowerCase()}/${listing.slug || listing._id}`;
+
+        // Verify if a scan already exists for this deviceId or deviceFingerprint on this listingId
+        if (deviceId && deviceFingerprint) {
+            const existingScan = await Scan.findOne({
+                listingId,
+                $or: [
+                    { deviceId },
+                    { deviceFingerprint }
+                ]
+            });
+
+            if (existingScan) {
+                return NextResponse.json({
+                    success: false,
+                    error: 'already_scanned',
+                    message: 'This phone has already scanned this business.',
+                    listingUrl
+                });
+            }
+
+            // Create new scan record to prevent future scans from this device
+            await Scan.create({
+                listingId,
+                deviceId,
+                deviceFingerprint
+            });
         }
 
         // Increment this listing's individual scan count
@@ -63,7 +95,7 @@ export async function POST(req) {
             scanCount: updatedListing.scanCount,
             pointsAdded,
             totalPoints: owner?.points || 0,
-            listingUrl: `/${updatedListing.type.toLowerCase()}/${updatedListing.slug || updatedListing._id}`
+            listingUrl
         });
 
     } catch (error) {
