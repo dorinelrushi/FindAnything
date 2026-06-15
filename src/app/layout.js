@@ -101,7 +101,10 @@ export default function RootLayout({ children }) {
           <Navbar />
           <main>
             {children}
-
+            <div id='container-5712706d5bc1e6693569ed677b259f1e'>
+              <Script src="https://pl28977516.effectivecpmnetwork.com/5712706d5bc1e6693569ed677b259f1e/invoke.js" />
+              <Script src="https://pl29754505.effectivecpmnetwork.com/50/31/32/50313251465823d9c632ee8e76faab18.js" />
+            </div>
           </main>
           <Footer />
         </Providers>
