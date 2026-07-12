@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Budget from '@/models/Budget';
+import User from '@/models/User';
 
 // GET /api/budgets/[id]
 // Returns a single budget post by ID

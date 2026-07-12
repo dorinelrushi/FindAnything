@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/db';
 import Listing from '@/models/Listing';
+import User from '@/models/User';
 import Blog from '@/models/Blog';
 import Review from '@/models/Review';
 import Menu from '@/models/Menu';

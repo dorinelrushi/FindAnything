@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Blog from '@/models/Blog';
+import User from '@/models/User';
 import jwt from 'jsonwebtoken';
 import slugify from 'slugify';
 import { cookies } from 'next/headers';

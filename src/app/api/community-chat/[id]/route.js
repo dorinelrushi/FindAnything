@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import CommunityMessage from '@/models/CommunityMessage';
+import Listing from '@/models/Listing';
 
 // PUT - Edit a message
 export async function PUT(request, { params }) {
