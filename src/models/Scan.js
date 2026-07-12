@@ -5,26 +5,61 @@ const ScanSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Listing',
         required: true,
+        index: true,
     },
     deviceId: {
         type: String,
-        required: true,
+        required: false,
+        default: '',
     },
     deviceFingerprint: {
         type: String,
+        required: false,
+        default: '',
+    },
+    // One scan per IP per listing (primary anti-abuse rule)
+    ip: {
+        type: String,
         required: true,
+        index: true,
+    },
+    country: {
+        type: String,
+        default: '',
+    },
+    countryCode: {
+        type: String,
+        default: '',
+    },
+    region: {
+        type: String,
+        default: '',
+    },
+    city: {
+        type: String,
+        default: '',
+    },
+    timezone: {
+        type: String,
+        default: '',
+    },
+    userAgent: {
+        type: String,
+        default: '',
     },
     createdAt: {
         type: Date,
         default: Date.now,
+        index: true,
     },
 });
 
-// Compound indexes for fast checking of uniqueness
+// One successful scan per IP per listing
+ScanSchema.index({ listingId: 1, ip: 1 }, { unique: true });
+// Keep device indexes for extra protection when IP is shared/NAT
 ScanSchema.index({ listingId: 1, deviceId: 1 });
 ScanSchema.index({ listingId: 1, deviceFingerprint: 1 });
 
-// Force recompilation of model to apply schema changes in development
 if (mongoose.models.Scan) {
     delete mongoose.models.Scan;
 }

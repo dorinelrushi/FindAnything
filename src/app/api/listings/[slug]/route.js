@@ -36,26 +36,12 @@ const verifyToken = (req) => {
 export async function GET(req, { params }) {
     await dbConnect();
     const { slug } = await params;
-    const lowerSlug = slug.toLowerCase();
-    const permissiveTitleRegex = new RegExp(`^${slug.split('-').join('.*')}$`, 'i');
-    
-    let listing = await Listing.findOne({
-        $or: [
-            { slug: { $regex: new RegExp(`^${lowerSlug}$`, 'i') } },
-            { title: { $regex: permissiveTitleRegex } }
-        ]
-    }).populate('owner', 'name email phoneNumber phonePrefix');
-    
+    const { findListingBySlugParam } = await import('@/lib/listingPath');
+
+    let listing = await findListingBySlugParam(Listing, slug);
+
     if (listing) {
         Listing.findByIdAndUpdate(listing._id, { $inc: { views: 1 } }).catch(() => {});
-    }
-
-    if (!listing && slug.match(/^[0-9a-fA-F]{24}$/)) {
-        listing = await Listing.findByIdAndUpdate(
-            slug,
-            { $inc: { views: 1 } },
-            { new: true }
-        ).populate('owner', 'name email phoneNumber phonePrefix');
     }
 
     if (!listing) return NextResponse.json({ error: 'Not found' }, { status: 404 });

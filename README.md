@@ -41,3 +41,19 @@ A premium web application for exploring Korça City, built with Next.js, MongoDB
 - `src/lib`: Database connection helper.
 - `src/models`: Mongoose models (User, Listing, Review).
 - `src/context`: Authentication state management.
+
+## AI features (optional)
+
+Set in `.env.local`:
+
+```
+MONGODB_URI=mongodb://localhost:27017/korcacity
+JWT_SECRET=supersecretkey123
+NEXT_PUBLIC_APP_URL=https://trytofindeverything.online
+XAI_API_KEY=your_xai_key
+```
+
+- **AI Offer Generator** (dashboard → Analyze & QR): marketing texts + image ideas for QR campaigns
+- **AI Tourist Assistant** (after QR scan): personal recommendations for tourists
+- QR scans: **one scan per IP**, with country / city / time analytics on the dashboard
+
