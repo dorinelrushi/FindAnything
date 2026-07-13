@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import FeaturedAds from '@/app/components/FeaturedAds';
 import Stories from '@/app/components/Stories';
+import HowItWorks from '@/app/components/HowItWorks';
 import { useFavorites } from '@/context/FavoritesContext';
 import CommunityChatPopup from '@/app/components/CommunityChatPopup';
 import { MessageCircle } from 'lucide-react';
@@ -259,6 +260,9 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* Platform explainer: businesses + tourists */}
+      <HowItWorks />
 
       {/* Blogs Section */}
       {blogs.length > 0 && (
