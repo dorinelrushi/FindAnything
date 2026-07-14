@@ -30,7 +30,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Describ
         }
     };
 
-    if (!mounted) return <div className="input" style={{ minHeight: '500px', background: 'white' }}>Loading editor...</div>;
+    if (!mounted) return <div className="input" style={{ minHeight: '500px', background: 'var(--surface)' }}>Loading editor...</div>;
 
     return (
         <div className="rich-text-editor">
@@ -89,17 +89,17 @@ export default function RichTextEditor({ value, onChange, placeholder = "Describ
 
             <style jsx>{`
                 .rich-text-editor {
-                    border: 2px solid #e0e0e0;
+                    border: 2px solid var(--border-light);
                     border-radius: 8px;
-                    background: #ffffff;
+                    background: var(--surface);
                     overflow: hidden;
                     transition: border-color 0.2s;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                    box-shadow: var(--shadow-soft);
                 }
 
                 .rich-text-editor:focus-within {
-                    border-color: #6c5ce7;
-                    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+                    border-color: var(--brand);
+                    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 15%, transparent);
                 }
 
                 .toolbar {
@@ -107,8 +107,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Describ
                     align-items: center;
                     gap: 6px;
                     padding: 10px 14px;
-                    background: linear-gradient(to bottom, #fafafa, #f5f5f5);
-                    border-bottom: 2px solid #e0e0e0;
+                    background: var(--bg-light);
+                    border-bottom: 2px solid var(--border-light);
                     flex-wrap: nowrap;
                     overflow-x: auto;
                 }
@@ -118,7 +118,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Describ
                 }
 
                 .toolbar::-webkit-scrollbar-thumb {
-                    background: #ccc;
+                    background: var(--border-light);
                     border-radius: 2px;
                 }
 
@@ -129,10 +129,10 @@ export default function RichTextEditor({ value, onChange, placeholder = "Describ
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: #ffffff;
-                    border: 1px solid #d0d0d0;
+                    background: var(--surface);
+                    border: 1px solid var(--border-light);
                     border-radius: 5px;
-                    color: #1a1a1a;
+                    color: var(--text-primary);
                     font-size: 14px;
                     font-weight: 600;
                     cursor: pointer;
@@ -141,17 +141,17 @@ export default function RichTextEditor({ value, onChange, placeholder = "Describ
                 }
 
                 .tool-btn:hover {
-                    background: #f8f8f8;
-                    border-color: #6c5ce7;
-                    color: #6c5ce7;
+                    background: var(--bg-light);
+                    border-color: var(--brand);
+                    color: var(--brand);
                 }
 
                 .tool-btn:active {
-                    background: #f0f0f0;
+                    background: var(--bg-light);
                 }
 
                 .divider {
-                    color: #d0d0d0;
+                    color: var(--border-light);
                     font-size: 18px;
                     user-select: none;
                     flex-shrink: 0;
@@ -165,8 +165,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Describ
                     padding: 24px;
                     line-height: 1.7;
                     outline: none;
-                    color: #000000;
-                    background: #ffffff;
+                    color: var(--text-primary);
+                    background: var(--surface);
                     font-size: 16px;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     position: relative;
@@ -177,11 +177,11 @@ export default function RichTextEditor({ value, onChange, placeholder = "Describ
                 }
 
                 .editor-content::-webkit-scrollbar-track {
-                    background: #f8f8f8;
+                    background: var(--bg-light);
                 }
 
                 .editor-content::-webkit-scrollbar-thumb {
-                    background: #d0d0d0;
+                    background: var(--border-light);
                     border-radius: 4px;
                 }
 

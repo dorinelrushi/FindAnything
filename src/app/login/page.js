@@ -45,7 +45,7 @@ export default function LoginPage() {
 
     return (
         <main className="min-h-screen bg-bg-light flex items-center justify-center p-4">
-            <div className="w-full max-w-[450px] bg-white rounded-3xl shadow-airbnb border border-border-light p-8 md:p-10 space-y-8 animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-full max-w-[450px] bg-surface rounded-3xl shadow-airbnb border border-border-light p-8 md:p-10 space-y-8 animate-in fade-in zoom-in-95 duration-300">
                 <div className="space-y-2 text-center">
                     <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">
                         {isLogin ? 'Welcome back' : 'Join TryToFindEverything'}
@@ -65,7 +65,7 @@ export default function LoginPage() {
                     {!isLogin && (
                         <div className="space-y-5">
                             <div className="flex bg-bg-light p-1 rounded-xl">
-                                <label className={`flex-1 text-center py-2 rounded-lg text-sm font-bold cursor-pointer transition-all ${formData.role === 'person' ? 'bg-white shadow-soft text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}>
+                                <label className={`flex-1 text-center py-2 rounded-lg text-sm font-bold cursor-pointer transition-all ${formData.role === 'person' ? 'bg-surface shadow-soft text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}>
                                     <input
                                         type="radio"
                                         name="role"
@@ -76,7 +76,7 @@ export default function LoginPage() {
                                     /> 
                                     Personal User
                                 </label>
-                                <label className={`flex-1 text-center py-2 rounded-lg text-sm font-bold cursor-pointer transition-all ${formData.role === 'business' ? 'bg-white shadow-soft text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}>
+                                <label className={`flex-1 text-center py-2 rounded-lg text-sm font-bold cursor-pointer transition-all ${formData.role === 'business' ? 'bg-surface shadow-soft text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}>
                                     <input
                                         type="radio"
                                         name="role"
@@ -108,7 +108,7 @@ export default function LoginPage() {
                                     <label className="text-xs font-bold text-text-secondary uppercase tracking-widest ml-1">WhatsApp Contact</label>
                                     <div className="flex gap-2">
                                         <select
-                                            className="input-airbnb w-[120px] bg-white cursor-pointer"
+                                            className="input-airbnb w-[120px] bg-surface cursor-pointer"
                                             value={formData.phonePrefix}
                                             onChange={(e) => setFormData({ ...formData, phonePrefix: e.target.value })}
                                         >

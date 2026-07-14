@@ -140,7 +140,7 @@ export default function ListingClient({ initialListing, initialReviews, initialM
     const prevLightboxSlide = () => setCurrentLightboxSlide(prev => (prev - 1 + allImages.length) % allImages.length);
 
     return (
-        <main className="bg-white min-h-screen pb-24 md:pb-0">
+        <main className="bg-surface min-h-screen pb-24 md:pb-0">
             <div className="container-wide py-6 md:py-10 space-y-6 md:space-y-8">
                 {/* Header Section */}
                 <div className="space-y-4">
@@ -189,14 +189,14 @@ export default function ListingClient({ initialListing, initialReviews, initialM
 
                     <button
                         onClick={() => { setCurrentLightboxSlide(0); setShowLightbox(true); }}
-                        className="absolute bottom-6 right-6 bg-white border border-text-primary px-4 py-2 rounded-xl text-sm font-bold shadow-soft hover:bg-bg-light transition-colors flex items-center gap-2 z-10"
+                        className="absolute bottom-6 right-6 bg-surface border border-text-primary px-4 py-2 rounded-xl text-sm font-bold shadow-soft hover:bg-bg-light transition-colors flex items-center gap-2 z-10"
                     >
                         Show all photos
                     </button>
 
                     <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(listing); }}
-                        className="absolute top-6 right-6 bg-white/90 backdrop-blur-md p-3 rounded-full shadow-lg hover:scale-110 active:scale-90 transition-all z-10"
+                        className="absolute top-6 right-6 bg-surface/90 backdrop-blur-md p-3 rounded-full shadow-lg hover:scale-110 active:scale-90 transition-all z-10"
                     >
                         <svg
                             width="24" height="24" viewBox="0 0 24 24"
@@ -355,7 +355,7 @@ export default function ListingClient({ initialListing, initialReviews, initialM
                                 <h2 className="text-2xl font-bold">Menu</h2>
                                 <div className="flex overflow-x-auto gap-2">
                                     {menu.categories.map((cat, idx) => (
-                                        <button key={idx} onClick={() => setActiveMenuTab(idx)} className={`px-4 py-2 rounded-full font-bold ${activeMenuTab === idx ? 'bg-text-primary text-white' : 'bg-bg-light'}`}>
+                                        <button key={idx} onClick={() => setActiveMenuTab(idx)} className={`px-4 py-2 rounded-full font-bold ${activeMenuTab === idx ? 'bg-inverse text-on-inverse' : 'bg-bg-light'}`}>
                                             {cat.name}
                                         </button>
                                     ))}
@@ -401,7 +401,7 @@ export default function ListingClient({ initialListing, initialReviews, initialM
 
                     {/* Sidebar */}
                     <aside className="hidden md:block">
-                        <div className="sticky top-28 p-8 border border-border-light rounded-3xl shadow-airbnb bg-white space-y-8">
+                        <div className="sticky top-28 p-8 border border-border-light rounded-3xl shadow-airbnb bg-surface space-y-8">
                             <h3 className="text-xl font-bold">Request Details</h3>
                             <div className="text-2xl font-black">
                                 {listing.price ? (typeof listing.price === 'string' && listing.price.includes('€') ? listing.price : `€${listing.price}`) : 'Price on request'}
@@ -419,7 +419,7 @@ export default function ListingClient({ initialListing, initialReviews, initialM
             </div>
 
             {/* Mobile Sticky Footer Contact Bar */}
-            <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-border-light p-4 shadow-airbnb flex items-center justify-between gap-4">
+            <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-surface/95 backdrop-blur-md border-t border-border-light p-4 shadow-airbnb flex items-center justify-between gap-4">
                 <div className="flex flex-col">
                     <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">Price</span>
                     <span className="text-base font-black text-text-primary">

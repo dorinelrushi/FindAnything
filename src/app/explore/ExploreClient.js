@@ -123,8 +123,8 @@ export default function ExploreClient() {
     if (!hydrated) return null;
 
     return (
-        <main className="min-h-screen bg-white">
-            <div className="sticky top-[57px] z-40 bg-white border-b border-border-light shadow-sm">
+        <main className="min-h-screen bg-surface">
+            <div className="sticky top-[57px] z-40 bg-surface border-b border-border-light shadow-sm">
                 <div className="container-wide space-y-3 py-6">
                     <div className="max-w-xl mx-auto md:mx-0">
                         <div className="search-pill bg-bg-light border border-border-light">
@@ -158,7 +158,7 @@ export default function ExploreClient() {
                             ))}
                         </div>
                         
-                        <div className="lg:hidden absolute right-0 top-0 bottom-2 flex items-center bg-gradient-to-l from-white via-white to-transparent pl-10">
+                        <div className="lg:hidden absolute right-0 top-0 bottom-2 flex items-center bg-gradient-to-l from-surface via-surface to-transparent pl-10">
                             <button 
                                 onClick={toggleMobileFilters}
                                 className="bg-bg-light border border-border-light p-2.5 rounded-xl shadow-sm hover:border-text-primary transition-all flex items-center gap-2"
@@ -180,7 +180,7 @@ export default function ExploreClient() {
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => { setCityFilter(''); setSearch(''); updateURL({ city: '', search: '' }); }}
-                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === '' ? 'bg-text-primary text-white border-text-primary' : 'bg-white text-text-secondary border-border-light hover:border-text-primary'}`}
+                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === '' ? 'bg-inverse text-on-inverse border-text-primary' : 'bg-surface text-text-secondary border-border-light hover:border-text-primary'}`}
                                     >
                                         All
                                     </button>
@@ -188,7 +188,7 @@ export default function ExploreClient() {
                                         <button
                                             key={city}
                                             onClick={() => { setCityFilter(city); setSearch(''); updateURL({ city, search: '' }); }}
-                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === city ? 'bg-text-primary text-white border-text-primary' : 'bg-white text-text-secondary border-border-light hover:border-text-primary'}`}
+                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === city ? 'bg-inverse text-on-inverse border-text-primary' : 'bg-surface text-text-secondary border-border-light hover:border-text-primary'}`}
                                         >
                                             {city}
                                         </button>
@@ -244,7 +244,7 @@ export default function ExploreClient() {
                                                 src={listing.image || 'https://via.placeholder.com/400x300'}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             />
-                                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-brand shadow-sm">
+                                            <div className="absolute top-3 right-3 bg-surface/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-brand shadow-sm">
                                                 {listing.type}
                                             </div>
                                         </div>
@@ -274,8 +274,8 @@ export default function ExploreClient() {
             </div>
 
             {showMobileFilters && (
-                <div className="fixed inset-0 z-[100] bg-white overflow-y-auto lg:hidden">
-                    <div className="sticky top-0 bg-white border-b border-border-light p-5 flex items-center justify-between z-10">
+                <div className="fixed inset-0 z-[100] bg-surface overflow-y-auto lg:hidden">
+                    <div className="sticky top-0 bg-surface border-b border-border-light p-5 flex items-center justify-between z-10">
                         <h2 className="text-xl font-bold">Filters</h2>
                         <button onClick={toggleMobileFilters} className="p-2 bg-bg-light rounded-full text-2xl leading-none">×</button>
                     </div>
@@ -287,7 +287,7 @@ export default function ExploreClient() {
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => { setCityFilter(''); setSearch(''); updateURL({ city: '', search: '' }); }}
-                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === '' ? 'bg-text-primary text-white border-text-primary' : 'bg-white text-text-secondary border-border-light'}`}
+                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === '' ? 'bg-inverse text-on-inverse border-text-primary' : 'bg-surface text-text-secondary border-border-light'}`}
                                     >
                                         All
                                     </button>
@@ -295,7 +295,7 @@ export default function ExploreClient() {
                                         <button
                                             key={city}
                                             onClick={() => { setCityFilter(city); setSearch(''); updateURL({ city, search: '' }); }}
-                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === city ? 'bg-text-primary text-white border-text-primary' : 'bg-white text-text-secondary border-border-light'}`}
+                                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${cityFilter === city ? 'bg-inverse text-on-inverse border-text-primary' : 'bg-surface text-text-secondary border-border-light'}`}
                                         >
                                             {city}
                                         </button>
@@ -326,7 +326,7 @@ export default function ExploreClient() {
                         )}
                     </div>
 
-                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border-light p-6">
+                    <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border-light p-6">
                         <button 
                             onClick={toggleMobileFilters}
                             className="w-full bg-brand text-white py-4 rounded-xl text-base font-bold shadow-lg active:scale-95 transition-transform"

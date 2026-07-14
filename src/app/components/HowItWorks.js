@@ -110,7 +110,7 @@ export default function HowItWorks() {
       {/* Two audiences */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         {/* Business card */}
-        <article className="relative overflow-hidden rounded-[28px] border border-border-light bg-white shadow-soft hover:shadow-airbnb transition-shadow">
+        <article className="relative overflow-hidden rounded-[28px] border border-border-light bg-surface shadow-soft hover:shadow-airbnb transition-shadow">
           <div className="absolute inset-x-0 top-0 h-1.5 bg-brand" aria-hidden />
           <div className="p-8 md:p-10 space-y-8">
             <div className="flex items-start gap-4">
@@ -137,7 +137,7 @@ export default function HowItWorks() {
               aria-hidden
             >
               <div className="flex flex-col items-center gap-1.5 min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-xl bg-white border border-border-light flex items-center justify-center shadow-soft">
+                <div className="w-12 h-12 rounded-xl bg-surface border border-border-light flex items-center justify-center shadow-soft">
                   <QrCode className="w-6 h-6 text-text-primary" />
                 </div>
                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wide text-center">
@@ -146,7 +146,7 @@ export default function HowItWorks() {
               </div>
               <ArrowRight className="w-4 h-4 text-border-light shrink-0" />
               <div className="flex flex-col items-center gap-1.5 min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-xl bg-white border border-border-light flex items-center justify-center shadow-soft">
+                <div className="w-12 h-12 rounded-xl bg-surface border border-border-light flex items-center justify-center shadow-soft">
                   <Gem className="w-6 h-6 text-brand" />
                 </div>
                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wide text-center">
@@ -155,7 +155,7 @@ export default function HowItWorks() {
               </div>
               <ArrowRight className="w-4 h-4 text-border-light shrink-0" />
               <div className="flex flex-col items-center gap-1.5 min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-xl bg-white border border-border-light flex items-center justify-center shadow-soft">
+                <div className="w-12 h-12 rounded-xl bg-surface border border-border-light flex items-center justify-center shadow-soft">
                   <Megaphone className="w-6 h-6 text-text-primary" />
                 </div>
                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wide text-center">
@@ -189,7 +189,7 @@ export default function HowItWorks() {
         </article>
 
         {/* Tourist card */}
-        <article className="relative overflow-hidden rounded-[28px] border border-border-light bg-white shadow-soft hover:shadow-airbnb transition-shadow">
+        <article className="relative overflow-hidden rounded-[28px] border border-border-light bg-surface shadow-soft hover:shadow-airbnb transition-shadow">
           <div className="absolute inset-x-0 top-0 h-1.5 bg-text-primary" aria-hidden />
           <div className="p-8 md:p-10 space-y-8">
             <div className="flex items-start gap-4">
@@ -216,7 +216,7 @@ export default function HowItWorks() {
               aria-hidden
             >
               <div className="flex flex-col items-center gap-1.5 min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-xl bg-white border border-border-light flex items-center justify-center shadow-soft">
+                <div className="w-12 h-12 rounded-xl bg-surface border border-border-light flex items-center justify-center shadow-soft">
                   <MapPin className="w-6 h-6 text-text-primary" />
                 </div>
                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wide text-center">
@@ -225,7 +225,7 @@ export default function HowItWorks() {
               </div>
               <ArrowRight className="w-4 h-4 text-border-light shrink-0" />
               <div className="flex flex-col items-center gap-1.5 min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-xl bg-white border border-border-light flex items-center justify-center shadow-soft">
+                <div className="w-12 h-12 rounded-xl bg-surface border border-border-light flex items-center justify-center shadow-soft">
                   <Star className="w-6 h-6 text-brand" />
                 </div>
                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wide text-center">
@@ -234,7 +234,7 @@ export default function HowItWorks() {
               </div>
               <ArrowRight className="w-4 h-4 text-border-light shrink-0" />
               <div className="flex flex-col items-center gap-1.5 min-w-0 flex-1">
-                <div className="w-12 h-12 rounded-xl bg-white border border-border-light flex items-center justify-center shadow-soft">
+                <div className="w-12 h-12 rounded-xl bg-surface border border-border-light flex items-center justify-center shadow-soft">
                   <Share2 className="w-6 h-6 text-text-primary" />
                 </div>
                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wide text-center">
@@ -259,7 +259,7 @@ export default function HowItWorks() {
 
             <Link
               href="/explore"
-              className="inline-flex items-center justify-center gap-2 w-full md:w-auto px-6 py-3.5 rounded-xl bg-text-primary text-white font-bold text-sm hover:bg-black transition-colors shadow-soft active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 w-full md:w-auto px-6 py-3.5 rounded-xl bg-inverse text-on-inverse font-bold text-sm hover:bg-inverse-hover transition-colors shadow-soft active:scale-[0.98]"
             >
               Start exploring
               <ArrowRight className="w-4 h-4" aria-hidden />
@@ -283,7 +283,7 @@ export default function HowItWorks() {
           {STEPS.map(({ step, icon: Icon, title, text }) => (
             <li
               key={step}
-              className="relative bg-white rounded-2xl border border-border-light p-6 shadow-soft space-y-4"
+              className="relative bg-surface rounded-2xl border border-border-light p-6 shadow-soft space-y-4"
             >
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black tracking-[0.2em] text-brand">{step}</span>

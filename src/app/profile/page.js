@@ -121,7 +121,7 @@ export default function ProfilePage() {
     return (
         <main className="min-h-screen bg-bg-light py-12 px-4">
             <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-[2.5rem] shadow-soft overflow-hidden border border-border-light">
+                <div className="bg-surface rounded-[2.5rem] shadow-soft overflow-hidden border border-border-light">
                     {/* Header/Cover */}
                     <div className="h-48 bg-gradient-to-r from-brand to-rose-500 relative">
                         <div className="absolute -bottom-16 left-8 md:left-12">

@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
-@theme {
-  --color-brand: #FF5A00; /* Vibrant Orange */
-  --color-brand-hover: #E04D00;
-  --color-text-primary: #222222;
-  --color-text-secondary: #717171;
-  --color-border-light: #B0B0B0; /* Darker border for better visibility */
-  --color-bg-light: #F7F7F7;
-  
+/* Class-based dark mode (html.dark) — works on all devices */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Semantic tokens reference runtime CSS vars so light/dark can swap */
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-light: var(--border-light);
+  --color-bg-light: var(--bg-light);
+  --color-surface: var(--surface);
+  --color-background: var(--background);
+  --color-inverse: var(--inverse);
+  --color-inverse-hover: var(--inverse-hover);
+  --color-on-inverse: var(--on-inverse);
+  --shadow-airbnb: var(--shadow-airbnb);
+  --shadow-soft: var(--shadow-soft);
+}
+
+/* ─── Light theme (default) ─── */
+:root {
+  --brand: #FF5A00;
+  --brand-hover: #E04D00;
+  --text-primary: #222222;
+  --text-secondary: #717171;
+  --border-light: #B0B0B0;
+  --bg-light: #F7F7F7;
+  --surface: #FFFFFF;
+  --background: #FFFFFF;
+  --inverse: #222222;
+  --inverse-hover: #000000;
+  --on-inverse: #FFFFFF;
   --shadow-airbnb: 0 6px 16px rgba(0, 0, 0, 0.12);
   --shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.08);
+  /* Legacy aliases used by older dashboard/menu styles */
+  --primary: var(--brand);
+  --accent: var(--brand);
+  color-scheme: light;
+}
+
+/* ─── Dark theme ─── */
+html.dark {
+  --brand: #FF5A00;
+  --brand-hover: #FF6B1A;
+  --text-primary: #F2F2F2;
+  --text-secondary: #A3A3A3;
+  --border-light: #3F3F46;
+  --bg-light: #1A1A1E;
+  --surface: #141416;
+  --background: #0D0D0F;
+  --inverse: #F2F2F2;
+  --inverse-hover: #FFFFFF;
+  --on-inverse: #141416;
+  --shadow-airbnb: 0 6px 20px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --primary: var(--brand);
+  --accent: var(--brand);
+  color-scheme: dark;
 }
 
 @layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
   body {
-    @apply bg-white text-text-primary font-sans antialiased;
+    @apply bg-background text-text-primary font-sans antialiased;
     margin: 0;
     padding: 0;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   * {
     @apply border-border-light;
+  }
+
+  /* Native form controls follow theme */
+  input, textarea, select {
+    color-scheme: inherit;
   }
 }
 
@@ -42,15 +101,15 @@
   }
   
   .card-airbnb {
-    @apply bg-white rounded-xl overflow-hidden transition-all duration-200 hover:shadow-soft;
+    @apply bg-surface rounded-xl overflow-hidden transition-all duration-200 hover:shadow-soft;
   }
   
   .input-airbnb {
-    @apply w-full px-4 py-3 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-sm;
+    @apply w-full px-4 py-3 border border-border-light rounded-lg bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-sm;
   }
 
   .input {
-    @apply w-full px-4 py-3 border border-border-light rounded-lg bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all shadow-sm;
+    @apply w-full px-4 py-3 border border-border-light rounded-lg bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all shadow-sm;
   }
 
   .btn-inline-add {
@@ -58,17 +117,22 @@
   }
 }
 
-/* Maintain some compatibility for Leaflet if needed, but styled for light theme */
+/* Leaflet map chrome — theme-aware surfaces */
 .leaflet-container {
   @apply rounded-xl border border-border-light;
   z-index: 1;
 }
 
 .leaflet-routing-container {
-  @apply !bg-white/90 !backdrop-blur-md !border !border-border-light !rounded-lg !shadow-airbnb !p-4;
+  @apply !bg-surface/90 !backdrop-blur-md !border !border-border-light !rounded-lg !shadow-airbnb !p-4 !text-text-primary;
 }
 
 /* Airbnb-style search bar component helper */
 .search-pill {
-  @apply flex items-center bg-white border border-border-light rounded-full shadow-soft hover:shadow-airbnb transition-all duration-200 p-2 pl-4 cursor-pointer;
+  @apply flex items-center bg-surface border border-border-light rounded-full shadow-soft hover:shadow-airbnb transition-all duration-200 p-2 pl-4 cursor-pointer;
+}
+
+/* Smooth theme transitions on main chrome (keep layout unchanged) */
+header, footer, main, .card-airbnb, .search-pill {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }

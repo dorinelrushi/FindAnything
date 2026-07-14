@@ -32,7 +32,7 @@ export default function BlogActions({ slug, userRole }) {
 
     return (
         <div className="flex gap-3">
-            <Link href={`/admin/blog/edit/${slug}`} className="px-4 py-2 bg-text-primary text-white rounded-xl text-xs font-bold shadow-soft hover:bg-black transition-colors">✏️ Edit</Link>
+            <Link href={`/admin/blog/edit/${slug}`} className="px-4 py-2 bg-inverse text-on-inverse rounded-xl text-xs font-bold shadow-soft hover:bg-inverse-hover transition-colors">✏️ Edit</Link>
             <button 
                 onClick={handleDelete} 
                 disabled={deleting} 

@@ -217,7 +217,7 @@ export default function SuggestionsPage() {
                                     <button 
                                         key={city}
                                         onClick={() => handleCitySelect(city)}
-                                        className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${selectedCity === city ? 'bg-brand text-white border-brand' : 'bg-white text-text-primary border-border-light hover:border-brand'}`}
+                                        className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${selectedCity === city ? 'bg-brand text-white border-brand' : 'bg-surface text-text-primary border-border-light hover:border-brand'}`}
                                     >
                                         {city}
                                     </button>
@@ -254,7 +254,7 @@ export default function SuggestionsPage() {
                             <Link 
                                 key={listing._id} 
                                 href={`/${listing.type}/${listing.slug || listing._id}`}
-                                className="group space-y-4 cursor-pointer bg-white p-4 rounded-[2rem] shadow-sm hover:shadow-xl transition-all border border-brand/5 hover:border-brand/20 flex flex-col h-full"
+                                className="group space-y-4 cursor-pointer bg-surface p-4 rounded-[2rem] shadow-sm hover:shadow-xl transition-all border border-brand/5 hover:border-brand/20 flex flex-col h-full"
                             >
                                 <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-bg-light relative">
                                     <img 
@@ -262,7 +262,7 @@ export default function SuggestionsPage() {
                                         alt={listing.title}
                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
-                                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-black uppercase text-brand shadow-sm">
+                                    <div className="absolute top-3 right-3 bg-surface/95 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-black uppercase text-brand shadow-sm">
                                         {listing.type}
                                     </div>
                                 </div>
@@ -300,10 +300,10 @@ export default function SuggestionsPage() {
                     Our community helps you find the hidden gems and popular spots. Keep exploring, keep discovering!
                 </p>
                 <div className="pt-4 flex flex-wrap justify-center gap-4">
-                    <Link href="/explore" className="bg-text-primary text-white px-10 py-4 rounded-2xl font-bold hover:bg-black transition-all active:scale-95 shadow-lg">
+                    <Link href="/explore" className="bg-inverse text-on-inverse px-10 py-4 rounded-2xl font-bold hover:bg-inverse-hover transition-all active:scale-95 shadow-lg">
                         Browse Everything
                     </Link>
-                    <Link href="/favorites" className="bg-white border border-border-light text-text-primary px-10 py-4 rounded-2xl font-bold hover:bg-bg-light transition-all active:scale-95">
+                    <Link href="/favorites" className="bg-surface border border-border-light text-text-primary px-10 py-4 rounded-2xl font-bold hover:bg-bg-light transition-all active:scale-95">
                         My Saved List
                     </Link>
                 </div>

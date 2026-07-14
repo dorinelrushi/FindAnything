@@ -73,7 +73,7 @@ export default function FeaturedAds() {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="relative w-full max-w-lg bg-white rounded-[32px] overflow-hidden shadow-airbnb animate-in zoom-in-95 ease-out duration-400">
+            <div className="relative w-full max-w-lg bg-surface rounded-[32px] overflow-hidden shadow-airbnb animate-in zoom-in-95 ease-out duration-400">
                 {/* Close Button */}
                 <button 
                     onClick={() => setIsVisible(false)}

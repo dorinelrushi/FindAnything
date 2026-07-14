@@ -123,7 +123,7 @@ export default function DailyReminder() {
                     </Link>
                     <Link 
                         href={`/${suggestion.type}/${suggestion.slug || suggestion._id}`}
-                        className="bg-white text-brand px-6 py-2 rounded-full text-sm font-black hover:bg-bg-light transition-all active:scale-95 shadow-soft whitespace-nowrap"
+                        className="bg-surface text-brand px-6 py-2 rounded-full text-sm font-black hover:bg-bg-light transition-all active:scale-95 shadow-soft whitespace-nowrap"
                     >
                         Let's Go!
                     </Link>

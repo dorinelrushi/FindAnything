@@ -122,7 +122,7 @@ export default function AdminDashboard() {
     if (loading || !user || user.role !== 'admin') return <div className="container-wide py-20 text-center font-bold">Loading...</div>;
 
     return (
-        <main className="min-h-screen bg-white">
+        <main className="min-h-screen bg-surface">
             <div className="container-wide py-10 space-y-12">
                 {/* 1. Header & Stats Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-8">
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {pendingRegistrations.map((reg) => (
-                                <div key={reg._id} className="p-8 bg-white border border-border-light rounded-[24px] shadow-soft hover:shadow-airbnb transition-all space-y-6 flex flex-col">
+                                <div key={reg._id} className="p-8 bg-surface border border-border-light rounded-[24px] shadow-soft hover:shadow-airbnb transition-all space-y-6 flex flex-col">
                                     <div className="space-y-1">
                                         <h3 className="text-xl font-extrabold text-text-primary">{reg.name || 'No Name'}</h3>
                                         <p className="text-sm text-text-secondary font-medium">{reg.email}</p>
@@ -203,14 +203,14 @@ export default function AdminDashboard() {
                 <section className="space-y-6 pt-10 border-t">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-bold text-text-primary">Blog Management</h2>
-                        <Link href="/admin/blog/new" className="bg-text-primary text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-black transition-colors">
+                        <Link href="/admin/blog/new" className="bg-inverse text-on-inverse px-6 py-3 rounded-xl font-bold text-sm hover:bg-inverse-hover transition-colors">
                             ✍️ New Post
                         </Link>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {blogs.map(blog => (
-                            <div key={blog._id} className="p-4 bg-white border border-border-light rounded-2xl flex items-center gap-4 hover:shadow-soft transition-all group">
+                            <div key={blog._id} className="p-4 bg-surface border border-border-light rounded-2xl flex items-center gap-4 hover:shadow-soft transition-all group">
                                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-bg-light flex-shrink-0">
                                     <img src={blog.coverImage || 'https://via.placeholder.com/100'} className="w-full h-full object-cover" />
                                 </div>

@@ -125,7 +125,7 @@ export default function EditBlogPage({ params }) {
     if (user.role !== 'admin') return null;
 
     return (
-        <div className="container-wide max-w-[900px] mt-10 mb-20 bg-white p-8 md:p-12 rounded-3xl shadow-airbnb border border-border-light">
+        <div className="container-wide max-w-[900px] mt-10 mb-20 bg-surface p-8 md:p-12 rounded-3xl shadow-airbnb border border-border-light">
             <div className="flex justify-between items-center mb-8 pb-6 border-b border-border-light">
                 <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">✏️ Edit Blog Post</h1>
                 <div className="flex gap-4">
@@ -159,20 +159,20 @@ export default function EditBlogPage({ params }) {
                     {/* Toolbar */}
                     <div className="flex flex-wrap gap-2 p-3 bg-bg-light border border-border-light border-b-0 rounded-t-xl items-center">
                         {[{ label: 'H1', cmd: 'formatBlock', val: 'h1' }, { label: 'H2', cmd: 'formatBlock', val: 'h2' }, { label: 'H3', cmd: 'formatBlock', val: 'h3' }, { label: 'P', cmd: 'formatBlock', val: 'p' }].map(btn => (
-                            <button key={btn.label} type="button" onMouseDown={e => { e.preventDefault(); execCmd(btn.cmd, btn.val); }} className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">{btn.label}</button>
+                            <button key={btn.label} type="button" onMouseDown={e => { e.preventDefault(); execCmd(btn.cmd, btn.val); }} className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">{btn.label}</button>
                         ))}
                         <div className="w-[1px] h-6 bg-border-light mx-1" />
                         {[{ label: 'B', cmd: 'bold' }, { label: 'I', cmd: 'italic' }, { label: 'U', cmd: 'underline' }].map(btn => (
-                            <button key={btn.label} type="button" onMouseDown={e => { e.preventDefault(); execCmd(btn.cmd); }} className={`px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm text-text-primary hover:text-brand transition-colors shadow-sm ${btn.label === 'I' ? 'italic' : ''} ${btn.label === 'B' ? 'font-bold' : 'font-medium'}`}>{btn.label}</button>
+                            <button key={btn.label} type="button" onMouseDown={e => { e.preventDefault(); execCmd(btn.cmd); }} className={`px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm text-text-primary hover:text-brand transition-colors shadow-sm ${btn.label === 'I' ? 'italic' : ''} ${btn.label === 'B' ? 'font-bold' : 'font-medium'}`}>{btn.label}</button>
                         ))}
                         <div className="w-[1px] h-6 bg-border-light mx-1" />
-                        <button type="button" onMouseDown={e => { e.preventDefault(); execCmd('insertUnorderedList'); }} className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">• List</button>
-                        <button type="button" onMouseDown={e => { e.preventDefault(); execCmd('insertOrderedList'); }} className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">1. List</button>
-                        <button type="button" onMouseDown={e => { e.preventDefault(); execCmd('formatBlock', 'blockquote'); }} className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">" Quote</button>
+                        <button type="button" onMouseDown={e => { e.preventDefault(); execCmd('insertUnorderedList'); }} className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">• List</button>
+                        <button type="button" onMouseDown={e => { e.preventDefault(); execCmd('insertOrderedList'); }} className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">1. List</button>
+                        <button type="button" onMouseDown={e => { e.preventDefault(); execCmd('formatBlock', 'blockquote'); }} className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">" Quote</button>
                         <div className="w-[1px] h-6 bg-border-light mx-1" />
                         <button type="button" onMouseDown={e => { e.preventDefault(); saveSelection(); setShowImageDialog(true); }} className="px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-lg text-sm font-bold text-brand hover:brightness-90 transition-colors shadow-sm">🖼️ Image</button>
-                        <button type="button" onMouseDown={e => { e.preventDefault(); const url = prompt('Enter URL:'); if (url) execCmd('createLink', url); }} className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">🔗 Link</button>
-                        <button type="button" onMouseDown={e => { e.preventDefault(); execCmd('insertHorizontalRule'); }} className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">― Line</button>
+                        <button type="button" onMouseDown={e => { e.preventDefault(); const url = prompt('Enter URL:'); if (url) execCmd('createLink', url); }} className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">🔗 Link</button>
+                        <button type="button" onMouseDown={e => { e.preventDefault(); execCmd('insertHorizontalRule'); }} className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">― Line</button>
                     </div>
 
                     {/* Image URL Dialog */}
@@ -185,7 +185,7 @@ export default function EditBlogPage({ params }) {
                     )}
                     
                     {/* Editor */}
-                    <div ref={editorRef} contentEditable suppressContentEditableWarning data-placeholder="Start writing..." className="min-h-[400px] p-6 bg-white border border-border-light rounded-b-xl text-text-primary text-lg leading-relaxed whitespace-pre-wrap outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-inner" />
+                    <div ref={editorRef} contentEditable suppressContentEditableWarning data-placeholder="Start writing..." className="min-h-[400px] p-6 bg-surface border border-border-light rounded-b-xl text-text-primary text-lg leading-relaxed whitespace-pre-wrap outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-inner" />
                 </div>
 
                 {/* Tags */}

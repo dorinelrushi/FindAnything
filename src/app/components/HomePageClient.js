@@ -181,13 +181,13 @@ export default function Home() {
                   alt={listing.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-brand shadow-sm">
+                <div className="absolute top-3 right-3 bg-surface/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-brand shadow-sm">
                   {listing.type}
                 </div>
                 {/* Favorite Button */}
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(listing); }}
-                  className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 active:scale-90 transition-all z-10"
+                  className="absolute top-3 left-3 bg-surface/80 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 active:scale-90 transition-all z-10"
                 >
                   <svg
                     width="16" height="16" viewBox="0 0 24 24"
@@ -315,7 +315,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Promotion */}
-          <div className="bg-white p-10 rounded-3xl border border-border-light shadow-sm hover:shadow-airbnb transition-all flex flex-col items-center">
+          <div className="bg-surface p-10 rounded-3xl border border-border-light shadow-sm hover:shadow-airbnb transition-all flex flex-col items-center">
             <span className="text-4xl mb-6">🚀</span>
             <h3 className="text-2xl font-bold mb-2">Business Promotion</h3>
             <div className="text-3xl font-black text-brand mb-4">10€ <span className="text-sm text-text-secondary font-medium">/ 7 days</span></div>
@@ -328,7 +328,7 @@ export default function Home() {
           </div>
 
           {/* Presence */}
-          <div className="bg-white p-10 rounded-3xl border border-brand/20 shadow-sm hover:shadow-airbnb transition-all flex flex-col items-center relative overflow-hidden">
+          <div className="bg-surface p-10 rounded-3xl border border-brand/20 shadow-sm hover:shadow-airbnb transition-all flex flex-col items-center relative overflow-hidden">
             <div className="absolute top-4 right-4 bg-brand text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Most Wanted</div>
             <span className="text-4xl mb-6">💻</span>
             <h3 className="text-2xl font-bold mb-2">Digital Presence</h3>
@@ -336,7 +336,7 @@ export default function Home() {
             <p className="text-text-secondary text-sm mb-8 flex-1">
               Modern website, professional logo, and full management of social networks.
             </p>
-            <a href="https://wa.me/355676925765" target="_blank" className="w-full bg-text-primary text-white py-4 rounded-xl font-bold hover:bg-black transition-colors shadow-soft">
+            <a href="https://wa.me/355676925765" target="_blank" className="w-full bg-inverse text-on-inverse py-4 rounded-xl font-bold hover:bg-inverse-hover transition-colors shadow-soft">
               Contact us on WhatsApp
             </a>
           </div>

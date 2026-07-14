@@ -189,7 +189,7 @@ export default function QRScannerPage({ params }) {
     };
 
     return (
-        <main className="min-h-screen flex items-start justify-center p-6 bg-white py-16">
+        <main className="min-h-screen flex items-start justify-center p-6 bg-surface py-16">
             <div className="max-w-lg w-full space-y-6">
                 <div className="text-center space-y-8 p-10 bg-bg-light rounded-[40px] border border-border-light shadow-xl">
                     <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto text-4xl ${done ? 'bg-brand/10 text-brand' : 'bg-bg-light border border-border-light animate-pulse'}`}>
@@ -208,7 +208,7 @@ export default function QRScannerPage({ params }) {
                             </div>
                         )}
                         {scanMeta && (
-                            <div className="text-left bg-white rounded-2xl border border-border-light p-4 text-sm space-y-1">
+                            <div className="text-left bg-surface rounded-2xl border border-border-light p-4 text-sm space-y-1">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-brand">Scan location</p>
                                 <p className="font-bold text-text-primary">
                                     🌍 {[scanMeta.city, scanMeta.region, scanMeta.country || scanMeta.countryCode].filter(Boolean).join(', ') || 'Location unknown'}
@@ -235,7 +235,7 @@ export default function QRScannerPage({ params }) {
                 </div>
 
                 {/* AI Tourist Assistant */}
-                <div className="p-8 bg-white rounded-[32px] border border-border-light shadow-sm space-y-4">
+                <div className="p-8 bg-surface rounded-[32px] border border-border-light shadow-sm space-y-4">
                     <div className="flex items-center gap-2">
                         <span className="text-2xl">🧭</span>
                         <h2 className="text-xl font-black text-text-primary">AI Tourist Assistant</h2>

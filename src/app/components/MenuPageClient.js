@@ -112,6 +112,8 @@ export default function MenuPageClient({ params }) {
                 .menu-page {
                     min-height: 100vh;
                     padding-bottom: 50px;
+                    background: var(--background);
+                    color: var(--text-primary);
                 }
                 .menu-header {
                     height: 300px;
@@ -152,6 +154,11 @@ export default function MenuPageClient({ params }) {
                 
                 .menu-content {
                     padding: 40px;
+                    background: var(--surface);
+                    border: 1px solid var(--border-light);
+                    border-radius: 16px;
+                    box-shadow: var(--shadow-soft);
+                    color: var(--text-primary);
                 }
                 
                 .menu-category {
@@ -213,18 +220,18 @@ export default function MenuPageClient({ params }) {
                 .menu-item {
                     display: flex;
                     gap: 15px;
-                    background: rgba(255,255,255,0.03);
+                    background: var(--bg-light);
                     padding: 15px;
                     border-radius: 12px;
                     transition: transform 0.2s, box-shadow 0.2s;
-                    border: 1px solid transparent;
+                    border: 1px solid var(--border-light);
                 }
 
                 .menu-item:hover {
                     transform: translateY(-3px);
-                    background: rgba(255,255,255,0.07);
-                    border-color: rgba(255,255,255,0.1);
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    background: var(--bg-light);
+                    border-color: var(--brand);
+                    box-shadow: var(--shadow-soft);
                 }
 
                 .item-image {
@@ -249,7 +256,7 @@ export default function MenuPageClient({ params }) {
                     justify-content: space-between;
                     align-items: baseline;
                     margin-bottom: 5px;
-                    border-bottom: 1px dashed rgba(255,255,255,0.2);
+                    border-bottom: 1px dashed var(--border-light);
                     padding-bottom: 5px;
                 }
 
@@ -269,7 +276,7 @@ export default function MenuPageClient({ params }) {
                 .description {
                     margin: 0;
                     font-size: 0.9rem;
-                    color: #ccc;
+                    color: var(--text-secondary);
                     line-height: 1.4;
                     font-style: italic;
                 }

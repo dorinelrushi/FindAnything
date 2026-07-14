@@ -47,14 +47,14 @@ export default function FavoritesPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {favorites.map((listing) => (
-                        <div key={listing._id} className="group flex flex-col bg-white border border-border-light rounded-2xl overflow-hidden shadow-sm hover:shadow-airbnb transition-all relative">
+                        <div key={listing._id} className="group flex flex-col bg-surface border border-border-light rounded-2xl overflow-hidden shadow-sm hover:shadow-airbnb transition-all relative">
                             <Link href={`/${listing.type}/${listing.slug || listing._id}`} className="block relative aspect-[4/3] overflow-hidden">
                                 <img 
                                     src={listing.image || 'https://via.placeholder.com/400x300?text=No+Image'} 
                                     alt={listing.title}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
-                                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase text-brand">
+                                <div className="absolute top-3 left-3 bg-surface/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase text-brand">
                                     {listing.type}
                                 </div>
                             </Link>

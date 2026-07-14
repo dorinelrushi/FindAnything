@@ -116,25 +116,25 @@ export default function AttachmentPicker({ isOpen, onClose, onSelect, selectedAt
 
     return (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
-            <div className="bg-white sm:rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col h-full sm:h-[85vh] sm:max-h-[600px] transition-all duration-300">
+            <div className="bg-surface sm:rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col h-full sm:h-[85vh] sm:max-h-[600px] transition-all duration-300">
                 {/* Header */}
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                    <h3 className="font-bold text-gray-800 text-lg">Attach near you</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+                <div className="p-4 border-b border-border-light flex items-center justify-between">
+                    <h3 className="font-bold text-text-primary text-lg">Attach near you</h3>
+                    <button onClick={onClose} className="p-2 hover:bg-bg-light rounded-full text-text-secondary transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Search & Filters */}
-                <div className="p-4 space-y-3 bg-gray-50/50">
+                <div className="p-4 space-y-3 bg-bg-light/50">
                     <div className="relative">
-                        <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
                         <input
                             type="text"
                             placeholder={isCategoryLocked ? `Search ${getCategoryLabel(activeCategory)}...` : "Search places..."}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-sm"
+                            className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border-light rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-sm"
                         />
                     </div>
                     {isCategoryLocked ? (
@@ -142,11 +142,11 @@ export default function AttachmentPicker({ isOpen, onClose, onSelect, selectedAt
                             <span className="px-3 py-1.5 bg-orange-500 text-white rounded-full text-xs font-medium">
                                 {getCategoryLabel(activeCategory)} only
                             </span>
-                            <span className="text-xs text-gray-400">Filtered by current tab</span>
+                            <span className="text-xs text-text-secondary">Filtered by current tab</span>
                         </div>
                     ) : (
                         // Filter Bars
-                        <div className="flex overflow-x-auto p-3 gap-1 no-scrollbar bg-slate-50 border-b scroll-smooth snap-x">
+                        <div className="flex overflow-x-auto p-3 gap-1 no-scrollbar bg-bg-light border-b scroll-smooth snap-x">
                             {['all', 'hotel', 'restaurant', 'bar', 'bujtina', 'tour', 'rentcar', 'city'].map(type => (
                                 <button
                                     key={type}
@@ -154,7 +154,7 @@ export default function AttachmentPicker({ isOpen, onClose, onSelect, selectedAt
                                     className={`snap-start whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-200 border-b-2 ${
                                         typeFilter === type 
                                         ? 'border-orange-500 text-orange-600 bg-orange-50/50' 
-                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                                        : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-bg-light'
                                     }`}
                                 >
                                     {getCategoryLabel(type)}
@@ -179,14 +179,14 @@ export default function AttachmentPicker({ isOpen, onClose, onSelect, selectedAt
                                         key={listing._id}
                                         onClick={() => toggleSelection(listing)}
                                         className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
-                                            isSelected ? 'bg-orange-50 border border-orange-200' : 'hover:bg-gray-50 border border-transparent'
+                                            isSelected ? 'bg-orange-50 border border-orange-200' : 'hover:bg-bg-light border border-transparent'
                                         }`}
                                     >
-                                        <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0 relative">
+                                        <div className="w-12 h-12 rounded-lg bg-border-light overflow-hidden flex-shrink-0 relative">
                                             {listing.image ? (
                                                 <img src={listing.image} alt={listing.title} className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-xs text-gray-400">No img</div>
+                                                <div className="w-full h-full flex items-center justify-center bg-bg-light text-xs text-text-secondary">No img</div>
                                             )}
                                             {isSelected && (
                                                 <div className="absolute inset-0 bg-orange-500/80 flex items-center justify-center backdrop-blur-[1px]">
@@ -195,8 +195,8 @@ export default function AttachmentPicker({ isOpen, onClose, onSelect, selectedAt
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-semibold text-sm text-gray-900 truncate">{listing.title}</h4>
-                                            <p className="text-xs text-gray-500 capitalize truncate">
+                                            <h4 className="font-semibold text-sm text-text-primary truncate">{listing.title}</h4>
+                                            <p className="text-xs text-text-secondary capitalize truncate">
                                                 {listing.type === 'bujtina' ? 'Guesthouse' : listing.type === 'rentcar' ? 'Rent a Car' : listing.type} {listing.city ? `• ${listing.city}` : ''}
                                             </p>
                                         </div>
@@ -205,14 +205,14 @@ export default function AttachmentPicker({ isOpen, onClose, onSelect, selectedAt
                             })}
                         </div>
                     ) : (
-                        <div className="text-center py-10 text-gray-500 text-sm">
+                        <div className="text-center py-10 text-text-secondary text-sm">
                             <p>No listings found.</p>
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-100 bg-white">
+                <div className="p-4 border-t border-border-light bg-surface">
                     <button
                         onClick={handleConfirm}
                         className="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm"

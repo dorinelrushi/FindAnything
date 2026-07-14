@@ -241,7 +241,7 @@ export default function TouristBudgetsPage() {
                         return (
                             <div
                                 key={item._id}
-                                className="bg-white rounded-[2rem] border border-border-light/40 p-6 shadow-soft hover:shadow-airbnb hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                                className="bg-surface rounded-[2rem] border border-border-light/40 p-6 shadow-soft hover:shadow-airbnb hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
                             >
                                 <div className="space-y-4">
                                     {/* Card Header (Poster Info + Actions) */}
@@ -370,7 +370,7 @@ export default function TouristBudgetsPage() {
             {/* Post / Edit Modal Dialog */}
             {modalOpen && (
                 <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-                    <div className="bg-white max-w-md w-full rounded-[2.5rem] shadow-airbnb border border-border-light overflow-hidden p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+                    <div className="bg-surface max-w-md w-full rounded-[2.5rem] shadow-airbnb border border-border-light overflow-hidden p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
 
                         {/* Modal Header */}
                         <div className="flex items-center justify-between border-b pb-4">
@@ -379,7 +379,7 @@ export default function TouristBudgetsPage() {
                             </h2>
                             <button
                                 onClick={() => { setModalOpen(false); setEditingBudget(null); }}
-                                className="text-2xl text-text-secondary hover:text-black font-bold p-1 rounded-full active:scale-90 transition-all cursor-pointer"
+                                className="text-2xl text-text-secondary hover:text-text-primary font-bold p-1 rounded-full active:scale-90 transition-all cursor-pointer"
                             >
                                 ×
                             </button>
@@ -404,7 +404,7 @@ export default function TouristBudgetsPage() {
                                     ) : (
                                         <button
                                             onClick={() => setModalOpen(false)}
-                                            className="w-full bg-text-primary text-white py-3.5 rounded-xl font-bold hover:bg-black transition-colors shadow-soft"
+                                            className="w-full bg-inverse text-on-inverse py-3.5 rounded-xl font-bold hover:bg-inverse-hover transition-colors shadow-soft"
                                         >
                                             Close Panel
                                         </button>

@@ -88,7 +88,7 @@ export default function Dashboard() {
     ];
 
     return (
-        <main className="min-h-screen bg-white pb-20">
+        <main className="min-h-screen bg-surface pb-20">
             <div className="container-wide py-10 space-y-12">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
@@ -100,7 +100,7 @@ export default function Dashboard() {
                         <div className="px-5 py-3 bg-brand/10 text-brand rounded-xl font-black text-sm border border-brand/20 shadow-sm flex items-center gap-2">
                            💎 {pointsData.points.toLocaleString()} Points
                         </div>
-                        <Link href="/dashboard/ads/manage" className="px-6 py-3 bg-text-primary text-white rounded-xl font-bold text-sm shadow-soft hover:bg-black transition-colors">
+                        <Link href="/dashboard/ads/manage" className="px-6 py-3 bg-inverse text-on-inverse rounded-xl font-bold text-sm shadow-soft hover:bg-inverse-hover transition-colors">
                             📊 Manage Ads
                         </Link>
                     </div>
@@ -122,7 +122,7 @@ export default function Dashboard() {
                             <Link 
                                 key={opt.type}
                                 href={`/dashboard/add?type=${opt.type}`}
-                                className="group flex flex-col items-center justify-center p-6 bg-white border border-border-light rounded-2xl hover:border-brand hover:shadow-airbnb transition-all text-center space-y-3"
+                                className="group flex flex-col items-center justify-center p-6 bg-surface border border-border-light rounded-2xl hover:border-brand hover:shadow-airbnb transition-all text-center space-y-3"
                             >
                                 <span className="text-3xl md:text-4xl group-hover:scale-110 transition-transform">{opt.icon}</span>
                                 <span className="text-xs font-bold text-text-secondary group-hover:text-brand uppercase tracking-wider">{opt.label}</span>
@@ -133,7 +133,7 @@ export default function Dashboard() {
 
                 {/* QR Rewards Section */}
                 {selectedListingForQR ? (
-                    <section className="space-y-8 animate-in fade-in zoom-in-95 duration-500 p-8 bg-white rounded-[40px] border border-brand/20 shadow-xl relative">
+                    <section className="space-y-8 animate-in fade-in zoom-in-95 duration-500 p-8 bg-surface rounded-[40px] border border-brand/20 shadow-xl relative">
                         <button 
                             onClick={() => setSelectedListingForQR(null)}
                             className="absolute top-6 right-6 bg-bg-light hover:bg-border-light p-3 rounded-full transition-colors font-bold"
@@ -178,7 +178,7 @@ export default function Dashboard() {
                                             className="w-full h-full object-cover"
                                             alt={listing.title}
                                         />
-                                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-brand shadow-sm">
+                                        <div className="absolute top-3 left-3 bg-surface/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-brand shadow-sm">
                                             {listing.type}
                                         </div>
                                         {myAds.some(ad => ad.listing._id === listing._id) && (
@@ -223,7 +223,7 @@ export default function Dashboard() {
                                                     setSelectedListingForQR(listing);
                                                     window.scrollTo({ top: 400, behavior: 'smooth' });
                                                 }}
-                                                className="w-full col-span-2 bg-text-primary hover:bg-black text-white py-3 rounded-lg text-xs font-bold text-center transition-colors shadow-soft mt-1"
+                                                className="w-full col-span-2 bg-inverse hover:bg-inverse-hover text-on-inverse py-3 rounded-lg text-xs font-bold text-center transition-colors shadow-soft mt-1"
                                             >
                                                 Analyze & QR Code 📈
                                             </button>

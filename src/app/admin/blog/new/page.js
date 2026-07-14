@@ -103,7 +103,7 @@ export default function NewBlogPage() {
     if (user.role !== 'admin') return null;
 
     return (
-        <div className="container-wide max-w-[900px] mt-10 mb-20 bg-white p-8 md:p-12 rounded-3xl shadow-airbnb border border-border-light">
+        <div className="container-wide max-w-[900px] mt-10 mb-20 bg-surface p-8 md:p-12 rounded-3xl shadow-airbnb border border-border-light">
             <div className="flex justify-between items-center mb-8 pb-6 border-b border-border-light">
                 <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">✍️ New Blog Post</h1>
                 <Link href="/admin" className="text-text-secondary hover:text-brand font-bold transition-colors">← Back to Admin</Link>
@@ -152,7 +152,7 @@ export default function NewBlogPage() {
                         ].map(btn => (
                             <button key={btn.label} type="button" title={btn.title}
                                 onMouseDown={e => { e.preventDefault(); execCmd(btn.cmd, btn.val); }}
-                                className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">
+                                className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">
                                 {btn.label}
                             </button>
                         ))}
@@ -164,20 +164,20 @@ export default function NewBlogPage() {
                         ].map(btn => (
                             <button key={btn.label} type="button" title={btn.title}
                                 onMouseDown={e => { e.preventDefault(); execCmd(btn.cmd); }}
-                                className={`px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm text-text-primary hover:text-brand transition-colors shadow-sm ${btn.label === 'I' ? 'italic' : ''} ${btn.label === 'B' ? 'font-bold' : 'font-medium'}`}>
+                                className={`px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm text-text-primary hover:text-brand transition-colors shadow-sm ${btn.label === 'I' ? 'italic' : ''} ${btn.label === 'B' ? 'font-bold' : 'font-medium'}`}>
                                 {btn.label}
                             </button>
                         ))}
                         <div className="w-[1px] h-6 bg-border-light mx-1" />
                         <button type="button" title="Unordered List"
                             onMouseDown={e => { e.preventDefault(); execCmd('insertUnorderedList'); }}
-                            className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">• List</button>
+                            className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">• List</button>
                         <button type="button" title="Ordered List"
                             onMouseDown={e => { e.preventDefault(); execCmd('insertOrderedList'); }}
-                            className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">1. List</button>
+                            className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">1. List</button>
                         <button type="button" title="Blockquote"
                             onMouseDown={e => { e.preventDefault(); execCmd('formatBlock', 'blockquote'); }}
-                            className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">" Quote</button>
+                            className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">" Quote</button>
                         <div className="w-[1px] h-6 bg-border-light mx-1" />
                         <button type="button" title="Insert Image URL"
                             onMouseDown={e => { e.preventDefault(); saveSelection(); setShowImageDialog(true); }}
@@ -190,10 +190,10 @@ export default function NewBlogPage() {
                                 const url = prompt('Enter URL:');
                                 if (url) execCmd('createLink', url);
                             }}
-                            className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">🔗 Link</button>
+                            className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">🔗 Link</button>
                         <button type="button" title="Horizontal Line"
                             onMouseDown={e => { e.preventDefault(); execCmd('insertHorizontalRule'); }}
-                            className="px-3 py-1.5 bg-white border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">― Line</button>
+                            className="px-3 py-1.5 bg-surface border border-border-light rounded-lg text-sm font-bold text-text-primary hover:text-brand transition-colors shadow-sm">― Line</button>
                     </div>
 
                     {/* Image URL Dialog */}
@@ -218,7 +218,7 @@ export default function NewBlogPage() {
                         contentEditable
                         suppressContentEditableWarning
                         data-placeholder="Start writing your blog post here... Click the toolbar above to add headings, bold text, images, and more."
-                        className="min-h-[400px] p-6 bg-white border border-border-light rounded-b-xl text-text-primary text-lg leading-relaxed whitespace-pre-wrap outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-inner"
+                        className="min-h-[400px] p-6 bg-surface border border-border-light rounded-b-xl text-text-primary text-lg leading-relaxed whitespace-pre-wrap outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-inner"
                     />
                 </div>
 

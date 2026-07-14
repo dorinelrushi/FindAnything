@@ -85,7 +85,7 @@ export default function BudgetDetailPage() {
                 </Link>
 
                 {/* Main Card */}
-                <article className="bg-white rounded-[2rem] border border-border-light/40 shadow-airbnb overflow-hidden">
+                <article className="bg-surface rounded-[2rem] border border-border-light/40 shadow-airbnb overflow-hidden">
 
                     {/* Card Top Banner */}
                     <div className="bg-gradient-to-r from-brand/10 via-brand/5 to-transparent px-8 py-6 border-b border-border-light/30">

@@ -297,7 +297,7 @@ function BlogListPage({ blogs }) {
                         <Link
                             key={blog._id}
                             href={`/blog/${blog.slug}`}
-                            className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-border-light"
+                            className="group bg-surface rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-border-light"
                         >
                             <div className="aspect-video relative overflow-hidden bg-bg-light">
                                 <img
@@ -327,7 +327,7 @@ function BlogListPage({ blogs }) {
 
 function BlogDetailPage({ blog, userRole }) {
     return (
-        <div className="min-h-screen bg-white pb-20 pt-10 px-6">
+        <div className="min-h-screen bg-surface pb-20 pt-10 px-6">
             <div className="max-w-[850px] mx-auto">
                 <div className="flex flex-wrap gap-2 mb-6">
                     {(blog.tags || []).map((tag) => (
@@ -391,7 +391,7 @@ function ListingListPage({ type, listings }) {
                             <Link
                                 key={listing._id}
                                 href={href}
-                                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-border-light"
+                                className="group bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-border-light"
                             >
                                 <div className="aspect-[4/3] bg-bg-light relative overflow-hidden">
                                     <img

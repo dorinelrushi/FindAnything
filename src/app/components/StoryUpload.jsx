@@ -41,7 +41,7 @@ export default function StoryUpload({ onStoryUploaded }) {
     };
 
     return (
-        <div className="relative group overflow-hidden bg-white border-2 border-dashed border-border-light rounded-2xl p-8 flex flex-col items-center justify-center gap-4 hover:border-brand hover:bg-brand/5 transition-all cursor-pointer min-w-[200px]">
+        <div className="relative group overflow-hidden bg-surface border-2 border-dashed border-border-light rounded-2xl p-8 flex flex-col items-center justify-center gap-4 hover:border-brand hover:bg-brand/5 transition-all cursor-pointer min-w-[200px]">
             <div className="w-12 h-12 bg-bg-light rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                 {uploading ? '⏳' : '📸'}
             </div>
