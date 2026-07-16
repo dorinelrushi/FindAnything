@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useTheme } from '@/context/ThemeContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 function ThemeToggleButton({ className = '' }) {
@@ -19,13 +19,11 @@ function ThemeToggleButton({ className = '' }) {
             title={isDark ? 'Light mode' : 'Dark mode'}
         >
             {isDark ? (
-                /* Sun icon */
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <circle cx="12" cy="12" r="4" />
                     <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
                 </svg>
             ) : (
-                /* Moon icon */
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
@@ -34,20 +32,29 @@ function ThemeToggleButton({ className = '' }) {
     );
 }
 
+const NAV_LINKS = [
+    { href: '/', label: 'Home' },
+    { href: '/explore', label: 'Explore' },
+    { href: '/jobs', label: 'Jobs' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/budgets', label: 'Budgets' },
+    { href: '/suggestions', label: 'Suggestions' },
+];
+
 export default function Navbar() {
     const { user, logout } = useAuth();
     const { favorites } = useFavorites();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [pendingCount, setPendingCount] = useState(0);
     const [isScrolled, setIsScrolled] = useState(false);
     const pathname = usePathname();
+    const profileRef = useRef(null);
 
     useEffect(() => {
         setMounted(true);
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
-        };
+        const handleScroll = () => setIsScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
@@ -58,6 +65,25 @@ export default function Navbar() {
         }
     }, [user]);
 
+    // Close profile dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (profileRef.current && !profileRef.current.contains(e.target)) {
+                setIsProfileOpen(false);
+            }
+        };
+        if (isProfileOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isProfileOpen]);
+
+    // Close menus on route change
+    useEffect(() => {
+        setIsMenuOpen(false);
+        setIsProfileOpen(false);
+    }, [pathname]);
+
     const fetchPendingCount = async () => {
         try {
             const res = await fetch('/api/admin/registrations');
@@ -66,116 +92,215 @@ export default function Navbar() {
                 setPendingCount(data.registrations.length);
             }
         } catch (error) {
-            console.error("Error fetching pending count", error);
+            console.error('Error fetching pending count', error);
         }
+    };
+
+    const handleLogout = () => {
+        setIsProfileOpen(false);
+        setIsMenuOpen(false);
+        logout();
     };
 
     if (!mounted) return null;
 
+    const isActive = (href) =>
+        href === '/' ? pathname === '/' : pathname === href || pathname?.startsWith(`${href}/`);
+
+    const Avatar = ({ size = 'md' }) => {
+        const sizeClass = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-9 h-9 text-sm';
+        if (user?.image) {
+            return (
+                <div className={`${sizeClass} rounded-full border border-border-light overflow-hidden flex-shrink-0`}>
+                    <img src={user.image} alt="" className="w-full h-full object-cover" />
+                </div>
+            );
+        }
+        return (
+            <div className={`${sizeClass} rounded-full bg-brand/10 flex items-center justify-center text-brand font-bold flex-shrink-0`}>
+                {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+        );
+    };
+
+    const ProfileMenuItems = ({ onItemClick, compact = false }) => (
+        <>
+            <div className={`px-4 ${compact ? 'py-3' : 'py-3'} border-b border-border-light`}>
+                <p className="text-sm font-bold text-text-primary truncate">{user?.name || 'Account'}</p>
+                <p className="text-xs text-text-secondary truncate">{user?.email}</p>
+            </div>
+
+            <Link
+                href="/profile"
+                onClick={onItemClick}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-text-primary hover:bg-bg-light transition-colors"
+            >
+                <span aria-hidden>👤</span> Profile
+            </Link>
+
+            {user?.role === 'admin' && (
+                <Link
+                    href="/admin"
+                    onClick={onItemClick}
+                    className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold text-text-primary hover:bg-bg-light transition-colors"
+                >
+                    <span className="flex items-center gap-3">
+                        <span aria-hidden>⚙️</span> Admin
+                    </span>
+                    {pendingCount > 0 && (
+                        <span className="bg-brand text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center font-black">
+                            {pendingCount}
+                        </span>
+                    )}
+                </Link>
+            )}
+
+            {(user?.role === 'business' || user?.role === 'admin') && (
+                <Link
+                    href="/dashboard"
+                    onClick={onItemClick}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-text-primary hover:bg-bg-light transition-colors"
+                >
+                    <span aria-hidden>📊</span> Dashboard
+                </Link>
+            )}
+
+            <div className="border-t border-border-light mt-1 pt-1">
+                <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors text-left"
+                >
+                    <span aria-hidden>🚪</span> Log out
+                </button>
+            </div>
+        </>
+    );
+
     return (
         <header
-            className={`sticky top-0 z-[100] w-full transition-all duration-300 ${isScrolled ? 'bg-surface shadow-soft py-3' : 'bg-surface/80 backdrop-blur-md py-4'
-                } border-b border-border-light`}
+            className={`sticky top-0 z-[100] w-full transition-all duration-300 ${
+                isScrolled ? 'bg-surface shadow-soft py-3' : 'bg-surface/80 backdrop-blur-md py-4'
+            } border-b border-border-light`}
         >
-            <div className="container-wide flex items-center justify-between">
+            <div className="container-wide flex items-center justify-between gap-4">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 group" onClick={() => setIsMenuOpen(false)}>
+                <Link href="/" className="flex items-center gap-2 group flex-shrink-0" onClick={() => setIsMenuOpen(false)}>
                     <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center text-white font-bold text-xl">
                         T
                     </div>
-                    <span className="text-[18px] tracking-tight text-brand group-hover:text-brand-hover transition-colors">
+                    <span className="text-[17px] tracking-tight text-brand group-hover:text-brand-hover transition-colors hidden sm:inline">
                         TryToFindEverything
                     </span>
                 </Link>
 
-                {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-8">
-                    <Link href="/" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/' ? 'text-brand' : 'text-text-primary'}`}>Home</Link>
-                    <Link href="/explore" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/explore' ? 'text-brand' : 'text-text-primary'}`}>Explore</Link>
-                    <Link href="/suggestions" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/suggestions' ? 'text-brand' : 'text-text-primary'}`}>Suggestions</Link>
-                    <Link href="/blog" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/blog' ? 'text-brand' : 'text-text-primary'}`}>Blog</Link>
-                    <Link href="/budgets" className={`text-sm font-semibold hover:text-brand transition-colors ${pathname === '/budgets' ? 'text-brand' : 'text-text-primary'}`}>Budgets</Link>
-
-                    <div className="flex items-center gap-4 pl-4 border-l border-border-light">
-                        <ThemeToggleButton />
-
-                        {/* Favorites Icon */}
-                        <Link href="/favorites" className="relative group p-2 hover:bg-bg-light rounded-full transition-colors" title="My Favorites">
-                            <svg
-                                width="24" height="20" viewBox="0 0 24 24"
-                                fill={pathname === '/favorites' ? "#FF385C" : "none"}
-                                stroke={pathname === '/favorites' ? "#FF385C" : "currentColor"}
-                                strokeWidth="2"
-                                className="group-hover:scale-110 transition-transform"
-                            >
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                            {favorites.length > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-brand text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black shadow-sm border border-surface">
-                                    {favorites.length}
-                                </span>
-                            )}
+                {/* Desktop Nav links */}
+                <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center min-w-0">
+                    {NAV_LINKS.map(({ href, label }) => (
+                        <Link
+                            key={href}
+                            href={href}
+                            className={`px-3 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap ${
+                                isActive(href)
+                                    ? 'text-brand bg-brand/5'
+                                    : 'text-text-primary hover:text-brand hover:bg-bg-light'
+                            }`}
+                        >
+                            {label}
                         </Link>
+                    ))}
+                </nav>
 
-                        {user ? (
-                            <>
-                                {user.role === 'admin' && (
-                                    <Link href="/admin" className="relative text-sm font-semibold hover:text-brand transition-colors">
-                                        Admin
-                                        {pendingCount > 0 && (
-                                            <span className="absolute -top-2 -right-3 bg-brand text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
-                                                {pendingCount}
-                                            </span>
-                                        )}
-                                    </Link>
-                                )}
-                                {(user.role === 'business' || user.role === 'admin') && (
-                                    <Link href="/dashboard" className="text-sm font-semibold hover:text-brand transition-colors">Dashboard</Link>
-                                )}
-                                <Link href="/profile" className="flex items-center gap-2 group">
-                                    {user.image ? (
-                                        <div className="w-8 h-8 rounded-full border border-border-light overflow-hidden">
-                                            <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
-                                        </div>
-                                    ) : (
-                                        <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center text-brand font-bold text-xs">
-                                            {user.name?.charAt(0) || user.email?.charAt(0)}
-                                        </div>
-                                    )}
-                                    <span className="text-sm font-semibold hover:text-brand transition-colors">Profile</span>
-                                </Link>
-                                <button
-                                    onClick={logout}
-                                    className="bg-bg-light hover:bg-border-light text-text-primary px-4 py-2 rounded-full text-sm font-semibold transition-all active:scale-95"
-                                >
-                                    Log out
-                                </button>
-                            </>
-                        ) : (
-                            <Link
-                                href="/login"
-                                className="bg-brand hover:bg-brand-hover text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-soft active:scale-95"
-                            >
-                                Log in
-                            </Link>
+                {/* Desktop right actions */}
+                <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+                    <ThemeToggleButton />
+
+                    <Link
+                        href="/favorites"
+                        className="relative p-2 hover:bg-bg-light rounded-full transition-colors"
+                        title="My Favorites"
+                    >
+                        <svg
+                            width="22"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill={pathname === '/favorites' ? '#FF385C' : 'none'}
+                            stroke={pathname === '/favorites' ? '#FF385C' : 'currentColor'}
+                            strokeWidth="2"
+                        >
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        {favorites.length > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 bg-brand text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black shadow-sm border border-surface">
+                                {favorites.length}
+                            </span>
                         )}
-                    </div>
+                    </Link>
+
+                    {user ? (
+                        <div className="relative" ref={profileRef}>
+                            <button
+                                type="button"
+                                onClick={() => setIsProfileOpen((v) => !v)}
+                                className="flex items-center gap-2 p-1 pr-2 rounded-full border border-border-light hover:shadow-soft hover:border-brand/30 transition-all bg-surface"
+                                aria-expanded={isProfileOpen}
+                                aria-haspopup="menu"
+                                aria-label="Account menu"
+                            >
+                                <Avatar size="sm" />
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    className={`text-text-secondary transition-transform ${isProfileOpen ? 'rotate-180' : ''}`}
+                                >
+                                    <path d="M6 9l6 6 6-6" />
+                                </svg>
+                                {(user.role === 'admin' && pendingCount > 0) && (
+                                    <span className="absolute -top-1 -right-1 bg-brand text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black border border-surface">
+                                        {pendingCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            {isProfileOpen && (
+                                <div
+                                    role="menu"
+                                    className="absolute right-0 mt-2 w-56 bg-surface border border-border-light rounded-2xl shadow-airbnb overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                                >
+                                    <ProfileMenuItems onItemClick={() => setIsProfileOpen(false)} />
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <Link
+                            href="/login"
+                            className="bg-brand hover:bg-brand-hover text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-soft active:scale-95"
+                        >
+                            Log in
+                        </Link>
+                    )}
                 </div>
 
-                {/* Mobile Toggle */}
+                {/* Mobile right actions */}
                 <div className="flex items-center gap-1 md:hidden">
                     <ThemeToggleButton />
                     <Link href="/favorites" className="relative p-2" onClick={() => setIsMenuOpen(false)}>
                         <svg
-                            width="25" height="20" viewBox="0 0 24 24"
-                            fill={pathname === '/favorites' ? "#FF385C" : "none"}
-                            stroke={pathname === '/favorites' ? "#FF385C" : "currentColor"}
+                            width="22"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill={pathname === '/favorites' ? '#FF385C' : 'none'}
+                            stroke={pathname === '/favorites' ? '#FF385C' : 'currentColor'}
                             strokeWidth="2.5"
                         >
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
                         {favorites.length > 0 && (
-                            <span className="absolute -top-1 -right-0 bg-brand text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-black">
+                            <span className="absolute -top-0.5 -right-0 bg-brand text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-black">
                                 {favorites.length}
                             </span>
                         )}
@@ -194,57 +319,30 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isMenuOpen && (
-                <div className="fixed inset-0 top-[65px] z-40 bg-surface h-screen md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className="flex flex-col p-6 gap-[15px] h-full overflow-y-auto">
-                        <Link href="/" onClick={() => setIsMenuOpen(false)} className="text-[18px] text-text-primary flex items-center justify-between border-b border-border-light pb-4">
-                            Home
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
-                        </Link>
-                        <Link href="/explore" onClick={() => setIsMenuOpen(false)} className="text-[18px] text-text-primary flex items-center justify-between border-b border-border-light pb-4">
-                            Explore
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
-                        </Link>
-                        <Link href="/suggestions" onClick={() => setIsMenuOpen(false)} className="text-[18px] flex items-center justify-between border-b border-border-light pb-4 text-brand">
-                            Suggestions
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
-                        </Link>
-                        <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="text-[18px] text-text-primary flex items-center justify-between border-b border-border-light pb-4">
-                            Blog
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
-                        </Link>
-                        <Link href="/budgets" onClick={() => setIsMenuOpen(false)} className="text-[18px] text-text-primary flex items-center justify-between border-b border-border-light pb-4">
-                            Budgets
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
-                        </Link>
+                <div className="fixed inset-0 top-[65px] z-40 bg-surface h-[calc(100vh-65px)] md:hidden overflow-y-auto">
+                    <div className="flex flex-col p-5 gap-1">
+                        {NAV_LINKS.map(({ href, label }) => (
+                            <Link
+                                key={href}
+                                href={href}
+                                onClick={() => setIsMenuOpen(false)}
+                                className={`px-4 py-3.5 rounded-xl text-[16px] font-semibold flex items-center justify-between ${
+                                    isActive(href) ? 'text-brand bg-brand/5' : 'text-text-primary hover:bg-bg-light'
+                                }`}
+                            >
+                                {label}
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                            </Link>
+                        ))}
 
-                        {user ? (
-                            <div className="mt-4 flex flex-col gap-6">
-                                {user.role === 'admin' && (
-                                    <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="text-[18px] text-brand">Admin Panel</Link>
-                                )}
-                                {(user.role === 'business' || user.role === 'admin') && (
-                                    <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-[18px] text-text-primary">Dashboard</Link>
-                                )}
-                                <Link href="/profile" onClick={() => setIsMenuOpen(false)} className="text-[18px] text-text-primary flex items-center justify-between border-b border-border-light pb-4">
-                                    My Profile
-                                    {user.image ? (
-                                        <img src={user.image} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
-                                    ) : (
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
-                                    )}
-                                </Link>
-                                <div className="pt-6 border-t border-border-light font-medium">
-                                    <p className="text-sm text-text-secondary mb-4">Logged in as {user.email}</p>
-                                    <button
-                                        onClick={() => { logout(); setIsMenuOpen(false); }}
-                                        className="w-full bg-brand text-white py-4 rounded-xl font-bold text-lg active:scale-95 transition-all shadow-airbnb"
-                                    >
-                                        Log out
-                                    </button>
+                        <div className="mt-4 pt-4 border-t border-border-light">
+                            {user ? (
+                                <div className="bg-bg-light rounded-2xl overflow-hidden border border-border-light">
+                                    <ProfileMenuItems onItemClick={() => setIsMenuOpen(false)} />
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="mt-8">
+                            ) : (
                                 <Link
                                     href="/login"
                                     onClick={() => setIsMenuOpen(false)}
@@ -252,12 +350,11 @@ export default function Navbar() {
                                 >
                                     Log in
                                 </Link>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
-            )
-            }
-        </header >
+            )}
+        </header>
     );
 }

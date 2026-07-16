@@ -20,6 +20,7 @@ export default function Footer() {
                             <Link href="/explore?type=restaurant" className="text-text-secondary hover:text-brand transition-colors text-sm">Restaurants</Link>
                             <Link href="/explore?type=tour" className="text-text-secondary hover:text-brand transition-colors text-sm">Tours</Link>
                             <Link href="/explore?type=bujtina" className="text-text-secondary hover:text-brand transition-colors text-sm">Guesthouses</Link>
+                            <Link href="/jobs" className="text-text-secondary hover:text-brand transition-colors text-sm">Jobs</Link>
                         </div>
                     </div>
 

@@ -199,7 +199,25 @@ export default function AdminDashboard() {
                     )}
                 </section>
 
-                {/* 3. Blog Management Section */}
+                {/* 3. Job Postings Section */}
+                <section className="space-y-6 pt-10 border-t">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h2 className="text-xl font-bold text-text-primary">Job Postings</h2>
+                            <p className="text-sm text-text-secondary mt-1">Only admin can post jobs. Everyone can view and apply.</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <Link href="/jobs" className="bg-bg-light text-text-primary px-6 py-3 rounded-xl font-bold text-sm hover:bg-border-light transition-colors">
+                                View Jobs
+                            </Link>
+                            <Link href="/admin/jobs/new" className="bg-brand text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-brand-hover transition-colors">
+                                + Post a Job
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 4. Blog Management Section */}
                 <section className="space-y-6 pt-10 border-t">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-bold text-text-primary">Blog Management</h2>
@@ -231,7 +249,7 @@ export default function AdminDashboard() {
                     </div>
                 </section>
 
-                {/* 4. Business Listings Management Section */}
+                {/* 5. Business Listings Management Section */}
                 <section className="space-y-6 pt-10 border-t">
                     <h2 className="text-xl font-bold text-text-primary">Business Listings</h2>
                     <div className="overflow-x-auto rounded-[24px] border border-border-light shadow-soft">
@@ -286,7 +304,7 @@ export default function AdminDashboard() {
                     </div>
                 </section>
 
-                {/* 5. User List Table Section */}
+                {/* 6. User List Table Section */}
                 <section className="space-y-6 pt-10 border-t">
                     <h2 className="text-xl font-bold text-text-primary">All Users</h2>
                     <div className="overflow-x-auto rounded-[24px] border border-border-light shadow-soft">
