@@ -2,15 +2,30 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Sparkles, X, Send, Loader2, MapPin, MessageCircleQuestion } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import {
+    Sparkles,
+    X,
+    Send,
+    Loader2,
+    MapPin,
+    MessageCircleQuestion,
+    Briefcase,
+    BookOpen,
+    ExternalLink,
+} from 'lucide-react';
 
 const QUICK_PROMPTS = [
-    { label: 'Hotels', text: 'Suggest good hotels for my stay' },
-    { label: 'Restaurants', text: 'Where should I eat? Best restaurants' },
-    { label: 'Bars', text: 'Recommend bars and nightlife' },
-    { label: 'Tours', text: 'What tours and activities do you have?' },
-    { label: 'Shqip', text: 'Më sugjero hotele dhe restorante në Korçë' },
+    { label: '🐾 Pets OK?', text: 'Show me hotels that allow pets' },
+    { label: '🏨 Top hotel', text: 'What is the most visited hotel?' },
+    { label: '📶 Wi-Fi', text: 'Hotels with free Wi-Fi' },
+    { label: '💼 Jobs', text: 'Show me available jobs' },
+    { label: '🎵 Live Music', text: 'Bars with live music' },
+    { label: '🗺️ Tours', text: 'What tours are available?' },
+    { label: '🍽️ Restaurants', text: 'Suggest a good restaurant' },
+    { label: '🇦🇱 Shqip', text: 'Hotele që lejojnë kafshë shtëpiake në Tiranë' },
 ];
+
 
 const TYPE_EMOJI = {
     hotel: '🏨',
@@ -20,45 +35,88 @@ const TYPE_EMOJI = {
     tour: '🏔️',
     rentcar: '🚗',
     city: '🏘️',
+    job: '💼',
+    blog: '📝',
 };
 
 function SuggestionCard({ item }) {
-    return (
-        <Link
-            href={item.path || '/explore'}
-            className="flex gap-3 p-2.5 rounded-xl border border-border-light bg-bg-light/80 hover:border-brand/40 hover:bg-brand/5 transition-colors group"
-        >
-            <div className="w-14 h-14 rounded-lg overflow-hidden bg-surface flex-shrink-0 border border-border-light">
+    const kind = item.kind || (item.type === 'job' ? 'job' : item.type === 'blog' ? 'blog' : 'place');
+    const href =
+        kind === 'job' ? item.applicationLink || item.path || '/jobs' : item.path || '/explore';
+    const external = kind === 'job' && item.applicationLink && /^https?:\/\//i.test(item.applicationLink);
+
+    const meta =
+        kind === 'job'
+            ? [item.companyName, item.city].filter(Boolean).join(' · ')
+            : kind === 'blog'
+              ? 'Blog / guide'
+              : [item.type, item.city, item.country].filter(Boolean).join(' · ');
+
+    const icon =
+        kind === 'job' ? (
+            <Briefcase className="w-5 h-5 text-brand" />
+        ) : kind === 'blog' ? (
+            <BookOpen className="w-5 h-5 text-brand" />
+        ) : (
+            <span className="text-xl">{TYPE_EMOJI[item.type] || '📍'}</span>
+        );
+
+    const inner = (
+        <>
+            <div className="w-14 h-14 rounded-lg overflow-hidden bg-surface flex-shrink-0 border border-border-light flex items-center justify-center">
                 {item.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.image} alt="" className="w-full h-full object-cover" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xl">
-                        {TYPE_EMOJI[item.type] || '📍'}
-                    </div>
+                    icon
                 )}
             </div>
             <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-text-primary truncate group-hover:text-brand transition-colors">
                     {item.title}
                 </p>
-                <p className="text-[11px] text-text-secondary flex items-center gap-1 mt-0.5">
-                    <span>{TYPE_EMOJI[item.type] || '📍'}</span>
-                    <span className="capitalize">{item.type}</span>
-                    {(item.city || item.country) && (
-                        <>
-                            <span aria-hidden>·</span>
-                            <MapPin className="w-3 h-3 inline" />
-                            <span className="truncate">
-                                {[item.city, item.country].filter(Boolean).join(', ')}
-                            </span>
-                        </>
+                <p className="text-[11px] text-text-secondary flex items-center gap-1 mt-0.5 capitalize">
+                    {kind === 'place' && <MapPin className="w-3 h-3 flex-shrink-0" />}
+                    {kind === 'job' && <Briefcase className="w-3 h-3 flex-shrink-0" />}
+                    {kind === 'blog' && <BookOpen className="w-3 h-3 flex-shrink-0" />}
+                    <span className="truncate">{meta || kind}</span>
+                    {typeof item.views === 'number' && item.views > 0 && kind === 'place' && (
+                        <span className="ml-auto flex-shrink-0 text-[10px] font-semibold text-brand bg-brand/10 px-1.5 py-0.5 rounded-full">
+                            {item.views} views
+                        </span>
                     )}
                 </p>
                 {item.why ? (
                     <p className="text-[11px] text-text-secondary mt-1 line-clamp-2">{item.why}</p>
                 ) : null}
+                {external && (
+                    <p className="text-[10px] text-brand font-semibold mt-1 flex items-center gap-1">
+                        Apply <ExternalLink className="w-3 h-3" />
+                    </p>
+                )}
             </div>
+        </>
+    );
+
+    if (external) {
+        return (
+            <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex gap-3 p-2.5 rounded-xl border border-border-light bg-bg-light/80 hover:border-brand/40 hover:bg-brand/5 transition-colors group"
+            >
+                {inner}
+            </a>
+        );
+    }
+
+    return (
+        <Link
+            href={href}
+            className="flex gap-3 p-2.5 rounded-xl border border-border-light bg-bg-light/80 hover:border-brand/40 hover:bg-brand/5 transition-colors group"
+        >
+            {inner}
         </Link>
     );
 }
@@ -68,17 +126,36 @@ export default function AskAI() {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const pathname = usePathname();
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
             content:
-                'Hi! I\'m Ask AI ✨ Ask me in any language what you\'re looking for — hotels, restaurants, bars, tours, car rentals… I\'ll search this website and suggest real places.\n\nCiao · Merhaba · Γεια · Bonjour · Hallo · Përshëndetje',
+                "Hello! 👋 I'm Ask AI, your personal guide on TryToFindEverything.\n\nI read this site's real database — hotels (with pet & family policies), restaurants, bars, tours, car rentals, jobs, and travel blogs. Ask me anything, in any language!\n\n💡 Try:\n• \"Hotels that allow pets in Tirana\"\n• \"Most visited hotel\"\n• \"Bars with live music\"\n• \"Jobs available\"",
             suggestions: [],
-            followUpQuestions: [],
+            followUpQuestions: ['Hotels that allow pets', 'Most visited hotel', 'Show available jobs'],
         },
     ]);
     const listRef = useRef(null);
     const inputRef = useRef(null);
+
+    // Extract current listing slug if viewing a listing details page
+    const pathParts = pathname ? pathname.split('/').filter(Boolean) : [];
+    const isListingPage = pathParts.length === 2 && [
+        'hotel',
+        'restaurant',
+        'bar',
+        'bujtina',
+        'rentcar',
+        'tour',
+    ].includes(pathParts[0].toLowerCase());
+    const currentSlug = isListingPage ? pathParts[1] : null;
+
+    useEffect(() => {
+        const handleOpen = () => setOpen(true);
+        window.addEventListener('open-ask-ai', handleOpen);
+        return () => window.removeEventListener('open-ask-ai', handleOpen);
+    }, []);
 
     useEffect(() => {
         if (listRef.current) {
@@ -103,15 +180,20 @@ export default function AskAI() {
         setLoading(true);
 
         try {
+            // Send full history including prior suggestion cards so "one more" can avoid repeats
             const history = messages
                 .filter((m) => m.role === 'user' || m.role === 'assistant')
-                .map((m) => ({ role: m.role, content: m.content }))
-                .slice(-8);
+                .map((m) => ({
+                    role: m.role,
+                    content: m.content,
+                    suggestions: m.suggestions || [],
+                }))
+                .slice(-12);
 
             const res = await fetch('/api/ai/ask', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message, history }),
+                body: JSON.stringify({ message, history, currentSlug }),
             });
 
             const data = await res.json().catch(() => ({}));
@@ -123,9 +205,10 @@ export default function AskAI() {
                 ...prev,
                 {
                     role: 'assistant',
-                    content: data.reply || 'Here are some ideas from the site.',
+                    content: data.reply || "I'm here — how can I help?",
                     suggestions: data.suggestions || [],
                     followUpQuestions: data.followUpQuestions || [],
+                    intent: data.intent,
                 },
             ]);
         } catch (err) {
@@ -136,7 +219,7 @@ export default function AskAI() {
                 {
                     role: 'assistant',
                     content:
-                        'Sorry — I could not answer right now. Please try again in a moment, or browse Explore for hotels, bars, and more.',
+                        "I'm sorry — I couldn't reach the assistant just now. Please try again in a moment, or browse Explore, Jobs, and Blog on the site.",
                     suggestions: [],
                     followUpQuestions: [],
                 },
@@ -153,13 +236,12 @@ export default function AskAI() {
 
     return (
         <>
-            {/* Floating button — left side so it doesn't clash with community chat (right) */}
             {!open && (
                 <button
                     type="button"
                     onClick={() => setOpen(true)}
-                    className="fixed bottom-6 left-6 lg:bottom-10 lg:left-10 z-[90] flex items-center gap-2 pl-3 pr-4 py-3 rounded-full bg-brand hover:bg-brand-hover text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 group"
-                    aria-label="Open Ask AI"
+                    className="fixed bottom-24 left-4 sm:bottom-6 sm:left-6 lg:bottom-10 lg:left-10 z-[90] flex items-center gap-2 pl-3 pr-4 py-3 rounded-full bg-brand hover:bg-brand-hover text-white shadow-2xl transition-transform hover:scale-105 active:scale-95 group"
+                    aria-label="Open Ask AI chat"
                 >
                     <span className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center">
                         <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
@@ -170,11 +252,10 @@ export default function AskAI() {
 
             {open && (
                 <div
-                    className="fixed bottom-4 left-4 right-4 sm:right-auto sm:bottom-6 sm:left-6 lg:bottom-10 lg:left-10 z-[95] w-auto sm:w-[400px] max-w-[calc(100vw-2rem)] h-[min(620px,calc(100vh-5rem))] flex flex-col rounded-2xl border border-border-light bg-surface shadow-airbnb overflow-hidden"
+                    className="fixed bottom-4 left-4 right-4 sm:right-auto sm:bottom-6 sm:left-6 lg:bottom-10 lg:left-10 z-[95] w-auto sm:w-[420px] max-w-[calc(100vw-2rem)] h-[min(680px,calc(100vh-5rem))] flex flex-col rounded-2xl border border-border-light bg-surface shadow-airbnb overflow-hidden"
                     role="dialog"
-                    aria-label="Ask AI assistant"
+                    aria-label="Ask AI chat"
                 >
-                    {/* Header */}
                     <div className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-brand to-[#FF7A33] text-white">
                         <div className="flex items-center gap-2.5 min-w-0">
                             <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -183,7 +264,7 @@ export default function AskAI() {
                             <div className="min-w-0">
                                 <p className="font-bold text-sm leading-tight">Ask AI</p>
                                 <p className="text-[11px] text-white/85 truncate">
-                                    Any language · real places from this site
+                                    Professional concierge · any language
                                 </p>
                             </div>
                         </div>
@@ -197,7 +278,6 @@ export default function AskAI() {
                         </button>
                     </div>
 
-                    {/* Messages */}
                     <div ref={listRef} className="flex-1 overflow-y-auto p-3 space-y-3 bg-bg-light/40">
                         {messages.map((m, idx) => (
                             <div
@@ -205,7 +285,7 @@ export default function AskAI() {
                                 className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
-                                    className={`max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                                    className={`max-w-[94%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
                                         m.role === 'user'
                                             ? 'bg-brand text-white rounded-br-md'
                                             : 'bg-surface border border-border-light text-text-primary rounded-bl-md shadow-soft'
@@ -222,7 +302,10 @@ export default function AskAI() {
                                     {m.suggestions?.length > 0 && (
                                         <div className="mt-3 space-y-2">
                                             {m.suggestions.map((s) => (
-                                                <SuggestionCard key={s.id || s.path} item={s} />
+                                                <SuggestionCard
+                                                    key={`${s.kind || s.type}-${s.id || s.path}-${s.title}`}
+                                                    item={s}
+                                                />
                                             ))}
                                         </div>
                                     )}
@@ -235,7 +318,7 @@ export default function AskAI() {
                                                     type="button"
                                                     disabled={loading}
                                                     onClick={() => sendMessage(q)}
-                                                    className="text-[11px] px-2.5 py-1 rounded-full border border-brand/30 text-brand bg-brand/5 hover:bg-brand/10 font-semibold transition-colors"
+                                                    className="text-[11px] px-2.5 py-1 rounded-full border border-brand/30 text-brand bg-brand/5 hover:bg-brand/10 font-semibold transition-colors text-left"
                                                 >
                                                     {q}
                                                 </button>
@@ -250,7 +333,7 @@ export default function AskAI() {
                             <div className="flex justify-start">
                                 <div className="bg-surface border border-border-light rounded-2xl rounded-bl-md px-4 py-3 shadow-soft flex items-center gap-2 text-sm text-text-secondary">
                                     <Loader2 className="w-4 h-4 animate-spin text-brand" />
-                                    Searching the website…
+                                    Thinking…
                                 </div>
                             </div>
                         )}
@@ -262,7 +345,6 @@ export default function AskAI() {
                         </div>
                     )}
 
-                    {/* Quick prompts */}
                     <div className="px-3 pt-2 flex gap-1.5 overflow-x-auto no-scrollbar border-t border-border-light bg-surface">
                         {QUICK_PROMPTS.map((p) => (
                             <button
@@ -277,17 +359,16 @@ export default function AskAI() {
                         ))}
                     </div>
 
-                    {/* Input */}
                     <form onSubmit={handleSubmit} className="p-3 flex gap-2 bg-surface">
                         <input
                             ref={inputRef}
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder="Ask in any language…"
+                            placeholder="Type naturally — any language…"
                             disabled={loading}
                             className="flex-1 min-w-0 rounded-full border border-border-light bg-bg-light px-4 py-2.5 text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
-                            maxLength={2000}
+                            maxLength={2500}
                             autoComplete="off"
                         />
                         <button

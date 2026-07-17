@@ -6,10 +6,29 @@
 const XAI_BASE = 'https://api.x.ai/v1';
 const DEFAULT_MODEL = process.env.XAI_MODEL || 'grok-4.5';
 
-export async function xaiChat({ system, user, temperature = 0.7 }) {
+/**
+ * @param {{ system?: string, user?: string, messages?: Array<{role:string, content:string}>, temperature?: number, maxTokens?: number }} opts
+ */
+export async function xaiChat({ system, user, messages, temperature = 0.7, maxTokens = 2500 }) {
     const apiKey = process.env.XAI_API_KEY;
     if (!apiKey) {
         throw new Error('XAI_API_KEY is not configured');
+    }
+
+    let finalMessages;
+    if (Array.isArray(messages) && messages.length > 0) {
+        finalMessages = [
+            ...(system ? [{ role: 'system', content: system }] : []),
+            ...messages.map((m) => ({
+                role: m.role === 'assistant' ? 'assistant' : 'user',
+                content: String(m.content || ''),
+            })),
+        ];
+    } else {
+        finalMessages = [
+            ...(system ? [{ role: 'system', content: system }] : []),
+            { role: 'user', content: user || '' },
+        ];
     }
 
     const res = await fetch(`${XAI_BASE}/chat/completions`, {
@@ -21,10 +40,8 @@ export async function xaiChat({ system, user, temperature = 0.7 }) {
         body: JSON.stringify({
             model: DEFAULT_MODEL,
             temperature,
-            messages: [
-                ...(system ? [{ role: 'system', content: system }] : []),
-                { role: 'user', content: user },
-            ],
+            max_tokens: maxTokens,
+            messages: finalMessages,
         }),
     });
 
@@ -42,8 +59,10 @@ export function safeParseJson(text) {
     try {
         return JSON.parse(text);
     } catch {
-        // try extract fenced JSON
-        const match = text.match(/\{[\s\S]*\}/);
+        // try extract fenced JSON or first object
+        const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        const candidate = fenced ? fenced[1] : text;
+        const match = candidate.match(/\{[\s\S]*\}/);
         if (match) {
             try {
                 return JSON.parse(match[0]);

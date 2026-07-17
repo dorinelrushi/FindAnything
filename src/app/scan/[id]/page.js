@@ -189,9 +189,9 @@ export default function QRScannerPage({ params }) {
     };
 
     return (
-        <main className="min-h-screen flex items-start justify-center p-6 bg-surface py-16">
+        <main className="min-h-screen flex items-start justify-center p-4 sm:p-6 bg-surface py-12 sm:py-16">
             <div className="max-w-lg w-full space-y-6">
-                <div className="text-center space-y-8 p-10 bg-bg-light rounded-[40px] border border-border-light shadow-xl">
+                <div className="text-center space-y-6 p-6 sm:p-10 bg-bg-light rounded-[32px] sm:rounded-[40px] border border-border-light shadow-xl">
                     <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto text-4xl ${done ? 'bg-brand/10 text-brand' : 'bg-bg-light border border-border-light animate-pulse'}`}>
                         {done ? '✨' : '⏳'}
                     </div>
@@ -235,7 +235,7 @@ export default function QRScannerPage({ params }) {
                 </div>
 
                 {/* AI Tourist Assistant */}
-                <div className="p-8 bg-surface rounded-[32px] border border-border-light shadow-sm space-y-4">
+                <div className="p-5 sm:p-8 bg-surface rounded-2xl sm:rounded-[32px] border border-border-light shadow-sm space-y-4">
                     <div className="flex items-center gap-2">
                         <span className="text-2xl">🧭</span>
                         <h2 className="text-xl font-black text-text-primary">AI Tourist Assistant</h2>
@@ -279,12 +279,12 @@ export default function QRScannerPage({ params }) {
                     {recommendations.length > 0 && (
                         <div className="pt-2 space-y-3">
                             <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary">Recommended nearby</p>
-                            <div className="grid gap-2">
-                                {recommendations.slice(0, 4).map((r) => (
+                            <div className="flex overflow-x-auto gap-3 pb-2 snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+                                {recommendations.slice(0, 8).map((r) => (
                                     <Link
                                         key={r.id}
                                         href={r.path}
-                                        className="flex items-center gap-3 p-3 rounded-2xl border border-border-light hover:border-brand/40 hover:bg-brand/5 transition-all"
+                                        className="flex-shrink-0 w-[240px] snap-start flex items-center gap-3 p-3 rounded-2xl border border-border-light bg-surface hover:border-brand/40 hover:bg-brand/5 transition-all"
                                     >
                                         <div className="w-12 h-12 rounded-xl bg-bg-light overflow-hidden flex-shrink-0">
                                             {r.image ? (
@@ -295,7 +295,7 @@ export default function QRScannerPage({ params }) {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="font-bold text-sm truncate">{r.title}</p>
-                                            <p className="text-xs text-text-secondary capitalize">{r.type}{r.city ? ` · ${r.city}` : ''}</p>
+                                            <p className="text-xs text-text-secondary capitalize truncate">{r.type}{r.city ? ` · ${r.city}` : ''}</p>
                                         </div>
                                     </Link>
                                 ))}
