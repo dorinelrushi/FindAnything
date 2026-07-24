@@ -4,6 +4,7 @@ import Link from 'next/link';
 import FeaturedAds from '@/app/components/FeaturedAds';
 import Stories from '@/app/components/Stories';
 import HowItWorks from '@/app/components/HowItWorks';
+import BusinessLeaderboard from '@/app/components/BusinessLeaderboard';
 import { useFavorites } from '@/context/FavoritesContext';
 import CommunityChatPopup from '@/app/components/CommunityChatPopup';
 import { MessageCircle } from 'lucide-react';
@@ -303,6 +304,9 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Business Leaderboard — below blog */}
+      <BusinessLeaderboard />
 
       <section className="bg-bg-light rounded-3xl p-8 md:p-16 text-center space-y-12">
         <div className="space-y-4">

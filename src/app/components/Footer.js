@@ -21,6 +21,8 @@ export default function Footer() {
                             <Link href="/explore?type=tour" className="text-text-secondary hover:text-brand transition-colors text-sm">Tours</Link>
                             <Link href="/explore?type=bujtina" className="text-text-secondary hover:text-brand transition-colors text-sm">Guesthouses</Link>
                             <Link href="/jobs" className="text-text-secondary hover:text-brand transition-colors text-sm">Jobs</Link>
+                            <Link href="/leaderboard" className="text-text-secondary hover:text-brand transition-colors text-sm">Business Leaderboard</Link>
+                            <Link href="/blog" className="text-text-secondary hover:text-brand transition-colors text-sm">Blog</Link>
                         </div>
                     </div>
 

@@ -37,6 +37,7 @@ const NAV_LINKS = [
     { href: '/explore', label: 'Explore' },
     { href: '/jobs', label: 'Jobs' },
     { href: '/blog', label: 'Blog' },
+    { href: '/leaderboard', label: 'Leaderboard' },
     { href: '/budgets', label: 'Budgets' },
     { href: '/suggestions', label: 'Suggestions' },
 ];

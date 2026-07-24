@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { cleanPhoneNumber } from '@/lib/utils';
+import ListingQRCode from '@/app/components/ListingQRCode';
 
 const formatDescription = (text) => {
     if (!text) return '';
@@ -11,6 +12,20 @@ const formatDescription = (text) => {
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>');
 };
+
+/** Google Maps search URL from business name + street address (preferred over default lat/lng). */
+function buildMapUrl(listing) {
+    if (!listing) return null;
+    const parts = [listing.title, listing.address, listing.city, listing.country]
+        .map((v) => (v || '').toString().trim())
+        .filter(Boolean);
+    const unique = [];
+    for (const p of parts) {
+        if (!unique.some((u) => u.toLowerCase() === p.toLowerCase())) unique.push(p);
+    }
+    if (!unique.length) return null;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(unique.join(', '))}`;
+}
 
 export default function ListingClient({ initialListing, initialReviews, initialMenu, slug }) {
     const [listing, setListing] = useState(initialListing);
@@ -242,7 +257,7 @@ export default function ListingClient({ initialListing, initialReviews, initialM
                                         '_id', 'slug', 'title', 'description', 'image', 'gallery', 'services',
                                         'createdAt', 'updatedAt', '__v', 'password', 'owner', 'lat', 'lng',
                                         'type', 'id', 'address', 'city', 'country', 'category', 'whatsappNumber',
-                                        'Price', 'price', 'phone'
+                                        'Price', 'price', 'phone', 'views', 'scanCount'
                                     ];
                                     const dataKeys = ['hotelData', 'restaurantData', 'barData', 'rentCarData', 'bujtinaData', 'tourData'];
                                     const activeDataKey = listing.type === 'rentcar' ? 'rentCarData' : `${listing.type}Data`;
@@ -377,6 +392,13 @@ export default function ListingClient({ initialListing, initialReviews, initialM
                              </section>
                         )}
 
+                        {/* Public QR — every listing (old + new) gets a scannable code */}
+                        <ListingQRCode
+                            listingId={listing._id}
+                            listingTitle={listing.title}
+                            scanCount={listing.scanCount || 0}
+                        />
+
                         {/* Reviews */}
                         <section className="pt-10 border-t">
                              <h2 className="text-2xl font-bold mb-6">Reviews ({reviews.length})</h2>
@@ -401,18 +423,26 @@ export default function ListingClient({ initialListing, initialReviews, initialM
 
                     {/* Sidebar */}
                     <aside className="hidden md:block">
-                        <div className="sticky top-28 p-8 border border-border-light rounded-3xl shadow-airbnb bg-surface space-y-8">
-                            <h3 className="text-xl font-bold">Request Details</h3>
-                            <div className="text-2xl font-black">
-                                {listing.price ? (typeof listing.price === 'string' && listing.price.includes('€') ? listing.price : `€${listing.price}`) : 'Price on request'}
+                        <div className="sticky top-28 space-y-6">
+                            <div className="p-8 border border-border-light rounded-3xl shadow-airbnb bg-surface space-y-8">
+                                <h3 className="text-xl font-bold">Request Details</h3>
+                                <div className="text-2xl font-black">
+                                    {listing.price ? (typeof listing.price === 'string' && listing.price.includes('€') ? listing.price : `€${listing.price}`) : 'Price on request'}
+                                </div>
+                                <div className="space-y-4">
+                                    <a href={`tel:${cleanPhoneNumber(listing.whatsappNumber || (listing.owner?.phonePrefix + listing.owner?.phoneNumber))}`} className="w-full btn-primary block py-3 text-center">Call Host</a>
+                                    <a href={`https://wa.me/${cleanPhoneNumber(listing.whatsappNumber || (listing.owner?.phonePrefix + listing.owner?.phoneNumber))}`} target="_blank" className="w-full bg-[#25D366] text-white py-3 rounded-xl font-bold block text-center">WhatsApp Message</a>
+                                </div>
+                                <div className="text-center">
+                                    <button className="text-text-secondary text-sm underline">Report this listing</button>
+                                </div>
                             </div>
-                            <div className="space-y-4">
-                                <a href={`tel:${cleanPhoneNumber(listing.whatsappNumber || (listing.owner?.phonePrefix + listing.owner?.phoneNumber))}`} className="w-full btn-primary block py-3 text-center">Call Host</a>
-                                <a href={`https://wa.me/${cleanPhoneNumber(listing.whatsappNumber || (listing.owner?.phonePrefix + listing.owner?.phoneNumber))}`} target="_blank" className="w-full bg-[#25D366] text-white py-3 rounded-xl font-bold block text-center">WhatsApp Message</a>
-                            </div>
-                            <div className="text-center">
-                                <button className="text-text-secondary text-sm underline">Report this listing</button>
-                            </div>
+                            <ListingQRCode
+                                listingId={listing._id}
+                                listingTitle={listing.title}
+                                scanCount={listing.scanCount || 0}
+                                compact
+                            />
                         </div>
                     </aside>
                 </div>
